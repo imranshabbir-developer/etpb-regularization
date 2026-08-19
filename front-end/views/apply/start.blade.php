@@ -16,6 +16,10 @@
         </p>
     </div>
 
+    <div class="soft-panel">
+        <p><strong>This form is simple.</strong> It has six short steps, your progress is saved automatically between steps, and you can come back later if you need more time.</p>
+    </div>
+
     @if ($inProgress->isNotEmpty())
         <div class="card">
             <div class="card-head"><h3>You have an application in progress</h3></div>

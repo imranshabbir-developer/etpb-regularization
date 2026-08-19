@@ -13,8 +13,12 @@
     <p class="lede">
         {{ auth()->user()->primaryRole()?->name }}
         @if (auth()->user()->district) &middot; {{ auth()->user()->district->name }} @endif
-        &middot; what is on your desk today
+        &middot; your work for today
     </p>
+</div>
+
+<div class="soft-panel">
+    <p><strong>Start with the cards below.</strong> Each card opens a work queue. Open the first item that needs attention and process it step by step.</p>
 </div>
 
 {{-- ---------- Work, not statistics: each tile is a link to the work ---------- --}}
@@ -35,7 +39,7 @@
     <div>
         <div class="card">
             <div class="card-head">
-                <h3>Recently touched</h3>
+                <h3>Recent applications</h3>
                 <div class="card-actions">
                     <a href="{{ route('applications.index') }}" class="btn btn-outline btn-sm">All applications</a>
                 </div>
@@ -77,7 +81,7 @@
 
     <div>
         <div class="card">
-            <div class="card-head"><h3>Caseload</h3></div>
+            <div class="card-head"><h3>Applications by stage</h3></div>
             <div class="card-body">
                 @if ($byStatus->isEmpty())
                     <p class="muted mb-0">No applications yet.</p>
@@ -94,7 +98,7 @@
         </div>
 
         <div class="card">
-            <div class="card-head"><h3>The two clocks</h3></div>
+            <div class="card-head"><h3>Important deadlines</h3></div>
             <div class="card-body">
                 <dl class="kv">
                     <dt>Assessment</dt>

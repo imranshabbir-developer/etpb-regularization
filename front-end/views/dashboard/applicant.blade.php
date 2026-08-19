@@ -15,13 +15,17 @@
     </p>
 </div>
 
+<div class="soft-panel">
+    <p><strong>This page shows what needs your attention.</strong> If something is missing, unpaid, or waiting for you, you will see it first. If nothing is needed from you, your case is already with the department.</p>
+</div>
+
 {{-- ---------- Anything waiting on the applicant comes first ---------- --}}
 @forelse ($actions as $action)
     <div class="alert alert-{{ $action['tone'] }}">
         @include('partials.icon', ['name' => 'alert'])
         <div class="flex flex-wrap items-center gap-3 w-full">
             <div class="min-w-0 flex-1">
-                <strong>{{ $action['title'] }}</strong>
+                    <strong>{{ $action['title'] }}</strong>
                 <p class="mb-0">
                     {{ $action['body'] }}
                     <span class="faint">({{ $action['app']->application_no }})</span>

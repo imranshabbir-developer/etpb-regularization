@@ -16,7 +16,7 @@
 </button>
 
 <section class="help-panel no-print" id="helpPanel" hidden aria-label="Scheme help">
-    <header class="help-head pk-stripe">
+    <header class="help-head">
         <div>
             <strong>Scheme help</strong>
             <span>Regularization of Possession</span>

@@ -73,15 +73,15 @@
 /* Semantic surfaces flip between light and dark. Everything else is fixed. */
 :root {
   --surface:        #FFFFFF;
-  --surface-sunken: #F7FAF9;
+  --surface-sunken: #FAFCFB;
   --surface-raised: #FFFFFF;
-  --border-c:       #DEE6E2;
-  --border-strong:  #C2CDC8;
+  --border-c:       #E6EEEA;
+  --border-strong:  #D3DFD9;
   --text-c:         #10201A;
   --text-muted:     #4C5F58;
-  --text-faint:     #5F706A;
-  --tint:           #F1F8F4;
-  --tint-100:       #DCEFE4;
+  --text-faint:     #6A7B74;
+  --tint:           #F7FBF8;
+  --tint-100:       #EAF4EE;
   --stripe-w:       6px;
 }
 
@@ -206,8 +206,8 @@
   }
   .brand-cell {
     grid-area: brand;
-    @apply bg-pk-900 flex items-center gap-3 pe-4 border-e border-white/10;
-    padding-inline-start: calc(var(--stripe-w) + .9rem);
+    @apply bg-pk-800 flex items-center gap-3 px-4 border-e;
+    border-color: rgba(255, 255, 255, .08);
   }
   .brand-mark { @apply w-[34px] h-[34px] shrink-0 grid place-items-center bg-pk-700 rounded-lg ring-1 ring-inset ring-white/20; }
   .brand-mark svg { @apply w-[21px] h-[21px] block; }
@@ -224,19 +224,23 @@
   .topbar-title  { @apply font-semibold text-base m-0 min-w-0 truncate; }
   .topbar-spacer { @apply ms-auto; }
 
-  .sidebar { grid-area: sidebar; @apply bg-pk-900 pt-4 pb-8 overflow-y-auto; }
+  .sidebar {
+    grid-area: sidebar;
+    background: linear-gradient(180deg, #0E4E2B 0%, #0B4325 100%);
+    @apply pt-4 pb-8 overflow-y-auto;
+  }
   .sidebar-group { @apply pt-1 pb-3; }
   .sidebar-group h6 {
     @apply m-0 mb-1 pe-4 text-[.72rem] font-bold uppercase tracking-[.12em] text-pk-400;
-    padding-inline-start: calc(var(--stripe-w) + .95rem);
+    padding-inline-start: 1rem;
   }
   .nav-link {
     @apply flex items-center gap-2.5 py-2 pe-4 text-[.875rem] text-pk-100
            border-s-[3px] border-transparent transition-colors
            hover:bg-white/10 hover:text-white hover:no-underline;
-    padding-inline-start: calc(var(--stripe-w) + .95rem);
+    padding-inline-start: 1rem;
   }
-  .nav-link.is-active { @apply bg-white/10 text-white border-s-gold-500 font-semibold; }
+  .nav-link.is-active { @apply bg-white/12 text-white border-s-white font-semibold; }
   .nav-link svg { @apply w-[17px] h-[17px] shrink-0 opacity-85; }
   .nav-badge { @apply ms-auto bg-gold-500 text-pk-950 text-[.68rem] font-bold px-1.5 rounded-full; }
 
@@ -251,12 +255,13 @@
   .card {
     background-color: var(--surface-raised);
     border-color: var(--border-c);
-    @apply border rounded-xl shadow-sm;
+    box-shadow: 0 8px 24px rgba(16, 32, 26, .04);
+    @apply border rounded-2xl;
   }
   .card + .card { @apply mt-[1.15rem]; }
   .card-head {
     border-color: var(--border-c);
-    @apply flex items-center gap-3 px-[1.15rem] py-[.9rem] border-b;
+    @apply flex items-center gap-3 px-[1.15rem] py-[1rem] border-b;
   }
   .card-head h2, .card-head h3 { @apply m-0 text-base; }
   .card-head .card-actions { @apply ms-auto flex gap-2; }
@@ -274,9 +279,10 @@
   .tile {
     background-color: var(--surface-raised);
     border-color: var(--border-c);
-    @apply relative overflow-hidden border rounded-xl px-[1.1rem] py-4 shadow-sm;
+    box-shadow: 0 8px 24px rgba(16, 32, 26, .035);
+    @apply relative overflow-hidden border rounded-2xl px-[1.1rem] py-4;
   }
-  .tile::after { content: ""; @apply absolute inset-y-0 start-0 w-[3px] bg-pk-600; }
+  .tile::after { content: ""; @apply absolute inset-y-0 start-0 w-[3px] bg-pk-500; }
   .tile.is-warn::after   { @apply bg-warn-600; }
   .tile.is-danger::after { @apply bg-danger-600; }
   .tile.is-gold::after   { @apply bg-gold-500; }
@@ -375,7 +381,7 @@
   .btn-primary { @apply bg-pk-800 text-white hover:bg-pk-700 hover:text-white; }
   .btn-outline {
     border-color: var(--border-strong);
-    @apply bg-transparent text-pk-700 dark:text-pk-200
+    @apply bg-white text-pk-700 dark:text-pk-200
            hover:bg-pk-50 hover:border-pk-500 hover:text-pk-800
            dark:hover:bg-pk-900 dark:hover:text-white;
   }
@@ -500,6 +506,27 @@
     color: var(--text-faint);
     @apply mt-10 pt-4 border-t text-[.78rem] flex flex-wrap gap-x-5 gap-y-2 items-center;
   }
+
+  .soft-panel {
+    background: linear-gradient(180deg, #FCFEFD 0%, #F7FBF8 100%);
+    border: 1px solid var(--border-c);
+    @apply rounded-2xl px-4 py-3 mb-4;
+  }
+  .soft-panel p { @apply mb-0 text-[.9rem]; color: var(--text-muted); }
+  .soft-panel strong { color: var(--text-c); }
+
+  .section-links { @apply flex flex-wrap gap-2; }
+  .section-link {
+    background-color: var(--surface);
+    border: 1px solid var(--border-c);
+    color: var(--text-c);
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-2 text-[.82rem] no-underline;
+  }
+  .section-link:hover {
+    background-color: var(--tint);
+    color: var(--text-c);
+    text-decoration: none;
+  }
   .flag-key { @apply inline-flex items-center gap-1.5; }
   .flag-key i {
     border-color: var(--border-strong);
@@ -528,6 +555,9 @@
 
   .topbar-user { @apply hidden sm:flex items-center gap-2 min-w-0; }
   .topbar-name { @apply text-[.85rem] truncate max-w-[10rem]; }
+
+  /* Cross-page usability: important content should not hide under the sticky topbar. */
+  [id] { scroll-margin-top: 84px; }
 
   /* ---- help widget ------------------------------------------------------ */
 
@@ -670,6 +700,22 @@
   }
   .scrim.is-open { opacity: 1; pointer-events: auto; }
   .main { padding: 1rem; padding-bottom: 5.5rem; }
+  .page-head h1 { font-size: 1.25rem; }
+  .page-head .lede { font-size: .88rem; }
+  .card-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .card-head .card-actions {
+    margin-inline-start: 0;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .tile-value { font-size: 1.45rem; }
+  .help-launcher { bottom: .8rem; inset-inline-end: .8rem; }
+  .appfoot { padding-bottom: .5rem; }
 
   /* The topbar carries an icon, the page heading and the account controls in a
      single 62px row. On a phone the heading alone can be wider than the screen,
@@ -693,6 +739,21 @@
     min-height: 2.2rem;
   }
   table.data td a { padding-block: .15rem; }
+  .kv { grid-template-columns: 1fr; }
+  .kv dt { font-weight: 600; }
+  .kv dd { margin-bottom: .5rem; }
+}
+
+@media (max-width: 480px) {
+  .topbar { padding-inline: .6rem; }
+  .topbar-title { max-width: 42vw; }
+  .main { padding: .8rem; padding-bottom: 5.25rem; }
+  .card-body, .card-head, .card-foot { padding-left: .8rem; padding-right: .8rem; }
+  table.data { font-size: .82rem; }
+  .btn-row > .btn { width: 100%; justify-content: center; }
+  .tile { padding: .85rem; }
+  .tile-sub { font-size: .76rem; }
+  .help-panel { height: 88vh; }
 }
 
 @media (min-width: 861px) {

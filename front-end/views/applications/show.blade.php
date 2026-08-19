@@ -34,8 +34,13 @@
         </div>
     </div>
 
+    <div class="soft-panel">
+        <p><strong>This is the main case page.</strong> Use the quick links below to open documents, deposit, rent assessment, objections, litigation, arrears, completion, and reports for this application.</p>
+    </div>
+
     {{-- ---------- Module navigation ---------- --}}
     <div class="card">
+        <div class="card-head"><h3>Open a section</h3></div>
         <div class="card-body tight">
             <div class="btn-row">
                 @can('do', 'documents.view')
@@ -297,8 +302,11 @@
         <div>
             {{-- ---------- Actions ---------- --}}
             <div class="card">
-                <div class="card-head"><h3>Next action</h3></div>
+                <div class="card-head"><h3>What can happen next</h3></div>
                 <div class="card-body">
+                    <p class="hint mt-0">
+                        Available actions are enabled below. If an action is blocked, the system explains why.
+                    </p>
                     @forelse ($nextStates as $state)
                         <form method="POST" action="{{ route('applications.transition', $a) }}" class="mb-0">
                             @csrf
@@ -306,7 +314,7 @@
 
                             @if ($state['check']['allowed'])
                                 <div class="field">
-                                    <label for="remarks_{{ $state['to'] }}">Remarks</label>
+                                    <label for="remarks_{{ $state['to'] }}">Remarks (optional unless office policy requires them)</label>
                                     <textarea id="remarks_{{ $state['to'] }}" name="remarks" class="textarea"
                                               style="min-height:64px" maxlength="2000"></textarea>
                                 </div>
@@ -342,7 +350,7 @@
             {{-- ---------- Arrears ---------- --}}
             <div class="card">
                 <div class="card-head">
-                    <h3>Arrears</h3>
+                    <h3>Arrears summary</h3>
                     <div class="card-actions"><span class="clause">Clause 3(ii)(b)</span></div>
                 </div>
                 <div class="card-body">
@@ -362,8 +370,8 @@
 
             {{-- ---------- Evidence ---------- --}}
             <div class="card">
-                <div class="card-head">
-                    <h3>Evidence of possession</h3>
+                    <div class="card-head">
+                        <h3>Evidence checklist</h3>
                     <span class="badge badge-neutral">{{ $a->documents->count() }}</span>
                 </div>
                 <div class="card-body tight">
@@ -426,7 +434,7 @@
 
             {{-- ---------- History ---------- --}}
             <div class="card">
-                <div class="card-head"><h3>Case history</h3></div>
+                    <div class="card-head"><h3>Case timeline</h3></div>
                 <div class="card-body">
                     <ul class="timeline">
                         @foreach ($a->history as $h)

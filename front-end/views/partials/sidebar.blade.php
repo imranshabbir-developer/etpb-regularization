@@ -50,7 +50,7 @@
         ];
 @endphp
 
-<nav class="sidebar pk-stripe" id="sidebar" aria-label="Main navigation">
+<nav class="sidebar" id="sidebar" aria-label="Main navigation">
 
     <div class="sidebar-mobile-head">
         <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>

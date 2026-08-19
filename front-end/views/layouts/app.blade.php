@@ -4,19 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="color-scheme" content="light dark">
+    <meta name="color-scheme" content="light">
     <title>@yield('title', 'Dashboard') — Regularization of Possession | ETPB</title>
     <link rel="icon" href="{{ asset('assets/img/favicon.svg') }}" type="image/svg+xml">
 
-    {{-- Applied before paint so the page never flashes the wrong theme. --}}
+    {{-- Keep a fixed light presentation for demo consistency. --}}
     <script>
         (function () {
-            try {
-                var t = localStorage.getItem('etpb-theme');
-                if (t === 'dark' || t === 'light') {
-                    document.documentElement.setAttribute('data-theme', t);
-                }
-            } catch (e) { /* private browsing */ }
+            document.documentElement.setAttribute('data-theme', 'light');
+            try { localStorage.setItem('etpb-theme', 'light'); } catch (e) { /* ignore */ }
         })();
     </script>
 
@@ -27,8 +23,8 @@
 
 <div class="shell">
 
-    {{-- Brand block. The white hoist band is the flag's minority stripe. --}}
-    <div class="brand-cell pk-stripe">
+    {{-- Brand block for portal identity. --}}
+    <div class="brand-cell">
         <a href="{{ route('dashboard') }}" class="brand-link">
             <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>
             <span class="brand-text">
@@ -47,12 +43,6 @@
         <h2 class="topbar-title">@yield('heading', 'Dashboard')</h2>
 
         <div class="topbar-spacer"></div>
-
-        <button type="button" class="btn btn-ghost btn-sm theme-toggle" id="themeToggle"
-                aria-label="Switch between light and dark" title="Switch between light and dark">
-            <span class="theme-icon-light">@include('partials.icon', ['name' => 'sun'])</span>
-            <span class="theme-icon-dark">@include('partials.icon', ['name' => 'moon'])</span>
-        </button>
 
         @auth
             <div class="topbar-user">
@@ -98,13 +88,9 @@
         @yield('content')
 
         <footer class="appfoot">
-            <span class="flag-key">
-                <i aria-hidden="true"></i>
-                The white band of the flag stands for Pakistan&rsquo;s religious minorities,
-                whose properties this Board holds in trust.
-            </span>
-            <span class="topbar-spacer"></span>
             <span>Scheme for the Management and Disposal of Urban Evacuee Trust Properties, 1977</span>
+            <span class="topbar-spacer"></span>
+            <span>Regularization of Possession Portal</span>
         </footer>
     </main>
 </div>
@@ -149,22 +135,6 @@
         if (e.key === 'Escape') setNav(false);
     });
 
-    // ---- light / dark -----------------------------------------------------
-    var themeBtn = document.getElementById('themeToggle');
-
-    function currentTheme() {
-        var set = document.documentElement.getAttribute('data-theme');
-        if (set) return set;
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    if (themeBtn) {
-        themeBtn.addEventListener('click', function () {
-            var next = currentTheme() === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            try { localStorage.setItem('etpb-theme', next); } catch (e) { /* ignore */ }
-        });
-    }
 })();
 </script>
 @stack('scripts')
