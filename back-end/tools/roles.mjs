@@ -17,6 +17,13 @@ export const ROLES = {
         email: 'demo.applicant@example.com', password: 'Demo#Portal2026',
         pages: ['/dashboard', '/apply', '/apply/about-you', '/apply/property', '/apply/possession', '/my-applications'],
     },
+    // Someone who has not applied yet. The dashboard and "my applications" take
+    // a different path for them — the empty state that a first-time member of
+    // the public actually meets — and nothing else here exercises it.
+    newApplicant: {
+        email: 'imran.shabbir@example.com', password: 'Imran@Portal2026',
+        pages: ['/dashboard', '/my-applications', '/apply', '/apply/about-you'],
+    },
     dealing: {
         email: 'da.lhr@etpb.gov.pk',
         pages: ['/dashboard', '/applications', '/apply'],

@@ -77,6 +77,21 @@ at first sign-in.
 
 **Password: `Etpb@2026#Change`**
 
+### Public applicant accounts
+
+Members of the public, not officers. Use these to see the citizen-facing side of
+the portal without registering first. They choose their own password when they
+register, so these are not forced to change.
+
+| Email | Password | Who |
+|---|---|---|
+| `imran.shabbir@example.com` | `Imran@Portal2026` | Imran Shabbir s/o Shabbir Hussain, Awan Town, Lahore |
+| `demo.applicant@example.com` | `Demo#Portal2026` | Demo Applicant, with a regularized case to look at |
+
+Both are created by `ApplicantAccountSeeder`, which also records their
+particulars — name, parentage, CNIC and postal address — so the application
+wizard offers those details back instead of asking for them again.
+
 These are commissioning credentials, not production ones — the password is in
 this file, and therefore in the repository, precisely because it is meant to be
 replaced. A fresh installation forces the change at first sign-in. Before the

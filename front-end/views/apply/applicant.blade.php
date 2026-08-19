@@ -22,7 +22,7 @@
                     <label for="full_name">Your full name <span class="req">*</span></label>
                     <input type="text" id="full_name" name="full_name"
                            class="input @error('full_name') is-invalid @enderror"
-                           value="{{ old('full_name', $draft['applicant']['full_name'] ?? auth()->user()->name) }}"
+                           value="{{ old('full_name', $draft['applicant']['full_name'] ?? $profile?->full_name ?? auth()->user()->name) }}"
                            required maxlength="150" autofocus>
                     @error('full_name')<p class="error-text">{{ $message }}</p>@enderror
                 </div>
@@ -30,7 +30,7 @@
                 <div class="field">
                     <label for="cnic">CNIC <span class="req">*</span></label>
                     <input type="text" id="cnic" name="cnic" class="input @error('cnic') is-invalid @enderror"
-                           value="{{ old('cnic', $draft['applicant']['cnic'] ?? auth()->user()->cnic) }}"
+                           value="{{ old('cnic', $draft['applicant']['cnic'] ?? $profile?->cnic ?? auth()->user()->cnic) }}"
                            required inputmode="numeric" pattern="[0-9]{13}" maxlength="13"
                            placeholder="3520112345671">
                     <p class="hint">13 digits, without dashes.</p>
@@ -41,10 +41,10 @@
                     <div class="field">
                         <label for="parentage_type">You are the <span class="req">*</span></label>
                         <select id="parentage_type" name="parentage_type" class="select">
-                            <option value="FATHER" @selected(old('parentage_type', $draft['applicant']['parentage_type'] ?? 'FATHER') === 'FATHER')>
+                            <option value="FATHER" @selected(old('parentage_type', $draft['applicant']['parentage_type'] ?? $profile?->parentage_type ?? 'FATHER') === 'FATHER')>
                                 son or daughter of
                             </option>
-                            <option value="HUSBAND" @selected(old('parentage_type', $draft['applicant']['parentage_type'] ?? '') === 'HUSBAND')>
+                            <option value="HUSBAND" @selected(old('parentage_type', $draft['applicant']['parentage_type'] ?? $profile?->parentage_type ?? '') === 'HUSBAND')>
                                 wife of
                             </option>
                         </select>
@@ -54,7 +54,7 @@
                         <label for="parentage_name">Their name <span class="req">*</span></label>
                         <input type="text" id="parentage_name" name="parentage_name"
                                class="input @error('parentage_name') is-invalid @enderror"
-                               value="{{ old('parentage_name', $draft['applicant']['parentage_name'] ?? '') }}"
+                               value="{{ old('parentage_name', $draft['applicant']['parentage_name'] ?? $profile?->parentage_name ?? '') }}"
                                required maxlength="150">
                         @error('parentage_name')<p class="error-text">{{ $message }}</p>@enderror
                     </div>
@@ -63,7 +63,7 @@
                         <label for="contact">Mobile number <span class="req">*</span></label>
                         <input type="tel" id="contact" name="contact"
                                class="input @error('contact') is-invalid @enderror"
-                               value="{{ old('contact', $draft['applicant']['contact'] ?? auth()->user()->contact) }}"
+                               value="{{ old('contact', $draft['applicant']['contact'] ?? $profile?->contact ?? auth()->user()->contact) }}"
                                required maxlength="20" placeholder="0300-1234567">
                         <p class="hint">We will use this to reach you about your application.</p>
                         @error('contact')<p class="error-text">{{ $message }}</p>@enderror
@@ -72,7 +72,7 @@
                     <div class="field">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" class="input"
-                               value="{{ old('email', $draft['applicant']['email'] ?? auth()->user()->email) }}"
+                               value="{{ old('email', $draft['applicant']['email'] ?? $profile?->email ?? auth()->user()->email) }}"
                                maxlength="150">
                     </div>
                 </div>
@@ -81,7 +81,7 @@
                     <label for="postal_address">Your postal address <span class="req">*</span></label>
                     <textarea id="postal_address" name="postal_address"
                               class="textarea @error('postal_address') is-invalid @enderror"
-                              required maxlength="500">{{ old('postal_address', $draft['applicant']['postal_address'] ?? '') }}</textarea>
+                              required maxlength="500">{{ old('postal_address', $draft['applicant']['postal_address'] ?? $profile?->postal_address ?? '') }}</textarea>
                     <p class="hint">Where notices should be sent, if different from the property.</p>
                     @error('postal_address')<p class="error-text">{{ $message }}</p>@enderror
                 </div>
@@ -92,7 +92,7 @@
                         <option value="">Select a district</option>
                         @foreach ($districts as $d)
                             <option value="{{ $d->id }}"
-                                @selected((int) old('address_district_id', $draft['applicant']['address_district_id'] ?? 0) === $d->id)>
+                                @selected((int) old('address_district_id', $draft['applicant']['address_district_id'] ?? $profile?->address_district_id ?? 0) === $d->id)>
                                 {{ $d->name }}
                             </option>
                         @endforeach

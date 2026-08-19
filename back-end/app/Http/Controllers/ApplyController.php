@@ -86,6 +86,12 @@ class ApplyController extends Controller
         return view('apply.applicant', $this->chrome(1, [
             'draft'     => $this->draft($request),
             'districts' => District::orderBy('name')->get(['id', 'name']),
+            // Particulars already on file for this person, from an earlier
+            // application or from the account itself. Offered back rather than
+            // asking someone to type again what the Board already holds; the
+            // draft still wins, so anything typed in this sitting is kept.
+            'profile'   => Applicant::where('user_id', $request->user()->id)
+                               ->latest('id')->first(),
         ]));
     }
 

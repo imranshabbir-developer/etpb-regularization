@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             GeographySeeder::class,
             RolePermissionSeeder::class,
             UserSeeder::class,
+            ApplicantAccountSeeder::class,
         ]);
     }
 }

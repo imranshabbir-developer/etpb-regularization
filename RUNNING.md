@@ -67,11 +67,24 @@ Every account below uses the **same password**.
 | `legal.lhr@etpb.gov.pk` | Legal Officer | Court cases, stay orders |
 | `audit@etpb.gov.pk` | Auditor | Read-only |
 
-There is also a public applicant account for showing the citizen-facing side:
+### Public applicants
 
-| Email | Password |
-|---|---|
-| `demo.applicant@example.com` | `Demo#Portal2026` |
+These are members of the public rather than officers, for showing the
+citizen-facing side of the portal.
+
+| Email | Password | Who they are | What you will see |
+|---|---|---|---|
+| `imran.shabbir@example.com` | `Imran@Portal2026` | Imran Shabbir s/o Shabbir Hussain, Awan Town, Lahore | Has not applied yet — the onboarding a first-time visitor meets |
+| `demo.applicant@example.com` | `Demo#Portal2026` | Demo Applicant | A regularized case, with rent, arrears and progress |
+
+Their particulars are on file, so starting an application offers those details
+back rather than asking for them again. Both come from
+`ApplicantAccountSeeder`, so a fresh installation has them too:
+
+```bash
+cd back-end
+php artisan db:seed --class=ApplicantAccountSeeder
+```
 
 ---
 
