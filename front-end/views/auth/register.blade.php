@@ -10,7 +10,7 @@
 <body>
 <div class="auth-page">
 
-    <aside class="auth-aside pk-stripe">
+    <aside class="auth-aside">
         <div style="display:flex;align-items:center;gap:.7rem;position:relative;z-index:1">
             <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>
             <span class="brand-text">
@@ -19,9 +19,17 @@
             </span>
         </div>
 
-        <svg class="auth-crescent" viewBox="0 0 200 200" fill="#fff" aria-hidden="true">
-            <path d="M132 100a58 58 0 1 1-38-54.5 46 46 0 1 0 0 109A58 58 0 0 1 132 100z"/>
-            <path d="m146 66 6.6 14.6 15.9 1.9-11.8 10.8 3.2 15.7L146 101.4 132.1 109l3.2-15.7-11.8-10.8 15.9-1.9z"/>
+        <svg class="auth-lines" viewBox="0 0 800 800" preserveAspectRatio="none" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-linecap="round">
+                <path d="M0 640 Q180 560 360 610 T800 520" stroke-width="2"/>
+                <path d="M0 700 Q200 620 380 675 T800 600" stroke-width="1.5"/>
+                <path d="M120 800 Q260 700 460 740 T800 680" stroke-width="1.2"/>
+                <path d="M420 0 Q560 120 510 290 T650 640" stroke-width="1.5"/>
+                <path d="M500 0 Q620 150 590 315 T740 760" stroke-width="1.1"/>
+                <circle cx="510" cy="290" r="6" stroke-width="1.4"/>
+                <circle cx="590" cy="315" r="5" stroke-width="1.2"/>
+                <circle cx="650" cy="640" r="6" stroke-width="1.4"/>
+            </g>
         </svg>
 
         <div class="auth-aside-body">
@@ -36,9 +44,7 @@
                 banker&rsquo;s cheque or demand draft in favour of Chairman ETPB.
             </p>
             <div class="auth-legal">
-                The white band of the national flag stands for Pakistan&rsquo;s religious
-                minorities. The properties administered through this system are held in trust
-                for those communities.
+                A secure digital portal for regularization cases, records, and statutory workflow.
             </div>
         </div>
     </aside>

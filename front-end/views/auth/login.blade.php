@@ -8,11 +8,10 @@
     @vite(['resources/css/app.css'])
 </head>
 <body>
-<div class="auth-page">
+<div class="auth-page auth-page-login">
 
-    {{-- Splash. The wider white band at the hoist is the flag's minority stripe. --}}
-    <aside class="auth-aside pk-stripe">
-        <div style="display:flex;align-items:center;gap:.7rem;position:relative;z-index:1">
+    <aside class="auth-aside">
+        <div class="auth-aside-brand">
             <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>
             <span class="brand-text">
                 <strong>Evacuee Trust Property Board</strong>
@@ -20,29 +19,22 @@
             </span>
         </div>
 
-        {{-- Crescent and star, held back to a watermark. --}}
-        <svg class="auth-crescent" viewBox="0 0 200 200" fill="#fff" aria-hidden="true">
-            <path d="M132 100a58 58 0 1 1-38-54.5 46 46 0 1 0 0 109A58 58 0 0 1 132 100z"/>
-            <path d="m146 66 6.6 14.6 15.9 1.9-11.8 10.8 3.2 15.7L146 101.4 132.1 109l3.2-15.7-11.8-10.8 15.9-1.9z"/>
-        </svg>
+        <div class="auth-aside-hero">
+            <h2 class="auth-hero-title">Regularization of Possession</h2>
+        </div>
 
-        <div class="auth-aside-body">
-            <h2>Regularization of Possession</h2>
+        <div class="auth-aside-footer">
             <p>
                 Applications by existing occupants of urban evacuee trust properties to be
                 treated as tenants under Clause 3(ii) of the Scheme for the Management and
                 Disposal of Urban Evacuee Trust Properties, 1977.
             </p>
-            <div class="auth-legal">
-                The white band of the national flag stands for Pakistan&rsquo;s religious
-                minorities. The properties administered through this system are held in trust
-                for those communities.
-            </div>
+            <div class="auth-legal">A secure digital portal for regularization workflow.</div>
         </div>
     </aside>
 
     <main class="auth-main">
-        <div class="auth-card">
+        <div class="auth-card auth-card-login">
             <h1>Sign in</h1>
             <p class="lede">Use the official credentials issued by your district office.</p>
 

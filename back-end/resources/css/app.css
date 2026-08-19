@@ -469,23 +469,82 @@
 
   /* ---- auth screen ------------------------------------------------------ */
 
-  .auth-page { background-color: var(--surface); @apply min-h-screen grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr]; }
+  .auth-page {
+    background-color: var(--surface);
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
+    @apply grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr];
+  }
   .auth-aside {
-    @apply hidden lg:flex flex-col relative overflow-hidden text-white px-[3.2rem] py-12;
+    @apply hidden lg:flex flex-col relative overflow-hidden text-white px-[3rem] py-8;
     background:
       radial-gradient(120% 90% at 15% 0%, var(--color-pk-700) 0%, transparent 55%),
       linear-gradient(160deg, var(--color-pk-800) 0%, var(--color-pk-950) 100%);
   }
-  .auth-aside::before { width: 10px; }
+  .auth-aside::before { display: none; }
   .auth-aside-body { @apply mt-auto max-w-[460px] relative z-[1]; }
   .auth-aside h2 { @apply text-3xl text-white mb-2.5; }
   .auth-aside p  { @apply text-pk-200 text-[.95rem]; }
-  .auth-crescent { @apply absolute -end-[60px] top-1/2 -translate-y-1/2 w-[340px] h-[340px] opacity-[.07]; }
+  .auth-lines {
+    @apply absolute inset-0 w-full h-full opacity-[.18] pointer-events-none;
+    color: #8bc9a5;
+  }
   .auth-legal    { @apply mt-8 pt-4 border-t border-white/15 text-[.78rem] text-pk-200; }
-  .auth-main     { @apply grid place-items-center px-6 py-8; }
+  .auth-main     { @apply grid items-start px-6; padding-top: clamp(.5rem, 1.6vh, 1rem); padding-bottom: .5rem; }
   .auth-card     { @apply w-full max-w-[400px]; }
   .auth-card h1  { @apply text-[1.4rem] mb-1; }
   .auth-card .lede { @apply text-[.9rem] mb-6; color: var(--text-muted); }
+  .auth-card .field { @apply mb-3; }
+  .auth-card .divider { @apply my-4; }
+  .auth-card-login { margin-top: 0; }
+  .auth-card-login .lede { margin-bottom: .9rem; }
+  .auth-card-login .field { margin-bottom: .75rem; }
+  .auth-card-login .btn.btn-lg { padding-top: .55rem; padding-bottom: .55rem; }
+  .auth-card-login .divider { margin-top: .8rem; margin-bottom: .8rem; }
+  .auth-card-login .alert { margin-bottom: .65rem; padding-top: .55rem; padding-bottom: .55rem; }
+  .auth-page-login .auth-aside-brand {
+    @apply flex items-center gap-3 relative z-[1] shrink-0;
+  }
+  .auth-page-login .auth-aside-hero {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-inline: auto;
+    max-width: 620px;
+    width: 100%;
+    text-align: center;
+    padding: 1rem 0;
+  }
+  .auth-page-login .auth-aside-footer {
+    flex: 0 0 auto;
+    margin-inline: auto;
+    max-width: 720px;
+    width: 100%;
+    text-align: center;
+    padding-bottom: .5rem;
+  }
+  .auth-page-login .auth-main {
+    @apply grid place-items-center px-6;
+    height: 100%;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .auth-hero-title {
+    font-family: "Trebuchet MS", "Segoe UI", "Noto Sans", sans-serif;
+    font-size: clamp(2.85rem, 5.2vw, 4rem) !important;
+    line-height: 1.05;
+    letter-spacing: .6px;
+    font-weight: 700;
+    text-shadow:
+      0 0 10px rgba(142, 227, 178, .22),
+      0 0 24px rgba(142, 227, 178, .16),
+      0 2px 10px rgba(0, 0, 0, .22);
+  }
+  .auth-page-login .auth-hero-title { margin-bottom: 0; }
+  .auth-page-login .auth-aside-footer p { margin-bottom: 0; font-size: .88rem; line-height: 1.55; }
+  .auth-page-login .auth-legal { margin-top: .85rem; padding-top: .75rem; }
 
   /* ---- misc ------------------------------------------------------------- */
 
