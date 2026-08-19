@@ -9,6 +9,38 @@ The full design rationale, schema reasoning, statutory mapping and roadmap are i
 
 ---
 
+## Setting it up from a clone
+
+Dependencies are not committed; `composer install` and `npm install` restore
+them. Requires PHP 8.4, MySQL 8 and Node 20 or later.
+
+```bash
+git clone https://github.com/imranshabbir-developer/etpb-regularization.git
+cd etpb-regularization/back-end
+
+composer install
+npm install
+
+cp .env.example .env          # then set DB_PASSWORD
+php artisan key:generate
+
+php artisan migrate --seed    # schema, reference data and the eight accounts
+npm run build                 # compiles Tailwind and the front-end assets
+```
+
+`.env.example` documents every setting the system takes, including the fifteen
+`ETPB_*` scheme constants and the clause each one comes from. The real `.env` is
+not in the repository: it carries the database password and the application key.
+
+To load the demonstration data — 27 applications across 7 districts, spread over
+every stage of the workflow — add:
+
+```bash
+php artisan db:seed --class=DemoDataSeeder
+```
+
+---
+
 ## Running it
 
 The application is served on **its own port**, not under `htdocs`:
@@ -45,8 +77,11 @@ at first sign-in.
 
 **Password: `Etpb@2026#Change`**
 
-These are commissioning credentials, not production ones. Delete or disable the
-unused accounts before the system carries real cases.
+These are commissioning credentials, not production ones — the password is in
+this file, and therefore in the repository, precisely because it is meant to be
+replaced. A fresh installation forces the change at first sign-in. Before the
+system carries real cases, change every one of them and delete or disable the
+accounts that are not needed.
 
 ---
 
