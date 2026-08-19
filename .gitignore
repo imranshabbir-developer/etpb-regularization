@@ -1,0 +1,70 @@
+#==============================================================================
+# Regularization of Possession — Evacuee Trust Property Board
+#
+# back-end/.gitignore carries Laravel's own rules; this file covers the
+# workspace as a whole.
+#==============================================================================
+
+# ---- secrets -----------------------------------------------------------------
+# .env holds the database password and the application key. .env.example is
+# committed in its place and lists every setting the system needs.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+auth.json
+
+# ---- dependencies ------------------------------------------------------------
+# Restored with `composer install` and `npm install`.
+node_modules/
+vendor/
+
+# ---- build output ------------------------------------------------------------
+# Produced by `npm run build`.
+back-end/public/build/
+back-end/public/hot
+back-end/public/storage
+back-end/public/fonts-manifest.dev.json
+
+# ---- runtime -----------------------------------------------------------------
+# Caches, sessions, compiled views and the log.
+back-end/storage/framework/cache/*
+back-end/storage/framework/sessions/*
+back-end/storage/framework/testing/*
+back-end/storage/framework/views/*
+!back-end/storage/framework/**/.gitignore
+back-end/storage/logs/*
+!back-end/storage/logs/.gitignore
+*.log
+back-end/bootstrap/cache/*.php
+.phpunit.result.cache
+back-end/.phpunit.cache/
+
+# ---- applicant data ----------------------------------------------------------
+# Evidence uploaded against an application: a citizen's CNIC, Jamabandi and
+# revenue records. These are held for the Board, never published, and are stored
+# outside the web root for the same reason.
+back-end/storage/app/private/
+back-end/storage/app/public/
+!back-end/storage/app/**/.gitignore
+
+# ---- test artefacts ----------------------------------------------------------
+# Screenshots and findings written by tools/uicheck.mjs and tools/darkcheck.mjs.
+back-end/storage/uicheck/
+
+# ---- editors and operating systems -------------------------------------------
+.idea/
+.vscode/
+.zed/
+.nova/
+.cursor/
+.codex/
+.fleet/
+_ide_helper.php
+.phpactor.json
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~

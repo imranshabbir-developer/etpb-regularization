@@ -1,0 +1,110 @@
+Project / Scheme name will be Regularization of Posession
+===========================
+
+===========================================
+Applicant General Information
+===========================================
+start from filing an application by the applicant for which i need the following detail
+-	name, 
+-	parentage, 
+-	address, 
+-	cnic no., 
+-	contact,
+all above detail will be provided by the applicant
+
+
+then the applicant will provide these informations;
+
+- property no. or sub unit no.(optional),
+ he can enter in the measurements of property / plot / land etc in the following ways (sqft, marlas, kanals, acre) etc 
+- area of land (convert into sqft by system through formulas according to pakistani system)
+- date of possession (prior to 1.1.2010 will be accepted in the system)
+- amount of market rent from 1.7.2000 or from date of possession which ever is earlier, the amount will be be determined by the District Officer - DO) as per Clause-10 of the Scheme 1977 
+
+- we need to get information where property exists like his Mouza, City, Tehsil District, Province)
+
+all above detail will be provided by the applicant
+===========================================
+Evidence of Possession (certified copy):
+===========================================
+-	Jamabandi (Record of Rights) + 
+-	Mutation
+-	Khasra Girdavari
+-	GEO Tagging (Geo Coordinates)
+-	Approved Building Plan
+-	Location Plan
+-	Satellite Imaginary 
+-	Electricity Bill 
+-	SNGPL / SSGPL Bill 
+-	WASA Bill 
+-	Court Order
+-	Affidavit about date of possession and nominee 
+-	Any other supporting document
+all above detail will be provided by the applicant
+===========================================
+Rent Assessment
+===========================================
+-	FBR Rate 
+-	D.C (District Collector) Rate
+-	Nespak / Property valuator rate
+-	Prevailing market rent of the 
+	adjoining properties in same circumstances
+-	Rate determined by Distt. Officer
+-	Particulars of Objectors 
+	and their pleas 
+-	Decision of Distt. Officer
+	(in tabular format from 2000, 
+	2004, 2008, 2012, 2016, 2020, 2024)
+	
+-	Remarks / approval by Administrator
+
+all above detail will be provided by the applicant
+
+-------------------------------------
+Rent offered by the illegal Occupants 
+-------------------------------------
+(in tabular format)
+
+- whether pending before any court of law 
+
+- any restraining order 
+
+- direction case 
+
+it is required that the applicant will deposit an amount of Rs. 5000/- in order to process his application he provided above
+
+	-	Rs. 5000/- banker's cheque / pay order
+		/ demand draft  
+		in favour of Chairman ETPB
+	-	Date of submission
+	-	Amount ?
+	-	Bank and 
+		location and code of Branch
+	-	District 
+	-	applicant name
+	-	cnic
+	-	contact
+
+consolidated / master report / executive for higher authorities
+deep report / each and every element should be included in the report
+	
+	
+
+
+
+	
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+

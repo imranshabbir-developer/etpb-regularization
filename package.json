@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "pdf-to-png-converter": "^4.2.0"
+  }
+}

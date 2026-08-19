@@ -1,0 +1,713 @@
+@import 'tailwindcss';
+
+/* Blade templates live in the sibling front-end/ folder, so Tailwind is told
+   to scan there as well as in the framework's own views. */
+@source '../../../front-end/views/**/*.blade.php';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* Dark mode follows an explicit data-theme attribute when one is set, and the
+   operating system preference otherwise. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* =========================================================================
+   Design tokens
+
+   The palette is the flag of Pakistan:
+
+     Pakistan green  #01411C   the field
+     White           #FFFFFF   the hoist band, which stands for the country's
+                               religious minorities
+
+   The Evacuee Trust Property Board holds these properties in trust for those
+   communities, so the white band is carried through the interface as a real
+   element rather than decoration, and is labelled in the footer.
+
+   Gold follows official seal and letterhead convention and is reserved for
+   statutory markers: clause citations, SLA warnings, order references.
+   ========================================================================= */
+
+@theme {
+  --color-pk-950: #001C0B;
+  --color-pk-900: #012B12;
+  --color-pk-800: #01411C;
+  --color-pk-700: #0A5730;
+  --color-pk-600: #136C3D;
+  --color-pk-500: #1D854D;
+  --color-pk-400: #3AA268;
+  --color-pk-200: #A9D8BC;
+  --color-pk-100: #DCEFE4;
+  --color-pk-50:  #F1F8F4;
+
+  --color-gold-700: #7F6015;
+  --color-gold-600: #A8842A;
+  --color-gold-500: #C6A03C;
+  --color-gold-300: #E3C878;
+  --color-gold-100: #F7EED6;
+
+  --color-ink-900: #10201A;
+  --color-ink-800: #1C302A;
+  --color-ink-700: #33463F;
+  --color-ink-600: #4C5F58;
+  --color-ink-500: #6B7C75;
+  --color-ink-300: #C2CDC8;
+  --color-ink-200: #DEE6E2;
+  --color-ink-100: #EDF2F0;
+  --color-ink-50:  #F7FAF9;
+
+  --color-danger-700: #8C1D18;
+  --color-danger-600: #B3261E;
+  --color-danger-100: #FCEEEC;
+  --color-warn-700:   #7A4E00;
+  --color-warn-600:   #A66B00;
+  --color-warn-100:   #FDF3E2;
+  --color-info-700:   #10456E;
+  --color-info-600:   #1A5C91;
+  --color-info-100:   #E8F1F8;
+
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Noto Sans", Roboto, Arial, sans-serif;
+  --font-urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Segoe UI", sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+}
+
+/* Semantic surfaces flip between light and dark. Everything else is fixed. */
+:root {
+  --surface:        #FFFFFF;
+  --surface-sunken: #F7FAF9;
+  --surface-raised: #FFFFFF;
+  --border-c:       #DEE6E2;
+  --border-strong:  #C2CDC8;
+  --text-c:         #10201A;
+  --text-muted:     #4C5F58;
+  --text-faint:     #5F706A;
+  --tint:           #F1F8F4;
+  --tint-100:       #DCEFE4;
+  --stripe-w:       6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface:        #0E1714;
+    --surface-sunken: #0A1310;
+    --surface-raised: #142019;
+    --border-c:       #24352D;
+    --border-strong:  #33473D;
+    --text-c:         #E8F0EC;
+    --text-muted:     #A7B8B1;
+    --text-faint:     #83978F;
+    --tint:           #10241A;
+    --tint-100:       #163524;
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface:        #0E1714;
+  --surface-sunken: #0A1310;
+  --surface-raised: #142019;
+  --border-c:       #24352D;
+  --border-strong:  #33473D;
+  --text-c:         #E8F0EC;
+  --text-muted:     #A7B8B1;
+  --text-faint:     #83978F;
+  --tint:           #10241A;
+  --tint-100:       #163524;
+}
+
+/* Accent inks for a dark ground.
+   The colour scale itself is deliberately NOT redefined by theme — a button
+   painted bg-pk-800 must stay dark in both themes or its white label breaks.
+   Only text accents are remapped, and only where they are drawn straight onto
+   the page rather than onto a chip that carries its own light ground. */
+:root {
+  --accent-green:  var(--color-pk-700);
+  --accent-danger: var(--color-danger-600);
+  --accent-warn:   var(--color-warn-700);
+  --accent-info:   var(--color-info-700);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --accent-green:  var(--color-pk-400);
+    --accent-danger: #F08A82;
+    --accent-warn:   #E7C165;
+    --accent-info:   #8CC0E4;
+  }
+}
+
+:root[data-theme="dark"] {
+  --accent-green:  var(--color-pk-400);
+  --accent-danger: #F08A82;
+  --accent-warn:   #E7C165;
+  --accent-info:   #8CC0E4;
+}
+
+/* Utilities written straight into the markup cannot carry a dark variant of
+   their own, so they are remapped here rather than edited across every view. */
+:root[data-theme="dark"] .text-pk-800,
+:root[data-theme="dark"] .text-pk-700,
+:root[data-theme="dark"] .text-pk-600 { color: var(--accent-green); }
+:root[data-theme="dark"] .text-danger-600,
+:root[data-theme="dark"] .text-danger-700 { color: var(--accent-danger); }
+:root[data-theme="dark"] .text-warn-700,
+:root[data-theme="dark"] .text-warn-600 { color: var(--accent-warn); }
+:root[data-theme="dark"] .text-info-700,
+:root[data-theme="dark"] .text-info-600 { color: var(--accent-info); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .text-pk-800,
+  :root:not([data-theme="light"]) .text-pk-700,
+  :root:not([data-theme="light"]) .text-pk-600 { color: var(--accent-green); }
+  :root:not([data-theme="light"]) .text-danger-600,
+  :root:not([data-theme="light"]) .text-danger-700 { color: var(--accent-danger); }
+  :root:not([data-theme="light"]) .text-warn-700,
+  :root:not([data-theme="light"]) .text-warn-600 { color: var(--accent-warn); }
+  :root:not([data-theme="light"]) .text-info-700,
+  :root:not([data-theme="light"]) .text-info-600 { color: var(--accent-info); }
+}
+
+@layer base {
+  body {
+    background-color: var(--surface-sunken);
+    color: var(--text-c);
+    @apply font-sans text-[15px] leading-relaxed antialiased m-0;
+  }
+
+  h1 { @apply text-[1.65rem] font-semibold leading-tight tracking-tight mb-2; }
+  h2 { @apply text-[1.3rem] font-semibold leading-tight mb-2; }
+  h3 { @apply text-[1.08rem] font-semibold leading-tight mb-2; }
+  h4 { @apply text-[.97rem] font-semibold leading-tight mb-1; }
+  p  { @apply mb-4; }
+
+  a { @apply text-pk-600 dark:text-pk-400 no-underline hover:text-pk-800 dark:hover:text-pk-200 hover:underline; }
+
+  :focus-visible { @apply outline-2 outline-pk-500 outline-offset-2 rounded-sm; }
+
+  [hidden] { display: none !important; }
+}
+
+@layer components {
+
+  /* ---- the minority band ------------------------------------------------ */
+
+  .pk-stripe { @apply relative; }
+  .pk-stripe::before {
+    content: "";
+    @apply absolute inset-y-0 start-0 bg-white z-[2];
+    width: var(--stripe-w);
+  }
+
+  /* ---- shell ------------------------------------------------------------ */
+
+  .shell {
+    @apply grid min-h-screen;
+    grid-template-columns: 264px 1fr;
+    grid-template-rows: 62px 1fr;
+    grid-template-areas: "brand topbar" "sidebar main";
+  }
+  .brand-cell {
+    grid-area: brand;
+    @apply bg-pk-900 flex items-center gap-3 pe-4 border-e border-white/10;
+    padding-inline-start: calc(var(--stripe-w) + .9rem);
+  }
+  .brand-mark { @apply w-[34px] h-[34px] shrink-0 grid place-items-center bg-pk-700 rounded-lg ring-1 ring-inset ring-white/20; }
+  .brand-mark svg { @apply w-[21px] h-[21px] block; }
+  .brand-text { @apply min-w-0; }
+  .brand-text strong { @apply block text-white text-[.93rem] font-semibold truncate; }
+  .brand-text span   { @apply block text-pk-200 text-[.7rem] uppercase tracking-wider truncate; }
+
+  .topbar {
+    grid-area: topbar;
+    background-color: var(--surface-raised);
+    border-color: var(--border-c);
+    @apply border-b flex items-center gap-4 px-5 sticky top-0 z-40 min-w-0;
+  }
+  .topbar-title  { @apply font-semibold text-base m-0 min-w-0 truncate; }
+  .topbar-spacer { @apply ms-auto; }
+
+  .sidebar { grid-area: sidebar; @apply bg-pk-900 pt-4 pb-8 overflow-y-auto; }
+  .sidebar-group { @apply pt-1 pb-3; }
+  .sidebar-group h6 {
+    @apply m-0 mb-1 pe-4 text-[.72rem] font-bold uppercase tracking-[.12em] text-pk-400;
+    padding-inline-start: calc(var(--stripe-w) + .95rem);
+  }
+  .nav-link {
+    @apply flex items-center gap-2.5 py-2 pe-4 text-[.875rem] text-pk-100
+           border-s-[3px] border-transparent transition-colors
+           hover:bg-white/10 hover:text-white hover:no-underline;
+    padding-inline-start: calc(var(--stripe-w) + .95rem);
+  }
+  .nav-link.is-active { @apply bg-white/10 text-white border-s-gold-500 font-semibold; }
+  .nav-link svg { @apply w-[17px] h-[17px] shrink-0 opacity-85; }
+  .nav-badge { @apply ms-auto bg-gold-500 text-pk-950 text-[.68rem] font-bold px-1.5 rounded-full; }
+
+  .main { grid-area: main; @apply p-6 pb-24 min-w-0; }
+  .page-head { @apply mb-5; }
+  .page-head h1 { @apply mb-1; }
+  .page-head .lede { @apply m-0 text-[.93rem]; color: var(--text-muted); }
+  .container-narrow { @apply max-w-[880px]; }
+
+  /* ---- cards ------------------------------------------------------------ */
+
+  .card {
+    background-color: var(--surface-raised);
+    border-color: var(--border-c);
+    @apply border rounded-xl shadow-sm;
+  }
+  .card + .card { @apply mt-[1.15rem]; }
+  .card-head {
+    border-color: var(--border-c);
+    @apply flex items-center gap-3 px-[1.15rem] py-[.9rem] border-b;
+  }
+  .card-head h2, .card-head h3 { @apply m-0 text-base; }
+  .card-head .card-actions { @apply ms-auto flex gap-2; }
+  .card-body { @apply p-[1.15rem]; }
+  .card-body.tight { @apply px-[1.15rem] py-3; }
+  .card-foot {
+    border-color: var(--border-c);
+    background-color: var(--surface-sunken);
+    @apply px-[1.15rem] py-[.8rem] border-t rounded-b-xl;
+  }
+
+  /* ---- statistic tiles -------------------------------------------------- */
+
+  .tiles { @apply grid gap-4 mb-6 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]; }
+  .tile {
+    background-color: var(--surface-raised);
+    border-color: var(--border-c);
+    @apply relative overflow-hidden border rounded-xl px-[1.1rem] py-4 shadow-sm;
+  }
+  .tile::after { content: ""; @apply absolute inset-y-0 start-0 w-[3px] bg-pk-600; }
+  .tile.is-warn::after   { @apply bg-warn-600; }
+  .tile.is-danger::after { @apply bg-danger-600; }
+  .tile.is-gold::after   { @apply bg-gold-500; }
+  .tile-label { @apply text-[.74rem] uppercase tracking-wider font-semibold mb-1; color: var(--text-faint); }
+  .tile-value { @apply text-[1.7rem] font-bold leading-none tabular-nums; }
+  .tile-sub   { @apply text-[.8rem] mt-1; color: var(--text-muted); }
+
+  /* ---- tables ----------------------------------------------------------- */
+
+  .table-wrap {
+    background-color: var(--surface-raised);
+    border-color: var(--border-c);
+    @apply overflow-x-auto rounded-lg border;
+
+    /* Edge shadows that appear only on the side with more to see. The first two
+       layers are painted in the surface colour and scroll with the content, so
+       they cover the shadow whenever that edge is already in view. */
+    background-image:
+      linear-gradient(to right, var(--surface-raised), transparent 2rem),
+      linear-gradient(to left,  var(--surface-raised), transparent 2rem),
+      linear-gradient(to right, rgba(1, 43, 18, .17), transparent .8rem),
+      linear-gradient(to left,  rgba(1, 43, 18, .17), transparent .8rem);
+    background-position: 0 0, 100% 0, 0 0, 100% 0;
+    background-repeat: no-repeat;
+    background-size: 2rem 100%, 2rem 100%, .8rem 100%, .8rem 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+  table.data { @apply w-full border-collapse text-[.875rem]; }
+  table.data th, table.data td {
+    border-color: var(--border-c);
+    @apply px-3 py-2.5 text-start align-top border-b;
+  }
+  table.data thead th {
+    background-color: var(--tint);
+    @apply text-pk-800 dark:text-pk-200 font-semibold text-[.74rem] uppercase tracking-wider
+           whitespace-nowrap sticky top-0 z-[1];
+  }
+  table.data tbody tr:last-child td { @apply border-b-0; }
+  table.data tbody tr:hover { background-color: var(--tint); }
+  table.data td.num, table.data th.num { @apply text-end tabular-nums; }
+  table.data .row-muted { color: var(--text-faint); }
+  table.data tr.is-milestone,
+  table.data tr.is-milestone:hover { @apply bg-gold-100 text-ink-900 dark:bg-[#2C2410] dark:text-gold-300; }
+
+  .empty { @apply px-4 py-10 text-center; color: var(--text-faint); }
+  .empty svg { @apply w-[34px] h-[34px] opacity-40 mb-2 mx-auto; }
+
+  /* ---- forms ------------------------------------------------------------ */
+
+  .field { @apply mb-4; }
+  .field > label, .label { @apply block text-[.82rem] font-semibold text-ink-700 dark:text-ink-200 mb-1.5; }
+  .field .hint { @apply text-[.78rem] mt-1; color: var(--text-faint); }
+  .req { @apply text-danger-600 dark:text-[color:var(--accent-danger)] font-bold; }
+
+  .input, .select, .textarea {
+    background-color: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--text-c);
+    @apply w-full font-sans text-[.9rem] border rounded-lg px-2.5 py-2 transition
+           focus:outline-none focus:border-pk-500 focus:ring-3 focus:ring-pk-100;
+  }
+  .input:disabled, .select:disabled, .input[readonly] {
+    background-color: var(--tint);
+    color: var(--text-muted);
+    @apply cursor-not-allowed;
+  }
+  .input.is-invalid, .select.is-invalid, .textarea.is-invalid { @apply border-danger-600; }
+  .textarea { @apply min-h-24 resize-y; }
+  .error-text { @apply text-danger-600 text-[.78rem] mt-1; }
+
+  .grid-2 { @apply grid grid-cols-1 md:grid-cols-2 gap-x-4; }
+  /* Wide-left split: a list of cases needs more room than the panel beside it. */
+  /* A case list beside a summary panel. The split only opens once there is
+     genuinely room for the whole table — below that the table takes the full
+     width and the panel sits under it, which beats a clipped column. */
+  .grid-main { @apply grid grid-cols-1 gap-x-4 min-[1500px]:grid-cols-[minmax(0,1fr)_360px]; }
+  .grid-3 { @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4; }
+  .grid-4 { @apply grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-4; }
+
+  fieldset.group {
+    border-color: var(--border-c);
+    @apply border rounded-lg px-[1.1rem] pt-4 pb-1 mb-5;
+  }
+  fieldset.group > legend {
+    @apply text-[.78rem] font-bold uppercase tracking-wider text-pk-700 dark:text-pk-200 px-1.5;
+  }
+
+  /* ---- buttons ---------------------------------------------------------- */
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 font-sans text-[.875rem] font-semibold
+           px-4 py-2 rounded-lg border border-transparent cursor-pointer transition
+           whitespace-nowrap no-underline hover:no-underline;
+  }
+  .btn svg { @apply w-4 h-4; }
+  .btn-primary { @apply bg-pk-800 text-white hover:bg-pk-700 hover:text-white; }
+  .btn-outline {
+    border-color: var(--border-strong);
+    @apply bg-transparent text-pk-700 dark:text-pk-200
+           hover:bg-pk-50 hover:border-pk-500 hover:text-pk-800
+           dark:hover:bg-pk-900 dark:hover:text-white;
+  }
+  .btn-gold   { @apply bg-gold-600 text-[#1B1503] hover:bg-gold-500; }
+  .btn-danger { @apply bg-danger-600 text-white hover:bg-danger-700 hover:text-white; }
+  .btn-ghost  { @apply bg-transparent hover:bg-ink-100; color: var(--text-muted); }
+  .btn-ghost:hover { color: var(--text-c); }
+  .btn-sm { @apply px-2.5 py-1 text-[.8rem]; }
+  .btn-lg { @apply px-5 py-2.5 text-[.95rem]; }
+  .btn:disabled, .btn[aria-disabled="true"] { @apply opacity-50 pointer-events-none; }
+  .btn-row { @apply flex flex-wrap gap-2.5; }
+
+  /* ---- pagination -------------------------------------------------------- */
+
+  .pager { @apply flex flex-wrap items-center justify-between gap-3; }
+  .pager-summary { @apply text-[.82rem]; color: var(--text-muted); }
+  .pager-links   { @apply flex flex-wrap items-center gap-1; }
+  .pager-link {
+    border-color: var(--border-strong);
+    color: var(--text-c);
+    @apply inline-flex items-center justify-center min-w-[2.25rem] min-h-[2.25rem] px-2.5
+           text-[.82rem] font-semibold border rounded-lg no-underline transition
+           hover:bg-pk-50 hover:border-pk-500 hover:text-pk-800 hover:no-underline
+           dark:hover:bg-pk-900 dark:hover:text-white dark:hover:border-pk-600;
+  }
+  .pager-link.is-current { @apply bg-pk-800 text-white border-pk-800 hover:bg-pk-800 hover:text-white; }
+  .pager-link.is-disabled {
+    border-color: var(--border-c);
+    color: var(--text-faint);
+    @apply pointer-events-none opacity-70;
+  }
+
+  /* ---- badges ----------------------------------------------------------- */
+
+  .badge {
+    @apply inline-flex items-center gap-1 text-[.73rem] font-semibold leading-snug
+           px-2 py-0.5 rounded-full border border-transparent whitespace-nowrap;
+  }
+  .badge-neutral { @apply bg-ink-100 text-ink-700 border-ink-200; }
+  .badge-good    { @apply bg-pk-100 text-pk-800 border-pk-200; }
+  .badge-info    { @apply bg-info-100 text-info-700 border-[#BBD6EA]; }
+  .badge-warn    { @apply bg-warn-100 text-warn-700 border-[#EBD3A3]; }
+  .badge-danger  { @apply bg-danger-100 text-danger-700 border-[#EFC2BE]; }
+  .badge-gold    { @apply bg-gold-100 text-gold-700 border-gold-300; }
+
+  .clause {
+    @apply inline-block font-mono text-[.72rem] text-gold-700 bg-gold-100
+           border border-gold-300 rounded px-1.5 whitespace-nowrap;
+  }
+
+  /* ---- alerts ----------------------------------------------------------- */
+
+  .alert { @apply flex gap-3 px-4 py-3 rounded-lg border mb-4 text-[.875rem]; }
+  .alert svg { @apply w-[18px] h-[18px] shrink-0 mt-0.5; }
+  .alert p:last-child { @apply mb-0; }
+  .alert ul { @apply mt-1.5 ps-4 list-disc; }
+  .alert-good   { @apply bg-pk-50 border-pk-200 text-pk-800; }
+  .alert-info   { @apply bg-info-100 border-[#BBD6EA] text-info-700; }
+  .alert-warn   { @apply bg-warn-100 border-[#EBD3A3] text-warn-700; }
+  .alert-danger { @apply bg-danger-100 border-[#EFC2BE] text-danger-700; }
+
+  /* ---- timeline --------------------------------------------------------- */
+
+  .timeline { @apply list-none m-0 p-0 relative; }
+  .timeline::before { content: ""; @apply absolute top-2.5 bottom-0 start-[7px] w-0.5; background-color: var(--border-c); }
+  .timeline li { @apply relative ps-7 pb-4; }
+  .timeline li::before {
+    content: "";
+    background-color: var(--surface-raised);
+    border-color: var(--border-strong);
+    @apply absolute start-0.5 top-1.5 w-3 h-3 rounded-full border-2 z-[1];
+  }
+  .timeline li.is-done::before    { @apply bg-pk-600 border-pk-600; }
+  .timeline li.is-current::before { @apply bg-gold-500 border-gold-500 ring-3 ring-gold-100; }
+  .timeline .t-title { @apply font-semibold text-[.88rem]; }
+  .timeline .t-meta  { @apply text-[.78rem]; color: var(--text-faint); }
+
+  /* ---- SLA meter -------------------------------------------------------- */
+
+  .sla { @apply flex items-center gap-2.5 text-[.8rem]; }
+  .sla-bar { @apply flex-1 h-1.5 rounded-full bg-ink-200 overflow-hidden min-w-[60px]; }
+  .sla-fill { @apply h-full rounded-full bg-pk-500; }
+  .sla-fill.is-warn   { @apply bg-gold-500; }
+  .sla-fill.is-danger { @apply bg-danger-600; }
+
+  /* ---- auth screen ------------------------------------------------------ */
+
+  .auth-page { background-color: var(--surface); @apply min-h-screen grid grid-cols-1 lg:grid-cols-[1.05fr_.95fr]; }
+  .auth-aside {
+    @apply hidden lg:flex flex-col relative overflow-hidden text-white px-[3.2rem] py-12;
+    background:
+      radial-gradient(120% 90% at 15% 0%, var(--color-pk-700) 0%, transparent 55%),
+      linear-gradient(160deg, var(--color-pk-800) 0%, var(--color-pk-950) 100%);
+  }
+  .auth-aside::before { width: 10px; }
+  .auth-aside-body { @apply mt-auto max-w-[460px] relative z-[1]; }
+  .auth-aside h2 { @apply text-3xl text-white mb-2.5; }
+  .auth-aside p  { @apply text-pk-200 text-[.95rem]; }
+  .auth-crescent { @apply absolute -end-[60px] top-1/2 -translate-y-1/2 w-[340px] h-[340px] opacity-[.07]; }
+  .auth-legal    { @apply mt-8 pt-4 border-t border-white/15 text-[.78rem] text-pk-200; }
+  .auth-main     { @apply grid place-items-center px-6 py-8; }
+  .auth-card     { @apply w-full max-w-[400px]; }
+  .auth-card h1  { @apply text-[1.4rem] mb-1; }
+  .auth-card .lede { @apply text-[.9rem] mb-6; color: var(--text-muted); }
+
+  /* ---- misc ------------------------------------------------------------- */
+
+  .kv { @apply grid gap-x-4 gap-y-1.5 text-[.875rem] grid-cols-1 sm:grid-cols-[minmax(140px,34%)_1fr]; }
+  .kv dt { color: var(--text-faint); }
+  .kv dd { @apply m-0 font-medium mb-2 sm:mb-0; }
+
+  .divider { border: 0; @apply h-px my-5; background-color: var(--border-c); }
+  .muted { color: var(--text-muted); }
+  .faint { color: var(--text-faint); }
+  .num   { @apply tabular-nums; }
+  .nowrap { @apply whitespace-nowrap; }
+  .stack > * + * { @apply mt-4; }
+  .inline-list { @apply flex flex-wrap gap-1.5 items-center; }
+
+  .appfoot {
+    border-color: var(--border-c);
+    color: var(--text-faint);
+    @apply mt-10 pt-4 border-t text-[.78rem] flex flex-wrap gap-x-5 gap-y-2 items-center;
+  }
+  .flag-key { @apply inline-flex items-center gap-1.5; }
+  .flag-key i {
+    border-color: var(--border-strong);
+    @apply w-[22px] h-[13px] rounded-sm inline-block border;
+    background: linear-gradient(to right, #fff 0 25%, var(--color-pk-800) 25% 100%);
+  }
+
+  /* ---- skip link, brand, topbar extras ---------------------------------- */
+
+  .skip-link {
+    @apply absolute start-2 -top-12 z-[100] bg-pk-800 text-white px-3 py-2 rounded-lg
+           transition-all focus:top-2;
+  }
+
+  .brand-link { @apply flex items-center gap-3 min-w-0 no-underline hover:no-underline; }
+
+  .theme-toggle { @apply shrink-0; }
+  .theme-toggle svg { @apply w-[18px] h-[18px]; }
+  .theme-icon-dark  { @apply hidden; }
+  :root[data-theme="dark"] .theme-icon-light { @apply hidden; }
+  :root[data-theme="dark"] .theme-icon-dark  { @apply inline-flex; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-icon-light { display: none; }
+    :root:not([data-theme="light"]) .theme-icon-dark  { display: inline-flex; }
+  }
+
+  .topbar-user { @apply hidden sm:flex items-center gap-2 min-w-0; }
+  .topbar-name { @apply text-[.85rem] truncate max-w-[10rem]; }
+
+  /* ---- help widget ------------------------------------------------------ */
+
+  .help-launcher {
+    @apply fixed z-[70] bottom-4 end-4 inline-flex items-center gap-2
+           bg-pk-800 text-white rounded-full shadow-lg cursor-pointer
+           px-4 py-3 border-0 font-sans text-[.875rem] font-semibold
+           hover:bg-pk-700 transition;
+  }
+  .help-launcher-icon svg { @apply w-5 h-5 block; }
+  .help-launcher-label { @apply hidden sm:inline; }
+
+  .help-panel {
+    background-color: var(--surface-raised);
+    border-color: var(--border-c);
+    @apply fixed z-[80] flex flex-col overflow-hidden border shadow-2xl
+           inset-x-0 bottom-0 top-auto h-[85vh] rounded-t-2xl
+           sm:inset-auto sm:bottom-4 sm:end-4 sm:w-[380px] sm:h-[min(600px,80vh)] sm:rounded-2xl;
+  }
+
+  .help-head {
+    @apply flex items-center gap-2 bg-pk-900 text-white py-3 pe-3 shrink-0;
+    padding-inline-start: calc(var(--stripe-w) + .9rem);
+  }
+  .help-head strong { @apply block text-[.92rem] font-semibold; }
+  .help-head span   { @apply block text-[.7rem] text-pk-200 uppercase tracking-wider; }
+  .help-head > div  { @apply flex-1 min-w-0; }
+  .help-close {
+    @apply bg-transparent border-0 text-pk-100 cursor-pointer p-1.5 rounded-lg
+           hover:bg-white/10 hover:text-white;
+  }
+  .help-close svg { @apply w-[18px] h-[18px] block; }
+
+  .help-log { @apply flex-1 overflow-y-auto p-3 flex flex-col gap-2.5; }
+
+  .help-msg { @apply max-w-[88%] rounded-xl px-3 py-2 text-[.85rem] leading-relaxed; }
+  .help-msg p  { @apply mb-2 last:mb-0; }
+  .help-msg ul { @apply my-1 ps-4 list-disc; }
+  .help-msg li { @apply mb-1; }
+  .help-msg-you {
+    @apply self-end bg-pk-800 text-white rounded-br-sm;
+  }
+  .help-msg-bot {
+    background-color: var(--tint);
+    border-color: var(--border-c);
+    @apply self-start border rounded-bl-sm;
+  }
+  .help-clause { @apply inline-block mt-1.5; }
+  .help-thinking { @apply italic; color: var(--text-faint); }
+
+  .help-chips {
+    border-color: var(--border-c);
+    @apply flex flex-wrap gap-1.5 px-3 pb-2 empty:hidden;
+  }
+  .help-chip {
+    background-color: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--text-muted);
+    @apply border rounded-full px-2.5 py-1 text-[.76rem] cursor-pointer font-sans
+           hover:bg-pk-50 hover:border-pk-500 hover:text-pk-800 transition text-start;
+  }
+
+  .help-form {
+    border-color: var(--border-c);
+    @apply flex gap-2 items-center p-3 border-t shrink-0;
+  }
+  .help-input {
+    background-color: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--text-c);
+    @apply flex-1 min-w-0 font-sans text-[.875rem] border rounded-full px-3.5 py-2
+           focus:outline-none focus:border-pk-500 focus:ring-3 focus:ring-pk-100;
+  }
+  .help-send {
+    @apply shrink-0 grid place-items-center w-9 h-9 rounded-full bg-pk-800 text-white
+           border-0 cursor-pointer hover:bg-pk-700 transition;
+  }
+  .help-send svg { @apply w-[18px] h-[18px]; }
+
+  .help-foot {
+    @apply px-3 pb-3 m-0 text-[.7rem] text-center;
+    color: var(--text-faint);
+  }
+
+  /* ---- wizard ----------------------------------------------------------- */
+
+  .wizard-steps {
+    @apply flex gap-1 overflow-x-auto pb-1 mb-5 list-none p-0 m-0;
+    scrollbar-width: thin;
+  }
+  .wizard-step {
+    border-color: var(--border-c);
+    background-color: var(--surface-raised);
+    color: var(--text-faint);
+    @apply flex-1 min-w-[7.5rem] border rounded-lg px-3 py-2 text-[.78rem] leading-tight;
+  }
+  .wizard-step .n {
+    @apply inline-grid place-items-center w-5 h-5 rounded-full bg-ink-200 text-ink-700
+           text-[.68rem] font-bold me-1.5 align-middle;
+  }
+  .wizard-step .t { @apply font-semibold align-middle; }
+  .wizard-step .h { @apply block text-[.68rem] mt-0.5 opacity-70; }
+  .wizard-step.is-done { @apply border-pk-200 bg-pk-50 text-pk-800; }
+  .wizard-step.is-done .n { @apply bg-pk-600 text-white; }
+  .wizard-step.is-current { @apply border-pk-600 ring-2 ring-pk-100 dark:ring-pk-900 text-pk-800 dark:text-pk-200; }
+  .wizard-step.is-current .n { @apply bg-pk-800 text-white; }
+
+  .wizard-actions {
+    border-color: var(--border-c);
+    @apply flex flex-wrap gap-2.5 items-center pt-4 mt-4 border-t;
+  }
+  .wizard-actions .spacer { @apply ms-auto; }
+}
+
+/* ---- responsive shell ---------------------------------------------------- */
+
+@media (max-width: 860px) {
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: 62px 1fr;
+    grid-template-areas: "topbar" "main";
+  }
+  .brand-cell { display: none; }
+  .sidebar {
+    position: fixed; inset-block: 0; inset-inline-start: 0;
+    width: 264px; z-index: 60; transform: translateX(-100%);
+    transition: transform .2s ease;
+    box-shadow: 0 10px 30px rgba(1, 43, 18, .3);
+  }
+  .sidebar.is-open { transform: translateX(0); }
+  .sidebar-mobile-head {
+    display: flex; align-items: center; gap: .6rem;
+    padding: 0 1rem 1rem calc(var(--stripe-w) + .95rem);
+    margin-bottom: .5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+  }
+  .scrim {
+    position: fixed; inset: 0; background: rgba(1, 28, 11, .5);
+    z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .scrim.is-open { opacity: 1; pointer-events: auto; }
+  .main { padding: 1rem; padding-bottom: 5.5rem; }
+
+  /* The topbar carries an icon, the page heading and the account controls in a
+     single 62px row. On a phone the heading alone can be wider than the screen,
+     so the label text drops away and the icons speak for themselves — each
+     still names itself to a screen reader through its title and aria-label. */
+  .topbar { gap: .6rem; padding-inline: .75rem; }
+  .topbar .btn-label { display: none; }
+  .topbar-title { font-size: .95rem; }
+
+  /* A finger is not a mouse pointer. Anything meant to be tapped gets room to
+     be tapped: buttons, the links inside tables, and the pill links that carry
+     navigation between the screens of a case. */
+  .btn-sm { min-height: 2.4rem; padding-top: .4rem; padding-bottom: .4rem; }
+  .btn    { min-height: 2.6rem; }
+  table.data td a,
+  .inline-list > a,
+  .t-meta a,
+  a.badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+  }
+  table.data td a { padding-block: .15rem; }
+}
+
+@media (min-width: 861px) {
+  .nav-toggle, .sidebar-mobile-head, .scrim { display: none; }
+}
+
+@media print {
+  .sidebar, .topbar, .brand-cell, .btn, .appfoot, .no-print { display: none !important; }
+  .shell { display: block; }
+  .main { padding: 0; }
+  .card { border: 1px solid #999; box-shadow: none; break-inside: avoid; }
+  table.data thead th { background: #eee !important; color: #000 !important; }
+  body { background: #fff; font-size: 11pt; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
