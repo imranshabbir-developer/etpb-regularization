@@ -41,6 +41,8 @@ http://localhost:8080
 
 ## Signing in
 
+> Every account, and what each one is for, is in **[`ACCOUNTS.md`](ACCOUNTS.md)**.
+
 Every account below uses the **same password**.
 
 **Password for all accounts: `Etpb@2026#Change`**
@@ -330,6 +332,7 @@ touch your real data.
 
 ```
 proj_regular/
+├── ACCOUNTS.md       ← every login, and what each one is for
 ├── ROADMAP.md        ← the plan, and the questions I still need answered
 ├── README.md         ← technical overview
 ├── RUNNING.md        ← this file

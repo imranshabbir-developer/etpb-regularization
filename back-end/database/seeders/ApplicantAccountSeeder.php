@@ -97,12 +97,30 @@ class ApplicantAccountSeeder extends Seeder
                 );
             }
 
-            // The particulars on file. Matched on CNIC, which is the identifier
-            // the Board itself works from.
+            // The particulars on file, matched on CNIC — the identifier the Board
+            // itself works from.
+            //
+            // A record that an application already points at is left completely
+            // alone. Those particulars were given by the applicant and form part
+            // of a case on the file; a seeder rewriting them would quietly change
+            // what the department believes it was told. Only a standalone profile,
+            // belonging to no case, is ever updated here.
             $existing = DB::table('applicants')
                 ->where('cnic', $p['cnic'])
                 ->whereNull('deleted_at')
+                ->whereNotExists(fn ($q) => $q->selectRaw('1')
+                    ->from('applications')
+                    ->whereColumn('applications.applicant_id', 'applicants.id'))
                 ->value('id');
+
+            // If every record for this CNIC belongs to a case, there is nothing
+            // safe to write, and nothing that needs writing.
+            $anyForCnic = DB::table('applicants')->where('cnic', $p['cnic'])
+                ->whereNull('deleted_at')->exists();
+
+            if (! $existing && $anyForCnic) {
+                continue;
+            }
 
             $particulars = [
                 'user_id'             => $userId,

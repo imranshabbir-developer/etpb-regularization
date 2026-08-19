@@ -59,6 +59,12 @@ cd back-end
 php artisan serve --port=8000
 ```
 
+### Accounts
+
+Every login — the eight officer accounts and the public applicants — is listed
+in **[`ACCOUNTS.md`](ACCOUNTS.md)**, with what each one is for and what you will
+see when you use it. The short version:
+
 ### Commissioning accounts
 
 Every account below is seeded with the same password and is forced to change it
