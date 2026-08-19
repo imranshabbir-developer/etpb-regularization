@@ -84,7 +84,7 @@ class SchemeAssistantService
             [
                 'keywords' => ['eligible', 'eligibility', 'qualify', 'who can apply', 'can i apply', 'am i eligible', 'entitled', 'can i apply', 'may i apply', 'do i qualify', 'am i allowed'],
                 'clause'   => 'Clause 3(ii)(a)',
-                'answer'   => 'You can apply if you were **in actual physical possession of the property before '
+                'answer'   => 'You can apply if you were **in actual physical possession of the property prior to '
                             . '1 January 2010**. Possession on or after that date is not accepted.
 
 You also need to be able to show your possession with documents — a Jamabandi, mutation, Khasra Girdawari, '
@@ -97,8 +97,8 @@ If you qualify, you are treated as a **tenant** of the Board and rent is fixed f
             [
                 'keywords' => ['after 2010', '2011', '2012', '2015', '2020', 'took possession in 20', 'later than 2010', 'not before 2010'],
                 'clause'   => 'Clause 3(ii)(a)',
-                'answer'   => 'Unfortunately not. The scheme is only open to people who were in possession '
-                            . '**before 1 January 2010**. If your possession began on or after that date the '
+                'answer'   => 'Unfortunately not. The scheme is only open to people who were in actual physical '
+                            . 'possession **prior to 1 January 2010**. If your possession began on or after that date the '
                             . 'system will not accept the application, and the department cannot make an exception — '
                             . 'the date is fixed by the Scheme itself.
 

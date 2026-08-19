@@ -104,6 +104,7 @@ class DashboardController extends Controller
             'actions'      => $actions,
             'fee'          => $this->settings->decimal('processing_fee', '5000.00'),
             'cutoff'       => $this->settings->date('possession_cutoff_date', '2009-12-31'),
+            'cutoffStated' => $this->settings->date('possession_cutoff_date', '2009-12-31')?->addDay(),
         ]);
     }
 

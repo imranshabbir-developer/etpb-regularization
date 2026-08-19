@@ -10,8 +10,8 @@
     <div class="page-head">
         <h1>Apply to have your possession regularized</h1>
         <p class="lede">
-            If you have held an evacuee trust property since before
-            <strong>{{ $cutoff->addDay()->format('j F Y') }}</strong>, you may apply to be
+            If you were in actual physical possession of an evacuee trust property
+            <strong>prior to {{ $cutoffStated->format('j F Y') }}</strong>, you may apply to be
             recorded as its tenant.
         </p>
     </div>
@@ -45,8 +45,8 @@
 
             <h4>You can apply if</h4>
             <ul class="list-disc ps-5 mb-4 text-[.92rem]">
-                <li>you were in <strong>actual physical possession before
-                    {{ $cutoff->addDay()->format('j F Y') }}</strong>, and</li>
+                <li>you were in <strong>actual physical possession prior to
+                    {{ $cutoffStated->format('j F Y') }}</strong>, and</li>
                 <li>you can show that possession with documents, or with a court order.</li>
             </ul>
 

@@ -62,6 +62,7 @@ class ApplyController extends Controller
     {
         return view('apply.start', [
             'cutoff'    => $this->eligibility->cutoffDate(),
+            'cutoffStated' => $this->eligibility->cutoffStatedAs(),
             'fee'       => $this->settings->decimal('processing_fee', '5000.00'),
             'docTypes'  => DocumentType::where('is_active', true)->where('is_mandatory', true)
                              ->orderBy('display_order')->get(),
@@ -181,6 +182,7 @@ class ApplyController extends Controller
         return view('apply.possession', $this->chrome(3, [
             'draft'  => $draft,
             'cutoff' => $this->eligibility->cutoffDate(),
+            'cutoffStated' => $this->eligibility->cutoffStatedAs(),
         ]));
     }
 
@@ -203,9 +205,10 @@ class ApplyController extends Controller
         if (! $this->eligibility->isWithinCutoff($data['date_of_possession'])) {
             throw ValidationException::withMessages([
                 'date_of_possession' => sprintf(
-                    'The scheme is only open to occupants in possession before %s. '
-                    . 'Clause 3(ii)(a) of the Scheme 1977 does not allow a later date.',
-                    $this->eligibility->cutoffDate()->addDay()->format('d F Y'),
+                    'The scheme is only open to occupants in actual physical possession '
+                    . 'prior to %s. Clause 3(ii)(a) of the Scheme 1977 does not allow a '
+                    . 'later date.',
+                    $this->eligibility->cutoffStatedAs()->format('j F Y'),
                 ),
             ]);
         }

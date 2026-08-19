@@ -74,6 +74,7 @@ class ApplicationController extends Controller
             'units'      => $this->area->units($profileId),
             'profileId'  => $profileId,
             'cutoff'     => $this->eligibility->cutoffDate(),
+            'cutoffStated' => $this->eligibility->cutoffStatedAs(),
             'docTypes'   => DocumentType::where('is_active', true)->orderBy('display_order')->get(),
         ]);
     }
@@ -87,8 +88,9 @@ class ApplicationController extends Controller
         if (! $this->eligibility->isWithinCutoff($data['date_of_possession'])) {
             throw ValidationException::withMessages([
                 'date_of_possession' => sprintf(
-                    'Clause 3(ii)(a) of the Scheme 1977 requires actual physical possession prior to '
-                    . '01-01-2010. The cut-off in force is %s.',
+                    'Clause 3(ii)(a) of the Scheme 1977 requires actual physical possession '
+                    . 'prior to %s. The last acceptable date of possession is therefore %s.',
+                    $this->eligibility->cutoffStatedAs()->format('d-m-Y'),
                     $this->eligibility->cutoffDate()->format('d-m-Y')
                 ),
             ]);

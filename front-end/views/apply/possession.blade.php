@@ -20,7 +20,7 @@
         @include('partials.icon', ['name' => 'alert'])
         <div>
             <p class="mb-0">
-                Possession must have begun <strong>before {{ $cutoff->addDay()->format('j F Y') }}</strong>.
+                Possession must have begun <strong>prior to {{ $cutoffStated->format('j F Y') }}</strong>.
                 A later date cannot be accepted &mdash; the cut-off is fixed by the Scheme itself.
                 <span class="clause">Clause 3(ii)(a)</span>
             </p>

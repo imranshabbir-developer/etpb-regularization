@@ -57,6 +57,40 @@ class WorkflowGuardTest extends TestCase
         $this->assertStringContainsString('prior to 01-01-2010', $result['reason']);
     }
 
+    /**
+     * The Scheme names 1 January 2010; the setting stores 31 December 2009,
+     * because that is the last day the comparison accepts. The two must stay
+     * exactly one day apart however the setting is moved.
+     */
+    public function test_the_date_shown_to_the_public_is_the_day_after_the_stored_cutoff(): void
+    {
+        $svc = app(EligibilityService::class);
+
+        $this->assertSame('2009-12-31', $svc->cutoffDate()->toDateString());
+        $this->assertSame('2010-01-01', $svc->cutoffStatedAs()->toDateString());
+    }
+
+    /**
+     * Carbon mutates in place. Asking for the stated date used to be done in the
+     * views with ->addDay(), so a page that named the date twice — /apply does —
+     * printed 1 January the first time and 2 January the second. Reading it must
+     * leave the stored cut-off alone, however many times it is read.
+     */
+    public function test_reading_the_stated_cutoff_does_not_move_it(): void
+    {
+        $svc = app(EligibilityService::class);
+        $cutoff = $svc->cutoffDate();
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->assertSame('2010-01-01', $svc->cutoffStatedAs()->toDateString());
+        }
+
+        $this->assertSame('2009-12-31', $cutoff->toDateString());
+        $this->assertSame('2009-12-31', $svc->cutoffDate()->toDateString());
+        $this->assertTrue($svc->isWithinCutoff('2009-12-31'));
+        $this->assertFalse($svc->isWithinCutoff('2010-01-01'));
+    }
+
     public function test_scrutiny_cannot_advance_when_the_applicant_is_ineligible(): void
     {
         $id = $this->makeApplication('2011-06-01', WorkflowService::SCRUTINY);

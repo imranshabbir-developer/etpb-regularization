@@ -174,7 +174,7 @@
                         <div class="t-meta">{{ $a->payment_status }}</div>
                     </li>
                     <li class="{{ $poss?->is_eligible ? 'is-done' : '' }}">
-                        <div class="t-title">Possession before 01-01-2010</div>
+                        <div class="t-title">Possession prior to 01-01-2010</div>
                         <div class="t-meta">Clause 3(ii)(a) &middot; {{ $fmt($poss?->date_of_possession) }}</div>
                     </li>
                     <li class="{{ $a->documents->where('status', 'VERIFIED')->count() ? 'is-done' : '' }}">

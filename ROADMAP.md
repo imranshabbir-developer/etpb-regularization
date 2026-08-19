@@ -21,7 +21,7 @@
 ## 1. What you asked for, in my words
 
 The Government of Punjab has announced that a person in occupation of an
-evacuee trust property **before 1 January 2010** may apply to the Evacuee Trust
+evacuee trust property **prior to 1 January 2010** may apply to the Evacuee Trust
 Property Board to have their occupation recognised.
 
 You need a **public web portal**:

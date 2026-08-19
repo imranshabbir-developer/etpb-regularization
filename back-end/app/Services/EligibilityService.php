@@ -37,22 +37,23 @@ class EligibilityService
     {
         $possession = Carbon::parse($dateOfPossession)->startOfDay();
         $cutoff     = $this->cutoffDate();
+        $stated     = $this->cutoffStatedAs();
 
         $eligible = $possession->lte($cutoff);
 
         $reason = $eligible
             ? sprintf(
-                'Possession dated %s is on or before the cut-off of %s, so the occupant may be '
-                . 'treated as a tenant under Clause 3(ii)(a) of the Scheme 1977.',
+                'Possession dated %s is prior to %s, so the occupant may be treated as a '
+                . 'tenant under Clause 3(ii)(a) of the Scheme 1977.',
                 $possession->format('d-m-Y'),
-                $cutoff->format('d-m-Y')
+                $stated->format('d-m-Y')
             )
             : sprintf(
-                'Possession dated %s falls after the cut-off of %s. Clause 3(ii)(a) of the '
-                . 'Scheme 1977 requires actual physical possession prior to 01-01-2010, so the '
-                . 'application is not eligible for regularization.',
+                'Possession dated %s is not prior to %s. Clause 3(ii)(a) of the Scheme 1977 '
+                . 'requires actual physical possession prior to that date, so the application '
+                . 'is not eligible for regularization.',
                 $possession->format('d-m-Y'),
-                $cutoff->format('d-m-Y')
+                $stated->format('d-m-Y')
             );
 
         $arrears = $this->arrearsFrom($dateOfPossession, $judicialVerdictDate);
@@ -108,9 +109,31 @@ class EligibilityService
         ];
     }
 
+    /**
+     * The last day of possession the Scheme accepts — 31 December 2009.
+     *
+     * This is the boundary the comparison needs, and it is what every test and
+     * every eligibility decision is written against. It is deliberately not the
+     * date shown to an applicant; see cutoffStatedAs().
+     */
     public function cutoffDate(): Carbon
     {
         return $this->settings->date('possession_cutoff_date', '2009-12-31');
+    }
+
+    /**
+     * The same rule worded the way the Scheme words it: possession must be
+     * *prior to* 1 January 2010.
+     *
+     * Clause 3(ii)(a), and both requirement documents from the department, name
+     * the first of January. Screens said "before 31 December 2009 plus a day"
+     * by doing the arithmetic themselves, and because Carbon mutates in place a
+     * page that mentioned the date twice showed 2 January the second time. The
+     * arithmetic belongs here, once, on a copy.
+     */
+    public function cutoffStatedAs(): Carbon
+    {
+        return $this->cutoffDate()->copy()->addDay();
     }
 
     /**

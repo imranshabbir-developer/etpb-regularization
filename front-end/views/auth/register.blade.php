@@ -27,8 +27,8 @@
         <div class="auth-aside-body">
             <h2>Apply to have your possession regularized</h2>
             <p>
-                If you have been in possession of an evacuee trust property since before
-                1 January 2010, you may apply to be recorded as its tenant.
+                If you were in actual physical possession of an evacuee trust property
+                prior to 1 January 2010, you may apply to be recorded as its tenant.
             </p>
             <p>
                 You will need your CNIC, the particulars of the property, your evidence of

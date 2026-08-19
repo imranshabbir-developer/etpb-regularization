@@ -52,8 +52,8 @@
             <div class="brand-mark mx-auto mb-3">@include('partials.icon', ['name' => 'file'])</div>
             <h2 class="mb-2">You have not applied yet</h2>
             <p class="lede max-w-[540px] mx-auto mb-4">
-                If you have held an evacuee trust property since before
-                <strong>{{ $cutoff?->addDay()->format('j F Y') }}</strong>, you can apply
+                If you were in actual physical possession of an evacuee trust property
+                <strong>prior to {{ $cutoffStated?->format('j F Y') }}</strong>, you can apply
                 to be recorded as its tenant.
             </p>
             <a href="{{ route('apply.start') }}" class="btn btn-primary btn-lg">
