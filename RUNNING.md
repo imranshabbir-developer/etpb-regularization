@@ -92,12 +92,12 @@ php artisan db:seed --class=ApplicantAccountSeeder
 
 ## A five-minute tour
 
-The database carries **27 applications across 7 districts**, deliberately spread
-over every stage of the workflow so that no screen is empty during a
+The database carries **23 demonstration applications across 6 districts** (plus
+the public Demo Applicant regularized case and Sohan’s two drafts), deliberately
+spread over every stage of the workflow so that no screen is empty during a
 demonstration — including a case past its assessment deadline, one past the
 Administrator's one-month limit, one stayed by a court, and one still waiting on
-its deposit. Headline figures: **Rs. 268,900** monthly rent secured,
-**Rs. 167,195,185** arrears assessed, **33%** recovered.
+its deposit.
 
 Cases worth opening:
 
@@ -286,12 +286,16 @@ $u->forceFill(['password' => Hash::make('Etpb@2026#Change'), 'force_password_cha
 
 ### Starting over with clean data
 
-This **wipes everything** and rebuilds from scratch:
+This **wipes everything** and rebuilds schema + all demo records (officers,
+applicants, 27 workflow cases, public applicant cases):
 
 ```bash
 cd back-end
 php artisan migrate:fresh --seed
 ```
+
+On a new laptop, prefer **`setup-laptop.bat`** at the project root — it also
+creates the MySQL database and builds assets.
 
 ---
 

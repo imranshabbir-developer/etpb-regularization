@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Hash;
 /**
  * Bootstrap accounts — one per statutory and operational role.
  *
- * Every account is created with force_password_change = true, so the seeded
- * password cannot survive first login. These are commissioning accounts, not
- * production credentials.
+ * These are commissioning accounts, not production credentials. Password-change
+ * forcing is controlled by ETPB_FORCE_PASSWORD_CHANGE in .env (default false
+ * so a fresh laptop demo is not interrupted at first sign-in). Set it to true
+ * before any real case is carried.
  */
 class UserSeeder extends Seeder
 {
@@ -19,6 +20,8 @@ class UserSeeder extends Seeder
 
     public function run(): void
     {
+        $forceChange = filter_var(env('ETPB_FORCE_PASSWORD_CHANGE', false), FILTER_VALIDATE_BOOLEAN);
+
         $lahore = DB::table('districts')->where('name', 'Lahore')->value('id');
         $lahoreOffice = DB::table('offices')->where('code', 'ETPB-HO')->value('id');
         $lahoreDistrictOffice = DB::table('offices')
@@ -46,7 +49,8 @@ class UserSeeder extends Seeder
                 'district_id'           => $districtId,
                 'status'                => 'ACTIVE',
                 'password'              => Hash::make(self::DEFAULT_PASSWORD),
-                'force_password_change' => true,
+                'force_password_change' => $forceChange,
+                'password_changed_at'   => $forceChange ? null : now(),
                 'email_verified_at'     => now(),
                 'created_at'            => now(),
                 'updated_at'            => now(),
@@ -65,7 +69,11 @@ class UserSeeder extends Seeder
         $this->command->newLine();
         $this->command->warn('  Seeded ' . count($accounts) . ' commissioning accounts.');
         $this->command->warn('  Default password for all: ' . self::DEFAULT_PASSWORD);
-        $this->command->warn('  Every account must change its password at first login.');
+        $this->command->warn(
+            $forceChange
+                ? '  Every account must change its password at first login.'
+                : '  Password change at first login is OFF (ETPB_FORCE_PASSWORD_CHANGE=false).'
+        );
         $this->command->newLine();
     }
 }

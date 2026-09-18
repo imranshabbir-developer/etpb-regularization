@@ -53,6 +53,17 @@ class ApplicantAccountSeeder extends Seeder
                 'address'   => 'Model Town, Lahore',
                 'district'  => $lahore,
             ],
+            [
+                'name'      => 'Sohan Lal',
+                'email'     => 'sohan.lal@example.com',
+                'password'  => 'Sohan#Portal2026',
+                'cnic'      => '3520188123456',
+                'contact'   => '0300-7788990',
+                'parentage_type' => 'FATHER',
+                'parentage_name' => 'Kishan Chand',
+                'address'   => 'House 22, Sant Nagar, Lahore',
+                'district'  => $lahore,
+            ],
         ];
 
         foreach ($people as $p) {

@@ -92,24 +92,24 @@ Sign in as each of these in turn to see one case travel end to end:
 
 ## Recreating them
 
-All accounts are seeded, so a fresh clone has them:
+All accounts **and** the demonstration cases are seeded on a fresh clone:
 
 ```bash
 cd back-end
-php artisan migrate --seed
+php artisan migrate:fresh --seed
 ```
 
+Or from the project root on Windows: run **`setup-laptop.bat`**.
+
 - `UserSeeder` — the eight officer accounts
-- `ApplicantAccountSeeder` — the public accounts, with their particulars
-- `DemoDataSeeder` *(optional)* — 27 applications across 7 districts, spread over every stage of the workflow
+- `ApplicantAccountSeeder` — Imran, Demo Applicant, and Sohan Lal
+- `DemoDataSeeder` — 23 applications across districts / workflow stages
+- `PublicApplicantCaseSeeder` — Demo Applicant’s regularized case + Sohan’s two drafts
 
 `ApplicantAccountSeeder` is safe to run again at any time. It matches on email
 and CNIC, updates rather than duplicating, never resets a password someone has
 since changed, and never touches an applicant record that an application already
 points at — those particulars belong to a case on the file, not to a seeder.
-
-`sohan.lal@example.com` predates that seeder and is not recreated by it. On a
-fresh installation his two drafts will not exist.
 
 ---
 

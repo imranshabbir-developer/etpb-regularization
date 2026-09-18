@@ -14,6 +14,34 @@ The full design rationale, schema reasoning, statutory mapping and roadmap are i
 Dependencies are not committed; `composer install` and `npm install` restore
 them. Requires PHP 8.4, MySQL 8 and Node 20 or later.
 
+### Fastest path (home / second Windows laptop)
+
+**Prerequisites:** XAMPP (PHP 8.3+, MySQL started), Composer, Node.js 20+.
+
+```bash
+git clone https://github.com/imranshabbir-developer/etpb-regularization.git
+cd etpb-regularization
+```
+
+Then double-click **`setup-laptop.bat`** (or run
+`powershell -ExecutionPolicy Bypass -File .\setup-laptop.ps1`).
+
+That one script creates the MySQL database, installs PHP/JS dependencies,
+runs **`migrate:fresh --seed`** (full schema + every login account + all demo
+cases), builds CSS assets, and writes an Apache config for this machine’s path.
+
+**Run the app:**
+
+```bash
+cd back-end
+php artisan serve --port=8000
+```
+
+Open <http://127.0.0.1:8000>. Officer password for all seeded officers:
+`Etpb@2026#Change`. Full list: [`ACCOUNTS.md`](ACCOUNTS.md).
+
+### Manual path
+
 ```bash
 git clone https://github.com/imranshabbir-developer/etpb-regularization.git
 cd etpb-regularization/back-end
@@ -21,22 +49,37 @@ cd etpb-regularization/back-end
 composer install
 npm install
 
-cp .env.example .env          # then set DB_PASSWORD
+cp .env.example .env          # then set DB_PASSWORD if needed
 php artisan key:generate
 
-php artisan migrate --seed    # schema, reference data and the eight accounts
-npm run build                 # compiles Tailwind and the front-end assets
+# Create empty DB once (XAMPP):
+#   mysql -u root -e "CREATE DATABASE etpb_regularization CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+php artisan migrate:fresh --seed   # schema + reference + users + full demo data
+npm run build                      # compiles Tailwind and the front-end assets
 ```
 
 `.env.example` documents every setting the system takes, including the fifteen
 `ETPB_*` scheme constants and the clause each one comes from. The real `.env` is
 not in the repository: it carries the database password and the application key.
 
-To load the demonstration data — 27 applications across 7 districts, spread over
-every stage of the workflow — add:
+**What `--seed` loads automatically (no extra command):**
+
+| Seeder | Contents |
+|---|---|
+| `ReferenceDataSeeder` | Settings, document types, rate sources, unit profiles |
+| `GeographySeeder` | Provinces, districts, offices |
+| `RolePermissionSeeder` | Roles and permissions |
+| `UserSeeder` | 8 officer accounts |
+| `ApplicantAccountSeeder` | Public applicants (Imran, Demo, Sohan) |
+| `DemoDataSeeder` | 23 applications across workflow stages |
+| `PublicApplicantCaseSeeder` | Demo Applicant regularized case + Sohan’s 2 drafts |
+
+To wipe and reload everything again later:
 
 ```bash
-php artisan db:seed --class=DemoDataSeeder
+cd back-end
+php artisan migrate:fresh --seed
 ```
 
 ---

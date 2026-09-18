@@ -18,6 +18,9 @@ cd back-end
 php artisan migrate:fresh --seed
 ```
 
+This loads schema, reference data, geography, RBAC, officer accounts, public
+applicant accounts, the 23 demonstration cases, and the public-applicant cases.
+
 To refresh the exports in this folder after a schema change:
 
 ```bash
