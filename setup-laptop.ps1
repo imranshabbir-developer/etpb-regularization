@@ -133,6 +133,10 @@ try {
     & $Php artisan migrate:fresh --seed --force
     if ($LASTEXITCODE -ne 0) { throw 'migrate:fresh --seed failed' }
 
+    Write-Host 'Verifying seed data...' -ForegroundColor Green
+    & $Php tools\verify-seed.php
+    if ($LASTEXITCODE -ne 0) { throw 'seed verification failed' }
+
     Write-Host 'npm install + build...' -ForegroundColor Green
     npm install --ignore-scripts
     if ($LASTEXITCODE -ne 0) { throw 'npm install failed' }
@@ -188,18 +192,21 @@ Listen 8080
     Write-Host '  2) Start Apache in XAMPP'
     Write-Host '  3) Open http://localhost:8080'
     Write-Host ''
-    Write-Host 'LOGIN (see ACCOUNTS.md for full list):' -ForegroundColor Cyan
+    Write-Host 'LOGIN (see ACCOUNTS.md / START_HERE.md for full list):' -ForegroundColor Cyan
     Write-Host '  Officers (all):     Etpb@2026#Change'
+    Write-Host '    chairman@etpb.gov.pk       Chairman (charts + reports)'
+    Write-Host '    secretary@etpb.gov.pk      Secretary (charts + reports)'
+    Write-Host '    admin.lhr@etpb.gov.pk       Administrator'
     Write-Host '    do.lhr@etpb.gov.pk          District Officer'
     Write-Host '    accounts.lhr@etpb.gov.pk    Accounts Officer'
-    Write-Host '    admin.lhr@etpb.gov.pk       Administrator'
     Write-Host '  Applicants:'
     Write-Host '    demo.applicant@example.com / Demo#Portal2026'
     Write-Host '    imran.shabbir@example.com  / Imran@Portal2026'
     Write-Host '    sohan.lal@example.com      / Sohan#Portal2026'
     Write-Host ''
-    Write-Host 'Database was fully seeded (officers + applicants + demo cases).'
-    Write-Host 'To wipe and reload later:  php artisan migrate:fresh --seed'
+    Write-Host 'Demo walkthrough: docs\DEMO_FLOW_GUIDE.md'
+    Write-Host 'Database was fully seeded (officers + applicants + demo cases + charts assets).'
+    Write-Host 'To wipe and reload later:  php artisan migrate:fresh --seed --force'
     Write-Host ''
 }
 finally {

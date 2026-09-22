@@ -18,6 +18,8 @@ them. Requires PHP 8.4, MySQL 8 and Node 20 or later.
 
 ### Fastest path (home / second Windows laptop)
 
+**Read [`START_HERE.md`](START_HERE.md) first** — shortest clone checklist.
+
 **Prerequisites:** XAMPP (PHP 8.3+, MySQL started), Composer, Node.js 20+.
 
 ```bash
@@ -29,8 +31,8 @@ Then double-click **`setup-laptop.bat`** (or run
 `powershell -ExecutionPolicy Bypass -File .\setup-laptop.ps1`).
 
 That one script creates the MySQL database, installs PHP/JS dependencies,
-runs **`migrate:fresh --seed`** (full schema + every login account + all demo
-cases), builds CSS assets, and writes an Apache config for this machine’s path.
+runs **`migrate:fresh --seed`** (schema **and** all records), builds CSS + charts,
+and verifies the seed.
 
 **Run the app:**
 
