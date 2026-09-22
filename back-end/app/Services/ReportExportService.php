@@ -301,6 +301,7 @@ class ReportExportService
         'distro'    => 'font-size:9pt;',
         'hd'        => 'font-weight:bold;',
         'endorse'   => 'font-size:8.5pt;font-style:italic;border-top:1pt solid #9AA8A2;color:#3A4A44;',
+        'wide'      => '',
     ];
 
     /**

@@ -123,7 +123,7 @@
 
 @if ($allBreaches->isNotEmpty())
     <h3>Cases past a deadline, with the officer answerable</h3>
-    <table class="t">
+    <table class="t wide">
         <thead>
         <tr>
             <th>Type</th><th>Application</th><th>Applicant</th><th>District</th>

@@ -12,20 +12,52 @@ $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 $users = (int) DB::table('users')->count();
 $apps = (int) DB::table('applications')->count();
 $roles = (int) DB::table('roles')->count();
-$secretary = DB::table('users')->where('email', 'secretary@etpb.gov.pk')->exists();
-$chairman = DB::table('users')->where('email', 'chairman@etpb.gov.pk')->exists();
-$demo = DB::table('users')->where('email', 'demo.applicant@example.com')->exists();
+$fees = (int) DB::table('fee_payments')->whereNull('deleted_at')->count();
+$perms = (int) DB::table('permissions')->count();
+$districts = (int) DB::table('districts')->count();
+
+$requiredEmails = [
+    'admin@etpb.gov.pk',
+    'chairman@etpb.gov.pk',
+    'secretary@etpb.gov.pk',
+    'admin.lhr@etpb.gov.pk',
+    'do.lhr@etpb.gov.pk',
+    'da.lhr@etpb.gov.pk',
+    'accounts.lhr@etpb.gov.pk',
+    'legal.lhr@etpb.gov.pk',
+    'audit@etpb.gov.pk',
+    'imran.shabbir@example.com',
+    'demo.applicant@example.com',
+    'sohan.lal@example.com',
+];
+
+$missing = [];
+foreach ($requiredEmails as $email) {
+    if (! DB::table('users')->where('email', $email)->exists()) {
+        $missing[] = $email;
+    }
+}
 
 echo "users={$users}\n";
 echo "applications={$apps}\n";
 echo "roles={$roles}\n";
-echo 'secretary=' . ($secretary ? 'yes' : 'no') . "\n";
-echo 'chairman=' . ($chairman ? 'yes' : 'no') . "\n";
-echo 'demo_applicant=' . ($demo ? 'yes' : 'no') . "\n";
+echo "permissions={$perms}\n";
+echo "districts={$districts}\n";
+echo "fee_payments={$fees}\n";
+echo 'accounts_present=' . (count($requiredEmails) - count($missing)) . '/' . count($requiredEmails) . "\n";
 
-$ok = $users >= 11 && $apps >= 20 && $roles >= 9 && $secretary && $chairman && $demo;
+$ok = $users >= 12
+    && $apps >= 20
+    && $roles >= 9
+    && $perms >= 40
+    && $districts >= 100
+    && $fees >= 5
+    && $missing === [];
 
 if (! $ok) {
+    if ($missing !== []) {
+        fwrite(STDERR, 'Missing accounts: ' . implode(', ', $missing) . "\n");
+    }
     fwrite(STDERR, "Seed verification FAILED — re-run: php artisan migrate:fresh --seed --force\n");
     exit(1);
 }

@@ -27,8 +27,15 @@ That script will:
 - `php artisan key:generate`
 - **`php artisan migrate:fresh --seed`** ← full schema + all accounts + all demo cases
 - `npm run build` (CSS + Chart.js dashboards)
-- verify seed counts
+- verify seed counts (12 accounts, demo applications, fee instruments, …)
 - print login details
+
+After setup, every report (glimpse, consolidated, case file, and all registers) downloads as **PDF / Word / Excel** without layout clipping. Optional check:
+
+```bash
+cd back-end
+php tools/smoke-reports.php
+```
 
 If MySQL root has a password, put it in `back-end/.env` as `DB_PASSWORD=...` and re-run the script.
 
