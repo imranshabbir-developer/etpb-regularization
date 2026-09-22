@@ -59,7 +59,8 @@ Open: **http://127.0.0.1:8000**
 | `imran.shabbir@example.com` | `Imran@Portal2026` |
 
 Full list: [`ACCOUNTS.md`](ACCOUNTS.md)  
-Officer walkthrough: [`docs/DEMO_FLOW_GUIDE.md`](docs/DEMO_FLOW_GUIDE.md)
+**Detailed end-to-end flow (every role, every step):** [`docs/PLATFORM_END_TO_END_FLOW.md`](docs/PLATFORM_END_TO_END_FLOW.md)  
+Short demo walkthrough: [`docs/DEMO_FLOW_GUIDE.md`](docs/DEMO_FLOW_GUIDE.md)
 
 ## Reload everything later
 
