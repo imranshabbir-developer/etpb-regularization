@@ -17,12 +17,21 @@
    relies on flexbox, grid, custom properties or modern colour syntax. Layout
    that has to survive both is done with tables, which both render faithfully.
 */
-@page { margin: 22mm 18mm 20mm 20mm; }
+/*
+   Page size must match Dompdf's setPaper() call. Landscape registers carry
+   many columns; tighter side margins and smaller type keep every cell on the
+   page instead of clipping the right edge.
+*/
+@if (($orientation ?? 'portrait') === 'landscape')
+@page { size: A4 landscape; margin: 10mm 6mm 12mm 6mm; }
+@else
+@page { size: A4 portrait; margin: 16mm 12mm 16mm 12mm; }
+@endif
 
 body {
     font-family: "DejaVu Serif", "Times New Roman", serif;
     font-size: 10pt;
-    line-height: 1.5;
+    line-height: 1.4;
     color: #000000;
     margin: 0;
 }
@@ -74,26 +83,38 @@ p  { margin: 0 0 7pt; text-align: justify; }
 
 /* ---- tables ------------------------------------------------------------ */
 
-/* Auto layout: Dompdf sizes columns from their content well, whereas a fixed
-   layout without an explicit width per column distributes them unevenly. */
-table.t     { width: 100%; border-collapse: collapse; margin: 0 0 11pt; }
+/*
+   Fixed layout keeps every column inside the printable width. Dompdf otherwise
+   lets long identifiers (application numbers, CNICs) push the table past the
+   right margin and silently clips the last columns — unacceptable on a filed
+   register. Soft wrapping lets the text break rather than overflow.
+*/
+table.t     { width: 98%; max-width: 98%; border-collapse: collapse; margin: 0 auto 11pt;
+              table-layout: fixed; }
 table.t tr  { page-break-inside: avoid; }
 table.t thead { display: table-header-group; }   /* repeat headings across pages */
 table.t th, table.t td {
-    border: 0.5pt solid #6E7C76; padding: 4pt 5pt;
-    text-align: left; font-size: 8.5pt;
+    border: 0.4pt solid #6E7C76; padding: 2.5pt 3pt;
+    text-align: left; font-size: 7.5pt; vertical-align: top;
+    word-wrap: break-word; overflow-wrap: anywhere; word-break: break-word;
 }
 table.t th {
-    background-color: #E8F1EB; font-weight: bold; font-size: 8pt;
-    text-transform: uppercase; letter-spacing: 0.2pt;
+    background-color: #E8F1EB; font-weight: bold; font-size: 6.5pt;
+    text-transform: uppercase; letter-spacing: 0.1pt;
 }
-table.t td.num, table.t th.num { text-align: right; }
+table.t td.num, table.t th.num { text-align: right; white-space: nowrap; }
 table.t td.c,   table.t th.c   { text-align: center; }
 table.t tfoot td { background-color: #F3F7F4; font-weight: bold; }
 table.t tr.hi td { background-color: #FBF3DC; }
 
+/* Wide operational registers (fee, notices, assessments, …). */
+table.t.wide th, table.t.wide td {
+    font-size: 6pt; padding: 1.5pt 2pt; line-height: 1.2;
+}
+table.t.wide th { font-size: 5.5pt; }
+
 /* Serial-number column, as every official table here carries one. */
-table.t td.sr, table.t th.sr { text-align: center; width: 26pt; }
+table.t td.sr, table.t th.sr { text-align: center; width: 20pt; }
 
 /* ---- particulars (key / value) ----------------------------------------- */
 

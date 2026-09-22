@@ -70,8 +70,12 @@ class ReportExportService
     /**
      * Stream a Word document built from the same report HTML.
      */
-    public function word(string $html, string $filename, string $title = ''): StreamedResponse
-    {
+    public function word(
+        string $html,
+        string $filename,
+        string $title = '',
+        string $orientation = 'portrait',
+    ): StreamedResponse {
         $word = new PhpWord();
         $word->getDocInfo()
             ->setCreator('Evacuee Trust Property Board')
@@ -81,9 +85,14 @@ class ReportExportService
         $word->setDefaultFontName('Calibri');
         $word->setDefaultFontSize(10);
 
+        $isLandscape = strtolower($orientation) === 'landscape';
         $section = $word->addSection([
-            'marginTop' => 700, 'marginBottom' => 700,
-            'marginLeft' => 700, 'marginRight' => 700,
+            'orientation' => $isLandscape ? 'landscape' : 'portrait',
+            // Tighter margins on landscape so wide registers keep every column.
+            'marginTop' => $isLandscape ? 500 : 700,
+            'marginBottom' => $isLandscape ? 500 : 700,
+            'marginLeft' => $isLandscape ? 450 : 700,
+            'marginRight' => $isLandscape ? 450 : 700,
         ]);
 
         // PhpWord parses a narrower subset of HTML than Dompdf, so the markup
@@ -184,7 +193,7 @@ class ReportExportService
     ): StreamedResponse {
         return match ($format) {
             'pdf'  => $this->pdf($html, $filename, $orientation, $reference),
-            'docx' => $this->word($html, $filename, $title),
+            'docx' => $this->word($html, $filename, $title, $orientation),
             'xlsx' => $this->excel($sheets, $filename, $title),
             default => throw new \InvalidArgumentException("Unsupported report format [{$format}]."),
         };
@@ -204,8 +213,9 @@ class ReportExportService
 
         $w = $canvas->get_width();
         $h = $canvas->get_height();
-        $margin = 42;      // matches the 18mm side margin closely enough at 72dpi
-        $y = $h - 40;
+        // ~8–14mm side margin depending on orientation (72 dpi).
+        $margin = $w > $h ? 22 : 36;
+        $y = $h - 32;
 
         $canvas->line($margin, $y - 4, $w - $margin, $y - 4, [0.6, 0.66, 0.63], 0.5);
 

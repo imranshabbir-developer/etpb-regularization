@@ -34,7 +34,7 @@
         </div>
     @else
         <div class="table-wrap" style="border:0;border-radius:0;max-height:70vh;overflow:auto">
-            <table class="data">
+            <table class="data" style="min-width:max-content;width:100%">
                 <thead>
                 <tr>
                     @foreach (array_keys((array) $rows->first()) as $col)

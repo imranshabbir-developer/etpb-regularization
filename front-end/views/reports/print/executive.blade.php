@@ -163,7 +163,7 @@
 
 <h2>4. By district</h2>
 
-<table class="t">
+<table class="t wide">
     <thead>
     <tr>
         <th>District</th><th class="num">Received</th><th class="num">Paid</th>

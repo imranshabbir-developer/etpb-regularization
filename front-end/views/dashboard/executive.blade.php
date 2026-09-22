@@ -24,6 +24,33 @@
     $districtCases = $districtSlice->map(fn ($d) => (int) $d->total)->values();
     $ageLabels = collect($ageing)->pluck('label')->values();
     $ageAmounts = collect($ageing)->map(fn ($b) => (float) $b['amount'])->values();
+
+    // Chart payloads prepared here so Blade does not parse multi-line @json([...]).
+    $chartIntakeData = [
+        'labels' => $monthLabels,
+        'intake' => $monthly->values()->map(fn ($n) => (int) $n)->values(),
+        'disposal' => $disposal->values()->map(fn ($n) => (int) $n)->values(),
+        'intakeLabel' => 'Submitted',
+        'disposalLabel' => 'Regularized',
+    ];
+    $chartStagesData = [
+        'labels' => $stageLabels,
+        'values' => $stageValues->map(fn ($n) => (int) $n)->values(),
+    ];
+    $chartDistrictsData = [
+        'labels' => $districtLabels,
+        'values' => $districtCases,
+        'label' => 'Applications',
+        'horizontal' => true,
+        'color' => '#166534',
+    ];
+    $chartAgeingData = [
+        'labels' => $ageLabels,
+        'values' => $ageAmounts,
+        'label' => 'Outstanding',
+        'money' => true,
+        'color' => '#b45309',
+    ];
 @endphp
 
 <div class="page-head">
@@ -67,13 +94,7 @@
             <div class="chart-frame is-lg">
                 <canvas id="chartIntake" data-etpb-chart="line-dual" data-etpb-source="chart-intake-data" aria-label="Intake versus regularisation trend"></canvas>
             </div>
-            <script type="application/json" id="chart-intake-data">@json([
-                'labels' => $monthLabels,
-                'intake' => $monthly->values()->map(fn ($n) => (int) $n)->values(),
-                'disposal' => $disposal->values()->map(fn ($n) => (int) $n)->values(),
-                'intakeLabel' => 'Submitted',
-                'disposalLabel' => 'Regularized',
-            ])</script>
+            <script type="application/json" id="chart-intake-data">@json($chartIntakeData)</script>
         </div>
     </div>
 
@@ -85,10 +106,7 @@
             <div class="chart-frame is-lg">
                 <canvas id="chartStages" data-etpb-chart="doughnut" data-etpb-source="chart-stages-data" aria-label="Caseload by workflow stage"></canvas>
             </div>
-            <script type="application/json" id="chart-stages-data">@json([
-                'labels' => $stageLabels,
-                'values' => $stageValues->map(fn ($n) => (int) $n)->values(),
-            ])</script>
+            <script type="application/json" id="chart-stages-data">@json($chartStagesData)</script>
         </div>
     </div>
 </div>
@@ -167,13 +185,7 @@
             <div class="chart-frame">
                 <canvas id="chartDistricts" data-etpb-chart="bar" data-etpb-source="chart-districts-data" aria-label="Applications by district"></canvas>
             </div>
-            <script type="application/json" id="chart-districts-data">@json([
-                'labels' => $districtLabels,
-                'values' => $districtCases,
-                'label' => 'Applications',
-                'horizontal' => true,
-                'color' => '#166534',
-            ])</script>
+            <script type="application/json" id="chart-districts-data">@json($chartDistrictsData)</script>
         </div>
         <div class="card-foot">
             <a href="{{ route('reports.executive') }}" class="btn btn-ghost btn-sm">Full district table in consolidated report</a>
@@ -186,13 +198,7 @@
             <div class="chart-frame">
                 <canvas id="chartAgeing" data-etpb-chart="bar" data-etpb-source="chart-ageing-data" aria-label="Outstanding arrears by age"></canvas>
             </div>
-            <script type="application/json" id="chart-ageing-data">@json([
-                'labels' => $ageLabels,
-                'values' => $ageAmounts,
-                'label' => 'Outstanding',
-                'money' => true,
-                'color' => '#b45309',
-            ])</script>
+            <script type="application/json" id="chart-ageing-data">@json($chartAgeingData)</script>
         </div>
     </div>
 </div>

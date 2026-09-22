@@ -5,7 +5,13 @@
 
 @section('content')
 
-@php $first = explode(' ', trim(auth()->user()->name))[0]; @endphp
+@php
+    $first = explode(' ', trim(auth()->user()->name))[0];
+    $officerStageData = [
+        'labels' => $byStatus->keys()->map(fn ($s) => $labels[$s] ?? $s)->values(),
+        'values' => $byStatus->values()->map(fn ($n) => (int) $n)->values(),
+    ];
+@endphp
 
 <div class="page-head">
     <h1>{{ now()->hour < 12 ? 'Good morning' : (now()->hour < 17 ? 'Good afternoon' : 'Good evening') }},
@@ -89,10 +95,7 @@
                     <div class="chart-frame is-sm">
                         <canvas id="officerStageChart" data-etpb-chart="doughnut" data-etpb-source="officer-stage-data" aria-label="Your caseload by stage"></canvas>
                     </div>
-                    <script type="application/json" id="officer-stage-data">@json([
-                        'labels' => $byStatus->keys()->map(fn ($s) => $labels[$s] ?? $s)->values(),
-                        'values' => $byStatus->values()->map(fn ($n) => (int) $n)->values(),
-                    ])</script>
+                    <script type="application/json" id="officer-stage-data">@json($officerStageData)</script>
                     <div class="inline-list mt-3">
                         @foreach ($byStatus as $status => $count)
                             <span class="badge badge-{{ \App\Services\WorkflowService::TONES[$status] ?? 'neutral' }}">

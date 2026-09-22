@@ -75,7 +75,7 @@ class ReportController extends Controller
         if ($format = $this->requestedFormat($request)) {
             return $this->export->render(
                 $format,
-                view('reports.print.glimpse', $payload)->render(),
+                view('reports.print.glimpse', $payload + ['orientation' => 'portrait'])->render(),
                 $this->glimpseSheets($payload),
                 'ETPB-performance-glimpse-' . now()->format('Y-m-d'),
                 'Performance at a glance',
@@ -129,7 +129,7 @@ class ReportController extends Controller
         if ($format = $this->requestedFormat($request)) {
             return $this->export->render(
                 $format,
-                view('reports.print.executive', $payload)->render(),
+                view('reports.print.executive', $payload + ['orientation' => 'landscape'])->render(),
                 $this->executiveSheets($payload),
                 'ETPB-consolidated-report-' . now()->format('Y-m-d'),
                 'Consolidated report',
@@ -205,7 +205,7 @@ class ReportController extends Controller
         if ($format = $this->requestedFormat($request)) {
             return $this->export->render(
                 $format,
-                view('reports.print.deep', $payload)->render(),
+                view('reports.print.deep', $payload + ['orientation' => 'portrait'])->render(),
                 $this->deepSheets($payload),
                 'ETPB-case-' . str_replace('/', '-', $application->application_no),
                 'Deep report — ' . $application->application_no,
@@ -253,7 +253,7 @@ class ReportController extends Controller
 
             return $this->export->render(
                 $format,
-                view('reports.print.register', $payload)->render(),
+                view('reports.print.register', $payload + ['orientation' => 'landscape'])->render(),
                 [$allowed[$register] => ['headings' => $headings, 'rows' => $rows]],
                 'ETPB-' . $register . '-register-' . now()->format('Y-m-d'),
                 $allowed[$register],
@@ -297,9 +297,12 @@ class ReportController extends Controller
                 ->join('applicants as ap', 'ap.id', '=', 'a.applicant_id')
                 ->leftJoin('districts as d', 'd.id', '=', 'a.district_id')
                 ->whereNull('f.deleted_at')->whereNull('a.deleted_at'))
+                // Bank and branch share one column so the landscape sheet can
+                // keep every remaining field (including Payment) inside the page.
                 ->select('a.application_no', 'ap.full_name', 'ap.cnic', 'd.name as district',
                          'f.instrument_type', 'f.instrument_no', 'f.instrument_date', 'f.amount',
-                         'f.bank_name', 'f.branch_code', 'f.status as instrument_status',
+                         DB::raw("TRIM(CONCAT(COALESCE(f.bank_name, ''), IF(f.branch_code IS NULL OR f.branch_code = '', '', CONCAT(' / ', f.branch_code)))) as bank"),
+                         'f.status as instrument_status',
                          'a.payment_status')
                 ->orderByDesc('f.instrument_date')->limit(5000)->get(),
 
