@@ -143,4 +143,77 @@
     </div>
 </div>
 
+<div class="grid-2 items-start gap-[1.15rem]">
+    <div class="card">
+        <div class="card-head"><h3>Arrears ageing</h3></div>
+        <div class="table-wrap border-0 rounded-none">
+            <table class="data">
+                <thead><tr><th>Age</th><th class="num">Cases</th><th class="num">Outstanding</th></tr></thead>
+                <tbody>
+                @foreach ($ageing as $bucket)
+                    <tr>
+                        <td>{{ $bucket['label'] }}</td>
+                        <td class="num">{{ number_format($bucket['count']) }}</td>
+                        <td class="num">{{ $short($bucket['amount']) }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-foot">
+            <a href="{{ route('reports.executive') }}" class="btn btn-ghost btn-sm">Full ageing in consolidated report</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><h3>Litigation &amp; stays</h3></div>
+        <div class="card-body">
+            <dl class="kv">
+                <dt>On register</dt><dd>{{ number_format($litigation['total']) }}</dd>
+                <dt>Pending</dt><dd><span class="badge badge-{{ $litigation['pending'] > 0 ? 'warn' : 'good' }}">{{ number_format($litigation['pending']) }}</span></dd>
+                <dt>Restraining orders</dt><dd><span class="badge badge-{{ $litigation['stays'] > 0 ? 'danger' : 'good' }}">{{ number_format($litigation['stays']) }}</span></dd>
+            </dl>
+            @if (($breaches['assessment']->count() + $breaches['approval']->count()) > 0)
+                <hr class="divider">
+                <p class="mb-2 text-[.85rem]">
+                    <strong class="text-danger-600">{{ $breaches['assessment']->count() + $breaches['approval']->count() }}</strong>
+                    statutory deadline{{ ($breaches['assessment']->count() + $breaches['approval']->count()) === 1 ? '' : 's' }} breached —
+                    named in the consolidated report.
+                </p>
+            @endif
+            <div class="btn-row">
+                <a href="{{ route('reports.glimpse') }}" class="btn btn-primary btn-sm">At a glance (PDF / Word / Excel)</a>
+                <a href="{{ route('reports.registers', ['register' => 'litigation']) }}" class="btn btn-outline btn-sm">Litigation register</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head"><h3>Intake vs disposal — last 12 months</h3></div>
+    <div class="card-body">
+        @php
+            $max = max(array_merge($monthly->values()->all(), $disposal->values()->all(), [1]));
+        @endphp
+        <div class="flex items-end gap-1 sm:gap-2 h-[160px]">
+            @foreach ($monthly as $ym => $n)
+                @php $d = (int) ($disposal[$ym] ?? 0); @endphp
+                <div class="flex-1 flex flex-col items-center gap-1 h-full min-w-0" title="Intake {{ $n }} · Regularized {{ $d }}">
+                    <div class="text-[.65rem] tabular-nums muted leading-none">{{ $n }}/{{ $d }}</div>
+                    <div class="w-full flex gap-0.5 items-end mt-auto" style="height:{{ max(8, round(max($n, $d) / $max * 100)) }}%">
+                        <div class="flex-1 bg-pk-600 rounded-t" style="height:{{ $n > 0 ? max(12, round($n / max($n, $d, 1) * 100)) : 8 }}%"></div>
+                        <div class="flex-1 bg-gold-500 rounded-t opacity-90" style="height:{{ $d > 0 ? max(12, round($d / max($n, $d, 1) * 100)) : 8 }}%; background: var(--color-warn-600, #b45309)"></div>
+                    </div>
+                    <div class="faint text-[.62rem] whitespace-nowrap">
+                        {{ \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->format('M') }}
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        <p class="faint text-[.75rem] mt-3 mb-0">
+            Dark bars = applications submitted &middot; amber bars = cases regularized
+        </p>
+    </div>
+</div>
+
 @endsection

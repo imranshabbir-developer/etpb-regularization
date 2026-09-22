@@ -37,8 +37,12 @@ class DashboardController extends Controller
             return $this->applicantHome($request);
         }
 
-        // Chairman and above see performance first; everyone else sees work.
-        if ($user->hasPermission('reports.executive') && ! $user->hasPermission('applications.scrutinise')) {
+        // Chairman / Secretary / Auditor see performance first. The Administrator
+        // also holds reports.executive, but their first job is the approval queue,
+        // so they land on the officer work screen like the District Officer.
+        if ($user->hasPermission('reports.executive')
+            && ! $user->hasPermission('applications.scrutinise')
+            && ! $user->hasPermission('approvals.administrator')) {
             return $this->executiveHome($request);
         }
 
@@ -221,12 +225,17 @@ class DashboardController extends Controller
         $user = $request->user();
 
         return view('dashboard.executive', [
-            'headline'    => $this->data->headline($user),
-            'performance' => $this->data->performance($user),
-            'byDistrict'  => $this->data->byDistrict($user),
-            'monthly'     => $this->data->monthlyIntake($user),
-            'objections'  => $this->data->objections(),
-            'recent'      => Application::query()->visibleTo($user)
+            'headline'     => $this->data->headline($user),
+            'performance'  => $this->data->performance($user),
+            'byDistrict'   => $this->data->byDistrict($user),
+            'monthly'      => $this->data->monthlyIntake($user),
+            'disposal'     => $this->data->monthlyDisposal($user),
+            'ageing'       => $this->data->arrearsAgeing($user),
+            'feeBreakdown' => $this->data->feeBreakdown($user),
+            'litigation'   => $this->data->litigationSummary($user),
+            'breaches'     => $this->data->breaches($user),
+            'objections'   => $this->data->objections(),
+            'recent'       => Application::query()->visibleTo($user)
                                 ->with(['applicant:id,full_name', 'district:id,name'])
                                 ->orderByDesc('updated_at')->limit(6)->get(),
         ]);

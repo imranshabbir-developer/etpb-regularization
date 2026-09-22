@@ -228,4 +228,119 @@ class ReportDataService
             'outcomes' => $outcomes,
         ];
     }
+
+    /**
+     * Outstanding arrears aged from the date rent was fixed (or submission).
+     * Used by Chairman / Secretary consolidated reporting.
+     *
+     * @return array<int, array{key:string,label:string,count:int,amount:string}>
+     */
+    public function arrearsAgeing(User $user, ?int $districtId = null): array
+    {
+        $buckets = [
+            '0_30'     => ['key' => '0_30', 'label' => '0–30 days', 'count' => 0, 'amount' => 0.0],
+            '31_90'    => ['key' => '31_90', 'label' => '31–90 days', 'count' => 0, 'amount' => 0.0],
+            '91_180'   => ['key' => '91_180', 'label' => '91–180 days', 'count' => 0, 'amount' => 0.0],
+            '181_365'  => ['key' => '181_365', 'label' => '181–365 days', 'count' => 0, 'amount' => 0.0],
+            'over_365' => ['key' => 'over_365', 'label' => 'Over 1 year', 'count' => 0, 'amount' => 0.0],
+        ];
+
+        $rows = Application::query()
+            ->visibleTo($user)
+            ->when($districtId, fn ($q) => $q->where('district_id', $districtId))
+            ->where('arrears_balance', '>', 0)
+            ->get(['arrears_balance', 'rent_fixed_at', 'submitted_at', 'created_at']);
+
+        foreach ($rows as $row) {
+            $anchor = $row->rent_fixed_at ?? $row->submitted_at ?? $row->created_at;
+            $days = max(0, (int) Carbon::parse($anchor)->startOfDay()->diffInDays(Carbon::today()));
+            $key = match (true) {
+                $days <= 30  => '0_30',
+                $days <= 90  => '31_90',
+                $days <= 180 => '91_180',
+                $days <= 365 => '181_365',
+                default      => 'over_365',
+            };
+            $buckets[$key]['count']++;
+            $buckets[$key]['amount'] += (float) $row->arrears_balance;
+        }
+
+        return array_values(array_map(function (array $b) {
+            $b['amount'] = number_format($b['amount'], 2, '.', '');
+
+            return $b;
+        }, $buckets));
+    }
+
+    /** Cases regularized per month, last twelve — pairs with intake for disposal trend. */
+    public function monthlyDisposal(User $user, ?int $districtId = null): Collection
+    {
+        $rows = Application::query()
+            ->visibleTo($user)
+            ->when($districtId, fn ($q) => $q->where('district_id', $districtId))
+            ->whereNotNull('regularized_at')
+            ->where('regularized_at', '>=', Carbon::today()->subMonths(11)->startOfMonth())
+            ->select(DB::raw("DATE_FORMAT(regularized_at, '%Y-%m') ym"), DB::raw('COUNT(*) n'))
+            ->groupBy('ym')->orderBy('ym')->pluck('n', 'ym');
+
+        $out = collect();
+        for ($i = 11; $i >= 0; $i--) {
+            $key = Carbon::today()->subMonths($i)->format('Y-m');
+            $out->put($key, (int) ($rows[$key] ?? 0));
+        }
+
+        return $out;
+    }
+
+    /** Verified fee instruments by type (Pay Order / DD / Banker's Cheque). */
+    public function feeBreakdown(User $user, ?int $districtId = null): Collection
+    {
+        return DB::table('fee_payments as f')
+            ->join('applications as a', 'a.id', '=', 'f.application_id')
+            ->where('f.status', 'VERIFIED')->whereNull('f.deleted_at')->whereNull('a.deleted_at')
+            ->when($districtId, fn ($q) => $q->where('a.district_id', $districtId))
+            ->when(! $user->hasPermission('applications.view_all'),
+                fn ($q) => $q->where('a.district_id', $user->district_id))
+            ->select('f.instrument_type', DB::raw('COUNT(*) n'), DB::raw('COALESCE(SUM(f.amount),0) total'))
+            ->groupBy('f.instrument_type')
+            ->orderByDesc('total')
+            ->get();
+    }
+
+    /** Litigation / stay snapshot for executive reports. */
+    public function litigationSummary(User $user, ?int $districtId = null): array
+    {
+        $base = DB::table('litigations as l')
+            ->leftJoin('applications as a', 'a.id', '=', 'l.application_id')
+            ->whereNull('l.deleted_at')
+            ->when($districtId, fn ($q) => $q->where('a.district_id', $districtId))
+            ->when(! $user->hasPermission('applications.view_all'),
+                fn ($q) => $q->where('a.district_id', $user->district_id));
+
+        $row = (clone $base)->selectRaw(
+            'COUNT(*) total,
+             SUM(l.is_pending = 1) pending,
+             SUM(l.has_restraining_order = 1) stays,
+             SUM(l.is_direction_case = 1) direction'
+        )->first();
+
+        $upcoming = (clone $base)
+            ->where('l.is_pending', true)
+            ->whereNotNull('l.next_hearing_date')
+            ->whereDate('l.next_hearing_date', '>=', Carbon::today()->toDateString())
+            ->orderBy('l.next_hearing_date')
+            ->limit(8)
+            ->get([
+                'a.application_no', 'l.court_name', 'l.case_no',
+                'l.next_hearing_date', 'l.has_restraining_order',
+            ]);
+
+        return [
+            'total'     => (int) ($row->total ?? 0),
+            'pending'   => (int) ($row->pending ?? 0),
+            'stays'     => (int) ($row->stays ?? 0),
+            'direction' => (int) ($row->direction ?? 0),
+            'upcoming'  => $upcoming,
+        ];
+    }
 }

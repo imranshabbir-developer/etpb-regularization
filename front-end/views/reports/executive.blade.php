@@ -311,4 +311,98 @@
     </div>
 </div>
 
+{{-- ---------- Arrears ageing ---------- --}}
+<div class="card">
+    <div class="card-head">
+        <h3>Arrears ageing (outstanding)</h3>
+        <div class="card-actions"><span class="clause">Clause 3(ii)(b)</span></div>
+    </div>
+    <div class="table-wrap border-0 rounded-none">
+        <table class="data">
+            <thead>
+            <tr><th>Age bucket</th><th class="num">Cases</th><th class="num">Outstanding</th><th class="num">Share</th></tr>
+            </thead>
+            <tbody>
+            @php $ageTotal = collect($ageing)->sum(fn ($b) => (float) $b['amount']); @endphp
+            @foreach ($ageing as $bucket)
+                <tr>
+                    <td>{{ $bucket['label'] }}</td>
+                    <td class="num">{{ number_format($bucket['count']) }}</td>
+                    <td class="num"><strong>{{ $rs($bucket['amount']) }}</strong></td>
+                    <td class="num">{{ $pct((float) $bucket['amount'], $ageTotal) }}%</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{-- ---------- Fee by instrument + litigation ---------- --}}
+<div class="grid-2 items-start gap-[1.15rem]">
+    <div class="card">
+        <div class="card-head"><h3>Fee collection by instrument</h3></div>
+        <div class="table-wrap border-0 rounded-none">
+            <table class="data">
+                <thead><tr><th>Instrument</th><th class="num">Count</th><th class="num">Amount</th></tr></thead>
+                <tbody>
+                @forelse ($feeBreakdown as $row)
+                    <tr>
+                        <td>{{ str_replace('_', ' ', $row->instrument_type) }}</td>
+                        <td class="num">{{ number_format($row->n) }}</td>
+                        <td class="num">{{ $rs($row->total) }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="3" class="row-muted">No verified instruments yet.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><h3>Litigation &amp; restraining orders</h3></div>
+        <div class="card-body">
+            <dl class="kv">
+                <dt>Cases on register</dt><dd>{{ number_format($litigation['total']) }}</dd>
+                <dt>Pending</dt><dd>{{ number_format($litigation['pending']) }}</dd>
+                <dt>With restraining order</dt><dd><strong>{{ number_format($litigation['stays']) }}</strong></dd>
+                <dt>Direction cases</dt><dd>{{ number_format($litigation['direction']) }}</dd>
+            </dl>
+            @if ($litigation['upcoming']->isNotEmpty())
+                <hr class="divider">
+                <p class="text-[.8rem] faint mb-2">Next hearings</p>
+                <ul class="text-[.85rem] space-y-1 mb-0">
+                    @foreach ($litigation['upcoming'] as $u)
+                        <li>
+                            <strong>{{ $u->application_no ?: '—' }}</strong>
+                            — {{ \Illuminate\Support\Carbon::parse($u->next_hearing_date)->format('d-m-Y') }}
+                            <span class="faint">({{ $u->court_name }})</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- ---------- Disposal trend ---------- --}}
+<div class="card">
+    <div class="card-head"><h3>Cases regularized, last 12 months</h3></div>
+    <div class="card-body">
+        @php $dmax = max($disposal->values()->all() ?: [1]); @endphp
+        <div class="flex items-end gap-1 sm:gap-2 h-[150px]">
+            @foreach ($disposal as $ym => $n)
+                <div class="flex-1 flex flex-col items-center gap-1 h-full min-w-0">
+                    <div class="text-[.72rem] tabular-nums muted">{{ $n }}</div>
+                    <div class="w-full rounded-t mt-auto"
+                         style="height:{{ $dmax > 0 ? max(3, round($n / $dmax * 100)) : 3 }}%; background: var(--color-warn-600, #b45309)"></div>
+                    <div class="faint text-[.62rem] sm:text-[.68rem] whitespace-nowrap">
+                        {{ \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->format('M y') }}
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
 @endsection

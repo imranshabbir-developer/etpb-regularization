@@ -140,6 +140,18 @@ class RolePermissionSeeder extends Seeder
                 ],
             ],
             [
+                'code' => 'SECRETARY', 'name' => 'Secretary to the Board', 'level' => 15,
+                'desc' => 'Board Secretariat — consolidated and detailed reporting for the '
+                    . 'Chairman, the Minister-in-charge and senior government. Read-only '
+                    . 'oversight; not a statutory deciding office under Clause 3(ii).',
+                'perms' => [
+                    'applications.view_all', 'documents.view', 'documents.download', 'fee.view',
+                    'assessment.view', 'notices.view', 'arrears.view', 'litigation.view',
+                    'reports.deep', 'reports.executive', 'reports.registers', 'reports.export',
+                    'audit.view',
+                ],
+            ],
+            [
                 'code' => 'ADMINISTRATOR', 'name' => 'Administrator', 'level' => 20,
                 'desc' => 'Approves regularization within one month after recording reasons '
                     . '(Clause 3(ii)(d)); may call for the record of any assessment.',

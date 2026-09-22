@@ -362,13 +362,29 @@ class DemoDataSeeder extends Seeder
             'assessment_due_date'   => now()->subDays(40 - $i)->addDays(60)->toDateString(),
         ])->save();
 
-        $this->finishCase($application, $stage, $rentAmount, $i);
+        // One live assessment case is deliberately past the 60-day clock so the
+        // Chairman's SLA widgets and breach register are not empty in a demo.
+        if ($stage === 'ASSESSMENT_PROPOSED' && $i % 2 === 0) {
+            $application->forceFill([
+                'first_notice_date'   => now()->subDays(90)->toDateString(),
+                'assessment_due_date' => now()->subDays(30)->toDateString(),
+                'rent_fixed_at'       => null,
+            ])->save();
+        }
+
+        $this->finishCase($application, $stage, $rentAmount, $i, $do);
         $this->addLitigation($application, $stage);
     }
 
     /** Payments, approval and the closing acts, so the later stages look real. */
-    private function finishCase(Application $application, string $stage, int $rentAmount, int $i): void
+    private function finishCase(Application $application, string $stage, int $rentAmount, int $i, ?User $do = null): void
     {
+        $adminId = User::where('email', 'admin.lhr@etpb.gov.pk')->value('id')
+            ?? User::where('email', 'admin@etpb.gov.pk')->value('id')
+            ?? 1;
+        $doId = $do?->id
+            ?? User::where('email', 'do.lhr@etpb.gov.pk')->value('id')
+            ?? 1;
         if ($stage === 'PENDING_ADMIN_APPROVAL') {
             // One of these is deliberately past the one-month limit, because an
             // officer needs to see what a breach looks like.
@@ -422,7 +438,7 @@ class DemoDataSeeder extends Seeder
                 . 'verified, the rent has been fixed by the District Officer for recorded reasons '
                 . 'after due notice, and the arrears assessed have been cleared in full. The '
                 . 'regularization is approved.',
-            'acted_by'       => 3,
+            'acted_by'       => $adminId,
             'acted_at'       => now()->subDays(10),
             'due_by'         => now()->subDays(4)->toDateString(),
             'is_within_sla'  => true,
@@ -454,7 +470,7 @@ class DemoDataSeeder extends Seeder
             'application_id'  => $application->id,
             'agreement_no'    => $application->application_no . '/TA/01',
             'executed_on'     => now()->subDays(6)->toDateString(),
-            'executed_by'     => 4,
+            'executed_by'     => $doId,
             'applicant_id'    => $application->applicant_id,
             'monthly_rent'    => (string) $rentAmount,
             'security_amount' => (string) ($rentAmount * 3),
@@ -468,7 +484,7 @@ class DemoDataSeeder extends Seeder
             'application_id'        => $application->id,
             'order_no'              => $application->application_no . '/ORD/01',
             'order_date'            => now()->subDays(5)->toDateString(),
-            'issued_by'             => 4,
+            'issued_by'             => $doId,
             'issued_by_designation' => 'Deputy Administrator',
             'order_text'            => 'The possession of ' . $application->applicant->full_name
                 . ' over ' . $application->property->identity() . ' is hereby regularized under '

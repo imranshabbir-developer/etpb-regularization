@@ -20,7 +20,7 @@
         : [
             'Case work' => [
                 ['dashboard',          'Dashboard',       'home',       null],
-                ['applications.index', 'All applications','file',       'applications.view_district'],
+                ['applications.index', 'All applications','file',       'applications.view_district|applications.view_all'],
                 ['apply.start',        'File for a walk-in','plus',     'applications.create'],
             ],
             'My queues' => [

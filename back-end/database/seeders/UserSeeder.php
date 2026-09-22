@@ -30,6 +30,7 @@ class UserSeeder extends Seeder
         $accounts = [
             ['System Administrator', 'admin@etpb.gov.pk',    '3520112345671', 'System Administrator',   'SYSTEM_ADMIN',      $lahoreOffice,         null],
             ['Chairman ETPB',        'chairman@etpb.gov.pk', '3520112345672', 'Chairman',               'CHAIRMAN',          $lahoreOffice,         null],
+            ['Secretary to the Board','secretary@etpb.gov.pk','3520112345679', 'Secretary to the Board', 'SECRETARY',         $lahoreOffice,         null],
             ['Administrator Lahore', 'admin.lhr@etpb.gov.pk','3520112345673', 'Administrator',          'ADMINISTRATOR',     $lahoreOffice,         $lahore],
             ['District Officer Lahore','do.lhr@etpb.gov.pk', '3520112345674', 'Deputy Administrator',   'DISTRICT_OFFICER',  $lahoreDistrictOffice, $lahore],
             ['Dealing Assistant',    'da.lhr@etpb.gov.pk',   '3520112345675', 'Dealing Assistant',      'DEALING_ASSISTANT', $lahoreDistrictOffice, $lahore],

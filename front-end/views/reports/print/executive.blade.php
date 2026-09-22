@@ -233,15 +233,65 @@
 
 <table class="t">
     <thead>
-    <tr><th>Month</th><th class="num">Applications submitted</th></tr>
+    <tr><th>Month</th><th class="num">Applications submitted</th><th class="num">Regularized</th></tr>
     </thead>
     <tbody>
     @foreach ($monthly as $ym => $n)
         <tr>
             <td>{{ \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->format('F Y') }}</td>
             <td class="num">{{ number_format($n) }}</td>
+            <td class="num">{{ number_format($disposal[$ym] ?? 0) }}</td>
         </tr>
     @endforeach
+    </tbody>
+</table>
+
+<h2>8. Arrears ageing (outstanding)</h2>
+
+<table class="t">
+    <thead>
+    <tr><th>Age bucket</th><th class="num">Cases</th><th class="num">Outstanding (Rs.)</th></tr>
+    </thead>
+    <tbody>
+    @foreach ($ageing as $bucket)
+        <tr>
+            <td>{{ $bucket['label'] }}</td>
+            <td class="num">{{ number_format($bucket['count']) }}</td>
+            <td class="num">{{ $rs($bucket['amount']) }}</td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
+
+<h2>9. Fee collection by instrument</h2>
+
+<table class="t">
+    <thead><tr><th>Instrument</th><th class="num">Count</th><th class="num">Amount (Rs.)</th></tr></thead>
+    <tbody>
+    @forelse ($feeBreakdown as $row)
+        <tr>
+            <td>{{ str_replace('_', ' ', $row->instrument_type) }}</td>
+            <td class="num">{{ number_format($row->n) }}</td>
+            <td class="num">{{ $rs($row->total) }}</td>
+        </tr>
+    @empty
+        <tr><td colspan="3" class="muted">No verified instruments yet.</td></tr>
+    @endforelse
+    </tbody>
+</table>
+
+<h2>10. Litigation and restraining orders</h2>
+
+<table class="t">
+    <thead><tr><th>Measure</th><th class="num">Count</th></tr></thead>
+    <tbody>
+    <tr><td>Cases on register</td><td class="num">{{ number_format($litigation['total']) }}</td></tr>
+    <tr><td>Pending</td><td class="num">{{ number_format($litigation['pending']) }}</td></tr>
+    <tr @if (($litigation['stays'] ?? 0) > 0) class="hi" @endif>
+        <td>With restraining order / stay</td>
+        <td class="num">{{ number_format($litigation['stays']) }}</td>
+    </tr>
+    <tr><td>Direction cases</td><td class="num">{{ number_format($litigation['direction']) }}</td></tr>
     </tbody>
 </table>
 

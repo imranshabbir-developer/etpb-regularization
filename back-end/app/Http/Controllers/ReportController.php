@@ -51,6 +51,10 @@ class ReportController extends Controller
             'performance'  => $this->data->performance($user, $districtId),
             'byDistrict'   => $this->data->byDistrict($user, $districtId),
             'monthly'      => $this->data->monthlyIntake($user, $districtId),
+            'disposal'     => $this->data->monthlyDisposal($user, $districtId),
+            'ageing'       => $this->data->arrearsAgeing($user, $districtId),
+            'feeBreakdown' => $this->data->feeBreakdown($user, $districtId),
+            'litigation'   => $this->data->litigationSummary($user, $districtId),
             'objections'   => $this->data->objections($districtId),
             'districts'    => District::orderBy('name')->get(['id', 'name']),
             'districtId'   => $districtId,
@@ -63,6 +67,7 @@ class ReportController extends Controller
                 'The Minister-in-charge of the Division concerned.',
                 'The Secretary to Government of the Punjab, concerned Department.',
                 'The Chairman, Evacuee Trust Property Board, Lahore.',
+                'The Secretary to the Board, Evacuee Trust Property Board, Lahore.',
                 'Office record.',
             ],
         ];
@@ -95,6 +100,10 @@ class ReportController extends Controller
             'performance'  => $this->data->performance($user, $districtId),
             'byDistrict'   => $this->data->byDistrict($user, $districtId),
             'monthly'      => $this->data->monthlyIntake($user, $districtId),
+            'disposal'     => $this->data->monthlyDisposal($user, $districtId),
+            'ageing'       => $this->data->arrearsAgeing($user, $districtId),
+            'feeBreakdown' => $this->data->feeBreakdown($user, $districtId),
+            'litigation'   => $this->data->litigationSummary($user, $districtId),
             'objections'   => $this->data->objections($districtId),
             'breaches'     => $this->data->breaches($user, $districtId),
             'districts'    => District::orderBy('name')->get(['id', 'name']),
@@ -106,7 +115,10 @@ class ReportController extends Controller
             'reportCode'   => 'CONS',
             'reference'    => 'ETPB/ROP/CONS/' . now()->format('Y') . '/' . now()->format('mdHi'),
             'distribution' => [
+                'The Minister-in-charge of the Division concerned.',
+                'The Secretary to Government of the Punjab, concerned Department.',
                 'The Chairman, Evacuee Trust Property Board, Lahore.',
+                'The Secretary to the Board, Evacuee Trust Property Board, Lahore.',
                 'All Administrators, Evacuee Trust Property Board.',
                 'All District Officers concerned.',
                 'The Director (Finance & Accounts), Evacuee Trust Property Board.',
@@ -208,10 +220,11 @@ class ReportController extends Controller
     /**
      * Routine operational registers.
      */
-    public function register(Request $request, string $register): View|StreamedResponse
+    public function register(Request $request, ?string $register = null): View|StreamedResponse
     {
         $user = $request->user();
         $allowed = $this->registers();
+        $register = $register ?: 'applications';
 
         abort_unless(isset($allowed[$register]), 404, 'Unknown register.');
 
@@ -265,6 +278,9 @@ class ReportController extends Controller
             'litigation'   => 'Sub judice register',
             'regularized'  => 'Regularization register',
             'assessment'   => 'Rent assessment register',
+            'notices'      => 'Notice & service register',
+            'hearings'     => 'Hearing cause list',
+            'agreements'   => 'Tenancy agreement register',
         ];
     }
 
@@ -335,6 +351,37 @@ class ReportController extends Controller
                          'r.first_notice_date', 'r.completion_due_date', 'r.status')
                 ->orderByDesc('r.id')->limit(5000)->get(),
 
+            'notices' => $restrict(DB::table('public_notices as n')
+                ->join('applications as a', 'a.id', '=', 'n.application_id')
+                ->join('applicants as ap', 'ap.id', '=', 'a.applicant_id')
+                ->leftJoin('districts as d', 'd.id', '=', 'a.district_id')
+                ->whereNull('n.deleted_at'))
+                ->select('a.application_no', 'ap.full_name', 'd.name as district',
+                         'n.notice_no', 'n.notice_type', 'n.issued_on', 'n.served_on',
+                         'n.service_mode', 'n.objection_deadline', 'n.status')
+                ->orderByDesc('n.issued_on')->limit(5000)->get(),
+
+            'hearings' => $restrict(DB::table('hearings as h')
+                ->join('applications as a', 'a.id', '=', 'h.application_id')
+                ->join('applicants as ap', 'ap.id', '=', 'a.applicant_id')
+                ->leftJoin('districts as d', 'd.id', '=', 'a.district_id')
+                ->leftJoin('users as u', 'u.id', '=', 'h.presiding_officer_id')
+                ->whereNull('h.deleted_at'))
+                ->select('a.application_no', 'ap.full_name', 'd.name as district',
+                         'h.hearing_no', 'h.scheduled_for', 'h.venue', 'h.status',
+                         'u.name as presiding_officer', 'h.presiding_designation')
+                ->orderByDesc('h.scheduled_for')->limit(5000)->get(),
+
+            'agreements' => $restrict(DB::table('tenancy_agreements as t')
+                ->join('applications as a', 'a.id', '=', 't.application_id')
+                ->join('applicants as ap', 'ap.id', '=', 'a.applicant_id')
+                ->leftJoin('districts as d', 'd.id', '=', 'a.district_id')
+                ->whereNull('t.deleted_at'))
+                ->select('a.application_no', 'ap.full_name', 'ap.cnic', 'd.name as district',
+                         't.agreement_no', 't.executed_on', 't.monthly_rent',
+                         't.security_amount', 't.effective_from', 't.status')
+                ->orderByDesc('t.executed_on')->limit(5000)->get(),
+
             default => $restrict(DB::table('applications as a')
                 ->join('applicants as ap', 'ap.id', '=', 'a.applicant_id')
                 ->leftJoin('districts as d', 'd.id', '=', 'a.district_id')
@@ -388,6 +435,10 @@ class ReportController extends Controller
                 'headings' => ['Month', 'Applications'],
                 'rows' => $p['monthly']->map(fn ($n, $ym) => [$ym, $n])->values(),
             ],
+            'Arrears ageing' => [
+                'headings' => ['Bucket', 'Cases', 'Outstanding (Rs.)'],
+                'rows' => collect($p['ageing'] ?? [])->map(fn ($b) => [$b['label'], $b['count'], $b['amount']]),
+            ],
         ];
     }
 
@@ -413,6 +464,33 @@ class ReportController extends Controller
                     ->map(fn ($a) => ['Approval', $a->application_no, $a->applicant?->full_name,
                                       $a->district?->name, (string) $a->admin_approval_due_date,
                                       $a->administrator?->name])),
+        ];
+
+        $sheets['Arrears ageing'] = [
+            'headings' => ['Bucket', 'Cases', 'Outstanding (Rs.)'],
+            'rows' => collect($p['ageing'] ?? [])->map(fn ($b) => [$b['label'], $b['count'], $b['amount']]),
+        ];
+
+        $sheets['Fee by instrument'] = [
+            'headings' => ['Instrument', 'Count', 'Amount (Rs.)'],
+            'rows' => collect($p['feeBreakdown'] ?? [])->map(fn ($r) => [
+                str_replace('_', ' ', $r->instrument_type), $r->n, $r->total,
+            ]),
+        ];
+
+        $sheets['Litigation'] = [
+            'headings' => ['Measure', 'Value'],
+            'rows' => [
+                ['Total cases on register', $p['litigation']['total'] ?? 0],
+                ['Pending', $p['litigation']['pending'] ?? 0],
+                ['With restraining order', $p['litigation']['stays'] ?? 0],
+                ['Direction cases', $p['litigation']['direction'] ?? 0],
+            ],
+        ];
+
+        $sheets['Monthly disposal'] = [
+            'headings' => ['Month', 'Regularized'],
+            'rows' => collect($p['disposal'] ?? [])->map(fn ($n, $ym) => [$ym, $n])->values(),
         ];
 
         return $sheets;

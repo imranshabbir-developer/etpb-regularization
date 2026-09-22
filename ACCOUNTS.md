@@ -26,6 +26,7 @@ All eight use the **same password**.
 |---|---|---|---|
 | `admin@etpb.gov.pk` | System Administrator | — | Everything. Users, reference data, statutory settings, audit trail |
 | `chairman@etpb.gov.pk` | Chairman, ETPB | — | Executive reports, remission of rent under Clause 12 |
+| `secretary@etpb.gov.pk` | Secretary to the Board | — | **Consolidated / at-a-glance / deep reports** for senior government; read-only oversight |
 | `admin.lhr@etpb.gov.pk` | Administrator | Lahore | **Approves regularization**, within one month and with reasons — Clause 3(ii)(d) |
 | `do.lhr@etpb.gov.pk` | District Officer | Lahore | **Assesses and fixes the rent** — Clause 10. The busiest desk in the system |
 | `da.lhr@etpb.gov.pk` | Dealing Assistant | Lahore | Files applications for people who come to the counter |
