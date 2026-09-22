@@ -5,7 +5,9 @@ evacuee trust properties to be treated as tenants under **Clause 3(ii) of the
 Scheme for the Management and Disposal of Urban Evacuee Trust Properties, 1977**.
 
 The full design rationale, schema reasoning, statutory mapping and roadmap are in
-[`MASTER_PLAN.md`](MASTER_PLAN.md). This file covers how to run it.
+[`MASTER_PLAN.md`](MASTER_PLAN.md). The officer-facing end-to-end demo script
+(from public filing through regularization, roles, and reports) is in
+[`docs/DEMO_FLOW_GUIDE.md`](docs/DEMO_FLOW_GUIDE.md). This file covers how to run it.
 
 ---
 

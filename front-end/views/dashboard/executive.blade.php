@@ -15,6 +15,15 @@
         if ($n >= 100000)   return 'Rs. ' . number_format($n / 100000, 2) . ' lac';
         return 'Rs. ' . number_format($n, 0);
     };
+
+    $monthLabels = $monthly->keys()->map(fn ($ym) => \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->format('M'))->values();
+    $stageLabels = collect($h['by_status'])->map(fn ($n, $s) => \App\Services\WorkflowService::LABELS[$s] ?? $s)->values();
+    $stageValues = collect($h['by_status'])->values();
+    $districtSlice = $byDistrict->take(6);
+    $districtLabels = $districtSlice->map(fn ($d) => $d->district?->name ?? '—')->values();
+    $districtCases = $districtSlice->map(fn ($d) => (int) $d->total)->values();
+    $ageLabels = collect($ageing)->pluck('label')->values();
+    $ageAmounts = collect($ageing)->map(fn ($b) => (float) $b['amount'])->values();
 @endphp
 
 <div class="page-head">
@@ -45,6 +54,42 @@
         <div class="tile-label">Arrears recovered</div>
         <div class="tile-value">{{ $h['recovery_rate'] }}%</div>
         <div class="tile-sub">{{ $short($h['outstanding']) }} outstanding</div>
+    </div>
+</div>
+
+<div class="grid-2 items-start gap-[1.15rem]">
+    <div class="card">
+        <div class="card-head">
+            <h3>Intake vs regularisation</h3>
+            <span class="badge badge-neutral">12 months</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-frame is-lg">
+                <canvas id="chartIntake" data-etpb-chart="line-dual" data-etpb-source="chart-intake-data" aria-label="Intake versus regularisation trend"></canvas>
+            </div>
+            <script type="application/json" id="chart-intake-data">@json([
+                'labels' => $monthLabels,
+                'intake' => $monthly->values()->map(fn ($n) => (int) $n)->values(),
+                'disposal' => $disposal->values()->map(fn ($n) => (int) $n)->values(),
+                'intakeLabel' => 'Submitted',
+                'disposalLabel' => 'Regularized',
+            ])</script>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h3>Caseload by stage</h3>
+        </div>
+        <div class="card-body">
+            <div class="chart-frame is-lg">
+                <canvas id="chartStages" data-etpb-chart="doughnut" data-etpb-source="chart-stages-data" aria-label="Caseload by workflow stage"></canvas>
+            </div>
+            <script type="application/json" id="chart-stages-data">@json([
+                'labels' => $stageLabels,
+                'values' => $stageValues->map(fn ($n) => (int) $n)->values(),
+            ])</script>
+        </div>
     </div>
 </div>
 
@@ -115,53 +160,69 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-head"><h3>Busiest districts</h3></div>
-    <div class="table-wrap border-0 rounded-none">
-        <table class="data">
-            <thead>
-            <tr><th>District</th><th class="num">Cases</th><th class="num">Regularized</th>
-                <th class="num">Outstanding</th><th class="num">Recovery</th></tr>
-            </thead>
-            <tbody>
-            @forelse ($byDistrict->take(8) as $d)
-                @php $rec = (float) $d->assessed > 0 ? round((float) $d->recovered / (float) $d->assessed * 100) : 0; @endphp
-                <tr>
-                    <td>{{ $d->district?->name ?? 'Not recorded' }}</td>
-                    <td class="num">{{ number_format($d->total) }}</td>
-                    <td class="num">{{ number_format($d->regularized) }}</td>
-                    <td class="num">{{ number_format((float) $d->outstanding, 0) }}</td>
-                    <td class="num">
-                        <span class="badge badge-{{ $rec >= 60 ? 'good' : ($rec >= 25 ? 'warn' : 'neutral') }}">{{ $rec }}%</span>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="5" class="row-muted">No applications yet.</td></tr>
-            @endforelse
-            </tbody>
-        </table>
+<div class="grid-2 items-start gap-[1.15rem]">
+    <div class="card">
+        <div class="card-head"><h3>District caseload</h3></div>
+        <div class="card-body">
+            <div class="chart-frame">
+                <canvas id="chartDistricts" data-etpb-chart="bar" data-etpb-source="chart-districts-data" aria-label="Applications by district"></canvas>
+            </div>
+            <script type="application/json" id="chart-districts-data">@json([
+                'labels' => $districtLabels,
+                'values' => $districtCases,
+                'label' => 'Applications',
+                'horizontal' => true,
+                'color' => '#166534',
+            ])</script>
+        </div>
+        <div class="card-foot">
+            <a href="{{ route('reports.executive') }}" class="btn btn-ghost btn-sm">Full district table in consolidated report</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><h3>Arrears ageing</h3></div>
+        <div class="card-body">
+            <div class="chart-frame">
+                <canvas id="chartAgeing" data-etpb-chart="bar" data-etpb-source="chart-ageing-data" aria-label="Outstanding arrears by age"></canvas>
+            </div>
+            <script type="application/json" id="chart-ageing-data">@json([
+                'labels' => $ageLabels,
+                'values' => $ageAmounts,
+                'label' => 'Outstanding',
+                'money' => true,
+                'color' => '#b45309',
+            ])</script>
+        </div>
     </div>
 </div>
 
 <div class="grid-2 items-start gap-[1.15rem]">
     <div class="card">
-        <div class="card-head"><h3>Arrears ageing</h3></div>
+        <div class="card-head"><h3>Busiest districts</h3></div>
         <div class="table-wrap border-0 rounded-none">
             <table class="data">
-                <thead><tr><th>Age</th><th class="num">Cases</th><th class="num">Outstanding</th></tr></thead>
+                <thead>
+                <tr><th>District</th><th class="num">Cases</th><th class="num">Regularized</th>
+                    <th class="num">Outstanding</th><th class="num">Recovery</th></tr>
+                </thead>
                 <tbody>
-                @foreach ($ageing as $bucket)
+                @forelse ($byDistrict->take(8) as $d)
+                    @php $rec = (float) $d->assessed > 0 ? round((float) $d->recovered / (float) $d->assessed * 100) : 0; @endphp
                     <tr>
-                        <td>{{ $bucket['label'] }}</td>
-                        <td class="num">{{ number_format($bucket['count']) }}</td>
-                        <td class="num">{{ $short($bucket['amount']) }}</td>
+                        <td>{{ $d->district?->name ?? 'Not recorded' }}</td>
+                        <td class="num">{{ number_format($d->total) }}</td>
+                        <td class="num">{{ number_format($d->regularized) }}</td>
+                        <td class="num">{{ number_format((float) $d->outstanding, 0) }}</td>
+                        <td class="num">
+                            <span class="badge badge-{{ $rec >= 60 ? 'good' : ($rec >= 25 ? 'warn' : 'neutral') }}">{{ $rec }}%</span>
+                        </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr><td colspan="5" class="row-muted">No applications yet.</td></tr>
+                @endforelse
                 </tbody>
             </table>
-        </div>
-        <div class="card-foot">
-            <a href="{{ route('reports.executive') }}" class="btn btn-ghost btn-sm">Full ageing in consolidated report</a>
         </div>
     </div>
 
@@ -186,33 +247,6 @@
                 <a href="{{ route('reports.registers', ['register' => 'litigation']) }}" class="btn btn-outline btn-sm">Litigation register</a>
             </div>
         </div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-head"><h3>Intake vs disposal — last 12 months</h3></div>
-    <div class="card-body">
-        @php
-            $max = max(array_merge($monthly->values()->all(), $disposal->values()->all(), [1]));
-        @endphp
-        <div class="flex items-end gap-1 sm:gap-2 h-[160px]">
-            @foreach ($monthly as $ym => $n)
-                @php $d = (int) ($disposal[$ym] ?? 0); @endphp
-                <div class="flex-1 flex flex-col items-center gap-1 h-full min-w-0" title="Intake {{ $n }} · Regularized {{ $d }}">
-                    <div class="text-[.65rem] tabular-nums muted leading-none">{{ $n }}/{{ $d }}</div>
-                    <div class="w-full flex gap-0.5 items-end mt-auto" style="height:{{ max(8, round(max($n, $d) / $max * 100)) }}%">
-                        <div class="flex-1 bg-pk-600 rounded-t" style="height:{{ $n > 0 ? max(12, round($n / max($n, $d, 1) * 100)) : 8 }}%"></div>
-                        <div class="flex-1 bg-gold-500 rounded-t opacity-90" style="height:{{ $d > 0 ? max(12, round($d / max($n, $d, 1) * 100)) : 8 }}%; background: var(--color-warn-600, #b45309)"></div>
-                    </div>
-                    <div class="faint text-[.62rem] whitespace-nowrap">
-                        {{ \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->format('M') }}
-                    </div>
-                </div>
-            @endforeach
-        </div>
-        <p class="faint text-[.75rem] mt-3 mb-0">
-            Dark bars = applications submitted &middot; amber bars = cases regularized
-        </p>
     </div>
 </div>
 

@@ -16,7 +16,7 @@
         })();
     </script>
 
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
 <a href="#main-content" class="skip-link">Skip to main content</a>

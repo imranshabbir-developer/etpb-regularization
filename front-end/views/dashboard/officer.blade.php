@@ -86,7 +86,14 @@
                 @if ($byStatus->isEmpty())
                     <p class="muted mb-0">No applications yet.</p>
                 @else
-                    <div class="inline-list">
+                    <div class="chart-frame is-sm">
+                        <canvas id="officerStageChart" data-etpb-chart="doughnut" data-etpb-source="officer-stage-data" aria-label="Your caseload by stage"></canvas>
+                    </div>
+                    <script type="application/json" id="officer-stage-data">@json([
+                        'labels' => $byStatus->keys()->map(fn ($s) => $labels[$s] ?? $s)->values(),
+                        'values' => $byStatus->values()->map(fn ($n) => (int) $n)->values(),
+                    ])</script>
+                    <div class="inline-list mt-3">
                         @foreach ($byStatus as $status => $count)
                             <span class="badge badge-{{ \App\Services\WorkflowService::TONES[$status] ?? 'neutral' }}">
                                 {{ $labels[$status] ?? $status }} <strong>{{ $count }}</strong>
