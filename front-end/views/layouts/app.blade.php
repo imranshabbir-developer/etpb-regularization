@@ -4,15 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="color-scheme" content="light">
+    <meta name="color-scheme" content="light dark" id="colorSchemeMeta">
     <title>@yield('title', 'Dashboard') — Regularization of Possession | ETPB</title>
     <link rel="icon" href="{{ asset('assets/img/favicon.svg') }}" type="image/svg+xml">
 
-    {{-- Keep a fixed light presentation for demo consistency. --}}
+    {{-- Apply saved / system theme before paint to avoid a flash. --}}
     <script>
         (function () {
-            document.documentElement.setAttribute('data-theme', 'light');
-            try { localStorage.setItem('etpb-theme', 'light'); } catch (e) { /* ignore */ }
+            var KEY = 'etpb-theme';
+            var stored = null;
+            try { stored = localStorage.getItem(KEY); } catch (e) { /* ignore */ }
+            var theme = (stored === 'light' || stored === 'dark')
+                ? stored
+                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.style.colorScheme = theme;
         })();
     </script>
 
@@ -43,6 +49,13 @@
         <h2 class="topbar-title">@yield('heading', 'Dashboard')</h2>
 
         <div class="topbar-spacer"></div>
+
+        <button type="button" class="btn btn-ghost btn-sm theme-toggle" id="themeToggle"
+                aria-label="Toggle colour theme" title="Toggle light / dark mode">
+            <span class="theme-icon-light" aria-hidden="true">@include('partials.icon', ['name' => 'moon'])</span>
+            <span class="theme-icon-dark" aria-hidden="true">@include('partials.icon', ['name' => 'sun'])</span>
+            <span class="btn-label theme-label">Theme</span>
+        </button>
 
         @auth
             <div class="topbar-user">
@@ -105,6 +118,34 @@
 
 <script>
 (function () {
+    // ---- theme (light / dark) ---------------------------------------------
+    var THEME_KEY = 'etpb-theme';
+    var themeBtn = document.getElementById('themeToggle');
+
+    function currentTheme() {
+        var t = document.documentElement.getAttribute('data-theme');
+        return (t === 'dark' || t === 'light') ? t : 'light';
+    }
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.style.colorScheme = theme;
+        try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
+        if (themeBtn) {
+            var next = theme === 'dark' ? 'light' : 'dark';
+            themeBtn.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+            themeBtn.setAttribute('title', 'Switch to ' + next + ' mode');
+        }
+        document.dispatchEvent(new CustomEvent('etpb:themechange', { detail: { theme: theme } }));
+    }
+
+    if (themeBtn) {
+        themeBtn.addEventListener('click', function () {
+            applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+        });
+        applyTheme(currentTheme());
+    }
+
     // ---- mobile navigation ------------------------------------------------
     var toggle  = document.getElementById('navToggle');
     var sidebar = document.getElementById('sidebar');

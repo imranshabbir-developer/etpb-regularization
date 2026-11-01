@@ -47,11 +47,15 @@ class QueueController extends Controller
                 WorkflowService::SITE_INSPECTION,
             ])
             ->orderBy('submitted_at')
-            ->paginate(25);
+            ->paginate(10);
 
         return view('queues.scrutiny', [
             'awaitingPayment' => $awaitingPayment,
             'applications'    => $toScrutinise,
+            'stats'           => [
+                'deposits'   => $awaitingPayment->count(),
+                'scrutiny'   => $toScrutinise->total(),
+            ],
         ]);
     }
 
@@ -72,9 +76,36 @@ class QueueController extends Controller
             ])
             ->orderByRaw('COALESCE(assessment_extended_to, assessment_due_date) IS NULL')
             ->orderByRaw('COALESCE(assessment_extended_to, assessment_due_date) ASC')
-            ->paginate(25);
+            ->paginate(10);
 
-        return view('queues.assessment', ['applications' => $applications]);
+        $base = Application::query()->visibleTo($user)
+            ->where('payment_status', 'PAID')
+            ->whereIn('status', [
+                WorkflowService::ASSESSMENT_PROPOSED,
+                WorkflowService::NOTICE_ISSUED,
+                WorkflowService::OBJECTION_WINDOW,
+                WorkflowService::HEARING,
+                WorkflowService::RENT_FIXED,
+            ]);
+
+        $overdue = (clone $base)
+            ->whereRaw('COALESCE(assessment_extended_to, assessment_due_date) IS NOT NULL')
+            ->whereRaw('COALESCE(assessment_extended_to, assessment_due_date) < CURDATE()')
+            ->count();
+
+        $dueSoon = (clone $base)
+            ->whereRaw('COALESCE(assessment_extended_to, assessment_due_date) IS NOT NULL')
+            ->whereRaw('COALESCE(assessment_extended_to, assessment_due_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)')
+            ->count();
+
+        return view('queues.assessment', [
+            'applications' => $applications,
+            'stats'        => [
+                'in_queue' => $applications->total(),
+                'overdue'  => $overdue,
+                'due_soon' => $dueSoon,
+            ],
+        ]);
     }
 
     /** Objections still undecided, oldest first — these hold up the fixation. */
@@ -94,9 +125,32 @@ class QueueController extends Controller
                      'o.status', 'o.plea', 'a.id as application_id', 'a.application_no',
                      'd.name as district', 'n.objection_deadline')
             ->orderBy('o.filed_on')
-            ->paginate(25);
+            ->paginate(10);
 
-        return view('queues.objections', ['objections' => $objections]);
+        $filed = DB::table('objections as o')
+            ->join('applications as a', 'a.id', '=', 'o.application_id')
+            ->whereNull('o.deleted_at')->whereNull('a.deleted_at')
+            ->where('o.status', 'FILED')
+            ->when(! $user->hasPermission('applications.view_all'),
+                   fn ($q) => $q->where('a.district_id', $user->district_id))
+            ->count();
+
+        $hearing = DB::table('objections as o')
+            ->join('applications as a', 'a.id', '=', 'o.application_id')
+            ->whereNull('o.deleted_at')->whereNull('a.deleted_at')
+            ->where('o.status', 'UNDER_HEARING')
+            ->when(! $user->hasPermission('applications.view_all'),
+                   fn ($q) => $q->where('a.district_id', $user->district_id))
+            ->count();
+
+        return view('queues.objections', [
+            'objections' => $objections,
+            'stats'      => [
+                'undecided' => $objections->total(),
+                'filed'     => $filed,
+                'hearing'   => $hearing,
+            ],
+        ]);
     }
 
     /** Where the money is: assessed, recovered, outstanding. */
@@ -108,7 +162,7 @@ class QueueController extends Controller
             ->with(['applicant:id,full_name', 'district:id,name'])
             ->where('arrears_balance', '>', 0)
             ->orderByDesc('arrears_balance')
-            ->paginate(25);
+            ->paginate(10);
 
         $totals = Application::query()->visibleTo($user)
             ->selectRaw('COALESCE(SUM(total_arrears),0) a, COALESCE(SUM(arrears_paid),0) p, '
@@ -137,11 +191,25 @@ class QueueController extends Controller
                      'd.name as district', 'ap.full_name as applicant')
             ->orderByDesc('l.is_pending')
             ->orderBy('l.next_hearing_date')
-            ->paginate(25);
+            ->paginate(10);
+
+        $scope = DB::table('litigations as l')
+            ->leftJoin('applications as a', 'a.id', '=', 'l.application_id')
+            ->whereNull('l.deleted_at')
+            ->when(! $user->hasPermission('applications.view_all'),
+                   fn ($q) => $q->where('a.district_id', $user->district_id));
+
+        $pending = (clone $scope)->where('l.is_pending', true)->count();
+        $restraining = (clone $scope)->where('l.has_restraining_order', true)->where('l.is_pending', true)->count();
 
         return view('queues.litigation', [
             'litigations' => $litigations,
             'today'       => Carbon::today(),
+            'stats'       => [
+                'total'       => $litigations->total(),
+                'pending'     => $pending,
+                'restraining' => $restraining,
+            ],
         ]);
     }
 }

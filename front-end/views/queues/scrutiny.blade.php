@@ -10,6 +10,19 @@
     <p class="lede">Applications ready to be examined, and deposits still waiting on Accounts.</p>
 </div>
 
+<div class="tiles">
+    <div class="tile {{ ($stats['deposits'] ?? 0) > 0 ? 'is-warn' : '' }}">
+        <div class="tile-label">Deposits to confirm</div>
+        <div class="tile-value">{{ number_format($stats['deposits'] ?? 0) }}</div>
+        <div class="tile-sub">Rs. 5,000 still pending with Accounts</div>
+    </div>
+    <div class="tile">
+        <div class="tile-label">Ready for scrutiny</div>
+        <div class="tile-value">{{ number_format($stats['scrutiny'] ?? 0) }}</div>
+        <div class="tile-sub">Paid files waiting examination</div>
+    </div>
+</div>
+
 @if ($awaitingPayment->isNotEmpty())
     <div class="card">
         <div class="card-head">

@@ -53,14 +53,27 @@ class ApplicationController extends Controller
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('district'), fn ($q) => $q->where('district_id', $request->integer('district')))
             ->orderByDesc('updated_at')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
+
+        // Headline counts for the list screen (scoped, not filter-dependent).
+        $scope = Application::query()->visibleTo($user);
+        $stats = [
+            'open'        => (clone $scope)->whereNotIn('status', [
+                WorkflowService::REGULARIZED,
+                WorkflowService::REJECTED,
+                WorkflowService::REJECTED_INELIGIBLE,
+            ])->count(),
+            'fee_pending' => (clone $scope)->where('payment_status', 'PENDING')->count(),
+            'regularized' => (clone $scope)->where('status', WorkflowService::REGULARIZED)->count(),
+        ];
 
         return view('applications.index', [
             'applications' => $applications,
             'statuses'     => WorkflowService::LABELS,
             'districts'    => District::orderBy('name')->get(['id', 'name']),
             'filters'      => $request->only('q', 'status', 'district'),
+            'stats'        => $stats,
         ]);
     }
 

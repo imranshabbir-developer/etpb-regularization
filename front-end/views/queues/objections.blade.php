@@ -13,6 +13,24 @@
     </p>
 </div>
 
+<div class="tiles">
+    <div class="tile {{ ($stats['undecided'] ?? 0) > 0 ? 'is-warn' : '' }}">
+        <div class="tile-label">Undecided</div>
+        <div class="tile-value">{{ number_format($stats['undecided'] ?? $objections->total()) }}</div>
+        <div class="tile-sub">Holding rent fixation</div>
+    </div>
+    <div class="tile">
+        <div class="tile-label">Filed</div>
+        <div class="tile-value">{{ number_format($stats['filed'] ?? 0) }}</div>
+        <div class="tile-sub">Awaiting listing</div>
+    </div>
+    <div class="tile">
+        <div class="tile-label">Under hearing</div>
+        <div class="tile-value">{{ number_format($stats['hearing'] ?? 0) }}</div>
+        <div class="tile-sub">On the hearing diary</div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-head"><h3>{{ number_format($objections->total()) }} undecided</h3></div>
 

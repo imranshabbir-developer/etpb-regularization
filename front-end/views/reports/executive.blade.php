@@ -291,49 +291,64 @@
     </div>
 </div>
 
-{{-- ---------- Intake trend ---------- --}}
-<div class="card">
-    <div class="card-head"><h3>Applications submitted, last 12 months</h3></div>
-    <div class="card-body">
-        @php $max = max($monthly->values()->all() ?: [1]); @endphp
-        <div class="flex items-end gap-1 sm:gap-2 h-[150px]">
-            @foreach ($monthly as $ym => $n)
-                <div class="flex-1 flex flex-col items-center gap-1 h-full min-w-0">
-                    <div class="text-[.72rem] tabular-nums muted">{{ $n }}</div>
-                    <div class="w-full bg-pk-600 rounded-t mt-auto"
-                         style="height:{{ $max > 0 ? max(3, round($n / $max * 100)) : 3 }}%"></div>
-                    <div class="faint text-[.62rem] sm:text-[.68rem] whitespace-nowrap">
-                        {{ \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->format('M y') }}
-                    </div>
-                </div>
-            @endforeach
+{{-- ---------- Intake vs disposal + arrears ageing ---------- --}}
+@php
+    $trend = [
+        'labels' => $monthly->keys()->values(),
+        'intake' => $monthly->values()->values(),
+        'disposal' => ($disposal ?? collect())->values()->values(),
+        'intakeLabel' => 'Submitted',
+        'disposalLabel' => 'Regularized',
+    ];
+    $ageChart = [
+        'labels' => collect($ageing)->pluck('label')->values(),
+        'values' => collect($ageing)->map(fn ($b) => (float) $b['amount'])->values(),
+        'label' => 'Outstanding',
+        'money' => true,
+    ];
+    $ageTotal = collect($ageing)->sum(fn ($b) => (float) $b['amount']);
+@endphp
+
+<div class="grid-2 items-start gap-[1.15rem]">
+    <div class="card">
+        <div class="card-head"><h3>Intake vs regularized (12 months)</h3></div>
+        <div class="card-body chart-card-body">
+            <div class="chart-frame">
+                <canvas data-etpb-chart="line-dual" data-etpb-source="exec-report-trend"
+                        aria-label="Monthly intake and regularization"></canvas>
+            </div>
+            <script type="application/json" id="exec-report-trend">@json($trend)</script>
         </div>
     </div>
-</div>
-
-{{-- ---------- Arrears ageing ---------- --}}
-<div class="card">
-    <div class="card-head">
-        <h3>Arrears ageing (outstanding)</h3>
-        <div class="card-actions"><span class="clause">Clause 3(ii)(b)</span></div>
-    </div>
-    <div class="table-wrap border-0 rounded-none">
-        <table class="data">
-            <thead>
-            <tr><th>Age bucket</th><th class="num">Cases</th><th class="num">Outstanding</th><th class="num">Share</th></tr>
-            </thead>
-            <tbody>
-            @php $ageTotal = collect($ageing)->sum(fn ($b) => (float) $b['amount']); @endphp
-            @foreach ($ageing as $bucket)
-                <tr>
-                    <td>{{ $bucket['label'] }}</td>
-                    <td class="num">{{ number_format($bucket['count']) }}</td>
-                    <td class="num"><strong>{{ $rs($bucket['amount']) }}</strong></td>
-                    <td class="num">{{ $pct((float) $bucket['amount'], $ageTotal) }}%</td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
+    <div class="card">
+        <div class="card-head">
+            <h3>Arrears ageing</h3>
+            <div class="card-actions"><span class="clause">Clause 3(ii)(b)</span></div>
+        </div>
+        <div class="card-body chart-card-body">
+            <div class="chart-frame is-md">
+                <canvas data-etpb-chart="bar" data-etpb-source="exec-report-age"
+                        aria-label="Outstanding arrears by age"></canvas>
+            </div>
+            <script type="application/json" id="exec-report-age">@json($ageChart)</script>
+        </div>
+        <div class="table-wrap border-0 rounded-none border-t">
+            <table class="data">
+                <thead>
+                <tr><th>Age</th><th class="num">Cases</th><th class="num">Outstanding</th><th class="num">Share</th></tr>
+                </thead>
+                <tbody>
+                @foreach ($ageing as $bucket)
+                    <tr>
+                        <td>{{ $bucket['label'] }}</td>
+                        <td class="num">{{ number_format($bucket['count']) }}</td>
+                        <td class="num"><strong>{{ $rs($bucket['amount']) }}</strong></td>
+                        <td class="num">{{ $pct((float) $bucket['amount'], $ageTotal) }}%</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

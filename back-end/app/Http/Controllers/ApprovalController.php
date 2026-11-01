@@ -48,11 +48,31 @@ class ApprovalController extends Controller
                     'district:id,name', 'districtOfficer:id,name'])
             ->where('status', WorkflowService::PENDING_ADMIN_APPROVAL)
             ->orderBy('admin_approval_due_date')
-            ->paginate(25);
+            ->paginate(10);
+
+        $base = Application::query()
+            ->visibleTo($user)
+            ->where('status', WorkflowService::PENDING_ADMIN_APPROVAL);
+
+        $overdue = (clone $base)
+            ->whereNotNull('admin_approval_due_date')
+            ->whereDate('admin_approval_due_date', '<', now()->toDateString())
+            ->count();
+
+        $dueSoon = (clone $base)
+            ->whereNotNull('admin_approval_due_date')
+            ->whereDate('admin_approval_due_date', '>=', now()->toDateString())
+            ->whereDate('admin_approval_due_date', '<=', now()->addDays(7)->toDateString())
+            ->count();
 
         return view('approvals.queue', [
             'applications' => $applications,
             'slaDays'      => $this->settings->int('admin_approval_sla_days', 30),
+            'stats'        => [
+                'awaiting'  => $applications->total(),
+                'overdue'   => $overdue,
+                'due_soon'  => $dueSoon,
+            ],
         ]);
     }
 

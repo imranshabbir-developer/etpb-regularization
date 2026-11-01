@@ -13,6 +13,24 @@
     </p>
 </div>
 
+<div class="tiles">
+    <div class="tile">
+        <div class="tile-label">On record</div>
+        <div class="tile-value">{{ number_format($stats['total'] ?? $litigations->total()) }}</div>
+        <div class="tile-sub">All litigation entries in scope</div>
+    </div>
+    <div class="tile {{ ($stats['pending'] ?? 0) > 0 ? 'is-warn' : '' }}">
+        <div class="tile-label">Pending / sub judice</div>
+        <div class="tile-value">{{ number_format($stats['pending'] ?? 0) }}</div>
+        <div class="tile-sub">Applications parked until disposed</div>
+    </div>
+    <div class="tile {{ ($stats['restraining'] ?? 0) > 0 ? 'is-danger' : '' }}">
+        <div class="tile-label">Restraining orders</div>
+        <div class="tile-value">{{ number_format($stats['restraining'] ?? 0) }}</div>
+        <div class="tile-sub">Active stays on the file</div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-head">
         <h3>{{ number_format($litigations->total()) }} cases</h3>

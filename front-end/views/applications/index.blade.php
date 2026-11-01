@@ -10,6 +10,24 @@
         <p class="lede">Regularization of possession — Clause 3(ii), Scheme 1977.</p>
     </div>
 
+    <div class="tiles">
+        <div class="tile">
+            <div class="tile-label">Open cases</div>
+            <div class="tile-value">{{ number_format($stats['open'] ?? 0) }}</div>
+            <div class="tile-sub">Not yet regularized or rejected</div>
+        </div>
+        <div class="tile {{ ($stats['fee_pending'] ?? 0) > 0 ? 'is-warn' : '' }}">
+            <div class="tile-label">Fee pending</div>
+            <div class="tile-value">{{ number_format($stats['fee_pending'] ?? 0) }}</div>
+            <div class="tile-sub">Deposit not confirmed</div>
+        </div>
+        <div class="tile is-gold">
+            <div class="tile-label">Regularized</div>
+            <div class="tile-value">{{ number_format($stats['regularized'] ?? 0) }}</div>
+            <div class="tile-sub">Tenancy recorded</div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-head">
             <h3>Filter</h3>

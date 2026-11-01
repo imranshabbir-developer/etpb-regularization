@@ -13,6 +13,51 @@
     </p>
 </div>
 
+@php
+    $awaiting = (int) ($stats['awaiting'] ?? $applications->total());
+    $dueSoon = (int) ($stats['due_soon'] ?? 0);
+    $overdue = (int) ($stats['overdue'] ?? 0);
+    $onTrack = max(0, $awaiting - $dueSoon - $overdue);
+    $approvalChart = [
+        'labels' => ['On track', 'Due in 7 days', 'Past SLA'],
+        'values' => [$onTrack, $dueSoon, $overdue],
+        'colors' => ['#2F66B0', '#E8891A', '#B3261E'],
+        'centerLabel' => 'Queue',
+        'centerValue' => $awaiting,
+    ];
+@endphp
+
+<div class="tiles">
+    <div class="tile">
+        <div class="tile-label">Awaiting decision</div>
+        <div class="tile-value">{{ number_format($awaiting) }}</div>
+        <div class="tile-sub">On the Administrator's desk</div>
+    </div>
+    <div class="tile {{ $dueSoon > 0 ? 'is-warn' : '' }}">
+        <div class="tile-label">Due within 7 days</div>
+        <div class="tile-value">{{ number_format($dueSoon) }}</div>
+        <div class="tile-sub">One-month SLA closing soon</div>
+    </div>
+    <div class="tile {{ $overdue > 0 ? 'is-danger' : '' }}">
+        <div class="tile-label">Past the SLA</div>
+        <div class="tile-value">{{ number_format($overdue) }}</div>
+        <div class="tile-sub">Beyond the one-month limit</div>
+    </div>
+</div>
+
+@if ($awaiting > 0)
+<div class="card mb-[1.15rem]">
+    <div class="card-head"><h3>Approval SLA mix</h3></div>
+    <div class="card-body chart-card-body">
+        <div class="chart-frame is-sm">
+            <canvas data-etpb-chart="doughnut" data-etpb-source="approval-sla-data"
+                    aria-label="Approval queue by SLA status"></canvas>
+        </div>
+        <script type="application/json" id="approval-sla-data">@json($approvalChart)</script>
+    </div>
+</div>
+@endif
+
 <div class="card">
     <div class="card-head">
         <h3>{{ number_format($applications->total()) }} awaiting decision</h3>

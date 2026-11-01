@@ -12,6 +12,24 @@
     </p>
 </div>
 
+<div class="tiles">
+    <div class="tile">
+        <div class="tile-label">In assessment</div>
+        <div class="tile-value">{{ number_format($stats['in_queue'] ?? $applications->total()) }}</div>
+        <div class="tile-sub">Active assessment stages</div>
+    </div>
+    <div class="tile {{ ($stats['due_soon'] ?? 0) > 0 ? 'is-warn' : '' }}">
+        <div class="tile-label">Due within 7 days</div>
+        <div class="tile-value">{{ number_format($stats['due_soon'] ?? 0) }}</div>
+        <div class="tile-sub">Sixty-day clock closing soon</div>
+    </div>
+    <div class="tile {{ ($stats['overdue'] ?? 0) > 0 ? 'is-danger' : '' }}">
+        <div class="tile-label">Past due</div>
+        <div class="tile-value">{{ number_format($stats['overdue'] ?? 0) }}</div>
+        <div class="tile-sub">Assessment SLA breached</div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-head"><h3>{{ number_format($applications->total()) }} in assessment</h3></div>
 

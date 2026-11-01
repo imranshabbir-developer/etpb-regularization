@@ -207,7 +207,7 @@ class DashboardController extends Controller
 
         $recent = $scope()
             ->with(['applicant:id,full_name', 'property:id,property_no,sub_unit_no', 'district:id,name'])
-            ->orderByDesc('updated_at')->limit(8)->get();
+            ->orderByDesc('updated_at')->limit(5)->get();
 
         return view('dashboard.officer', [
             'work'     => $work,
@@ -215,6 +215,8 @@ class DashboardController extends Controller
             'byStatus' => $scope()->select('status', DB::raw('COUNT(*) as total'))
                             ->groupBy('status')->pluck('total', 'status'),
             'labels'   => WorkflowService::LABELS,
+            'monthly'  => $this->data->monthlyIntake($user),
+            'disposal' => $this->data->monthlyDisposal($user),
         ]);
     }
 
@@ -237,7 +239,7 @@ class DashboardController extends Controller
             'objections'   => $this->data->objections(),
             'recent'       => Application::query()->visibleTo($user)
                                 ->with(['applicant:id,full_name', 'district:id,name'])
-                                ->orderByDesc('updated_at')->limit(6)->get(),
+                                ->orderByDesc('updated_at')->limit(5)->get(),
         ]);
     }
 }

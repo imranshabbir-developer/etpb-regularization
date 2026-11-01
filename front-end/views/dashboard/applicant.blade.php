@@ -15,9 +15,29 @@
     </p>
 </div>
 
-<div class="soft-panel">
-    <p><strong>This page shows what needs your attention.</strong> If something is missing, unpaid, or waiting for you, you will see it first. If nothing is needed from you, your case is already with the department.</p>
-</div>
+@if ($applications->isNotEmpty())
+    @php
+        $regularizedCount = $applications->where('status', \App\Services\WorkflowService::REGULARIZED)->count();
+        $openCount = $applications->count() - $regularizedCount;
+    @endphp
+    <div class="tiles">
+        <div class="tile">
+            <div class="tile-label">My applications</div>
+            <div class="tile-value">{{ number_format($applications->count()) }}</div>
+            <div class="tile-sub">{{ $openCount }} open · {{ $regularizedCount }} regularized</div>
+        </div>
+        <div class="tile {{ count($actions) > 0 ? 'is-warn' : '' }}">
+            <div class="tile-label">Needs your action</div>
+            <div class="tile-value">{{ number_format(count($actions)) }}</div>
+            <div class="tile-sub">{{ count($actions) ? 'Finish these first' : 'Nothing waiting on you' }}</div>
+        </div>
+        <div class="tile is-gold">
+            <div class="tile-label">Regularized</div>
+            <div class="tile-value">{{ number_format($regularizedCount) }}</div>
+            <div class="tile-sub">Tenancy recorded</div>
+        </div>
+    </div>
+@endif
 
 {{-- ---------- Anything waiting on the applicant comes first ---------- --}}
 @forelse ($actions as $action)
@@ -114,31 +134,23 @@
                     @endif
                 </dl>
 
-                {{-- Progress, in words the applicant understands --}}
                 <hr class="divider">
                 <div class="flex items-center gap-2 mb-2">
                     <strong class="text-[.88rem]">Progress</strong>
-                    <span class="faint text-[.8rem]">{{ $doneCount }} of {{ count($steps) }} stages</span>
+                    <span class="faint text-[.8rem]">{{ $doneCount }} of {{ count($steps) }}</span>
                 </div>
-                <div class="sla-bar mb-3">
-                    <div class="sla-fill" style="width:{{ round($doneCount / count($steps) * 100) }}%"></div>
-                </div>
-                <div class="flex flex-wrap gap-1.5">
-                    @foreach ($steps as [$label, $done])
-                        <span class="badge badge-{{ $done ? 'good' : 'neutral' }}">
-                            {{ $done ? '✓' : '' }} {{ $label }}
-                        </span>
-                    @endforeach
+                <div class="sla-bar mb-1">
+                    <div class="sla-fill" style="width:{{ round($doneCount / max(count($steps), 1) * 100) }}%"></div>
                 </div>
 
                 <div class="btn-row mt-4">
                     @if ($app->status === \App\Services\WorkflowService::DRAFT)
                         <a href="{{ route('apply.evidence', $app) }}" class="btn btn-primary btn-sm">
-                            Continue this application
+                            Continue
                         </a>
                     @else
                         <a href="{{ route('applications.show', $app) }}" class="btn btn-outline btn-sm">
-                            View details
+                            View
                         </a>
                     @endif
                     <a href="{{ route('documents.index', $app) }}" class="btn btn-ghost btn-sm">Documents</a>

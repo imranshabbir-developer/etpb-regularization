@@ -3,8 +3,20 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <title>Sign in — Regularization of Possession | ETPB</title>
     <link rel="icon" href="{{ asset('assets/img/favicon.svg') }}" type="image/svg+xml">
+    <script>
+        (function () {
+            var stored = null;
+            try { stored = localStorage.getItem('etpb-theme'); } catch (e) { /* ignore */ }
+            var theme = (stored === 'light' || stored === 'dark')
+                ? stored
+                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.style.colorScheme = theme;
+        })();
+    </script>
     @vite(['resources/css/app.css'])
 </head>
 <body>

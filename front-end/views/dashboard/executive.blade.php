@@ -16,13 +16,43 @@
         return 'Rs. ' . number_format($n, 0);
     };
     $breachCount = ($breaches['assessment']->count() ?? 0) + ($breaches['approval']->count() ?? 0);
+
+    $trend = [
+        'labels' => $monthly->keys()->values(),
+        'intake' => $monthly->values()->values(),
+        'disposal' => $disposal->values()->values(),
+        'intakeLabel' => 'Submitted',
+        'disposalLabel' => 'Regularized',
+    ];
+    $ageChart = [
+        'labels' => collect($ageing)->pluck('label')->values(),
+        'values' => collect($ageing)->map(fn ($b) => (float) $b['amount'])->values(),
+        'label' => 'Outstanding',
+        'money' => true,
+    ];
+    $districtChart = [
+        'labels' => $byDistrict->take(6)->map(fn ($d) => $d->district?->name ?? '—')->values(),
+        'values' => $byDistrict->take(6)->map(fn ($d) => (int) $d->total)->values(),
+        'label' => 'Cases',
+    ];
+    $attention = [
+        'labels' => ['Awaiting deposit', 'Sub judice', 'Objections', 'Stays'],
+        'values' => [
+            (int) $h['pending_pay'],
+            (int) $h['sub_judice'],
+            (int) ($objections['open'] ?? 0),
+            (int) ($litigation['stays'] ?? 0),
+        ],
+        'colors' => ['#E8891A', '#3B7DD4', '#C4680A', '#B3261E'],
+        'centerLabel' => 'Flags',
+    ];
 @endphp
 
 <div class="page-head">
     <h1>{{ now()->hour < 12 ? 'Good morning' : (now()->hour < 17 ? 'Good afternoon' : 'Good evening') }},
         {{ $first }}</h1>
     <p class="lede">
-        {{ auth()->user()->primaryRole()?->name }} &middot; essential figures only
+        {{ auth()->user()->primaryRole()?->name }}
         @cannot('do', 'records.correct')
             &middot; <span class="badge badge-info">View only</span>
         @endcannot
@@ -48,39 +78,61 @@
     <div class="tile {{ $breachCount > 0 ? 'is-danger' : 'is-gold' }}">
         <div class="tile-label">SLA breaches</div>
         <div class="tile-value">{{ number_format($breachCount) }}</div>
-        <div class="tile-sub">assessment + approval deadlines</div>
+        <div class="tile-sub">assessment + approval</div>
     </div>
 </div>
 
-<div class="grid-2 items-start gap-[1.15rem]">
+<div class="grid-2 items-start gap-[1.15rem] mb-[1.15rem]">
+    <div class="card">
+        <div class="card-head"><h3>Intake vs disposal (12 months)</h3></div>
+        <div class="card-body chart-card-body">
+            <div class="chart-frame">
+                <canvas data-etpb-chart="line-dual" data-etpb-source="exec-trend-data"
+                        aria-label="Monthly intake and regularization"></canvas>
+            </div>
+            <script type="application/json" id="exec-trend-data">@json($trend)</script>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><h3>Needs attention</h3></div>
+        <div class="card-body chart-card-body">
+            <div class="chart-frame is-md">
+                <canvas data-etpb-chart="doughnut" data-etpb-source="exec-attention-data"
+                        aria-label="Items needing attention"></canvas>
+            </div>
+            <script type="application/json" id="exec-attention-data">@json($attention)</script>
+            <div class="btn-row mt-3">
+                <a href="{{ route('reports.executive') }}" class="btn btn-outline btn-sm">Consolidated report</a>
+                <a href="{{ route('reports.registers') }}" class="btn btn-ghost btn-sm">Registers</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2 items-start gap-[1.15rem] mb-[1.15rem]">
     <div class="card">
         <div class="card-head">
             <h3>Deadline performance</h3>
             @if ($p['assessment_overdue'] + $p['approval_overdue'] > 0)
                 <span class="badge badge-danger">{{ $p['assessment_overdue'] + $p['approval_overdue'] }} overdue</span>
             @else
-                <span class="badge badge-good">All on time</span>
+                <span class="badge badge-good">On time</span>
             @endif
         </div>
         <div class="card-body">
             @foreach ([
-                ['Assessment within 60 days', $p['assessment_ontime'], $p['assessment_overdue'], 'Clause 10(i)(e)'],
-                ['Approval within one month', $p['approval_ontime'], $p['approval_overdue'], 'Clause 3(ii)(d)'],
-            ] as [$label, $pct, $over, $clause])
+                ['Assessment (60 days)', $p['assessment_ontime'], $p['assessment_overdue']],
+                ['Approval (1 month)', $p['approval_ontime'], $p['approval_overdue']],
+            ] as [$label, $pct, $over])
                 <div class="mb-4 last:mb-0">
                     <div class="flex items-baseline justify-between gap-2">
                         <strong class="text-[.88rem]">{{ $label }}</strong>
-                        <span class="clause">{{ $clause }}</span>
+                        <span class="tabular-nums text-[.88rem] font-semibold">{{ $pct }}%</span>
                     </div>
-                    <div class="flex items-center gap-3 mt-2">
-                        <div class="text-xl font-bold tabular-nums
-                                    {{ $pct >= 90 ? 'text-pk-700' : ($pct >= 70 ? 'text-warn-700' : 'text-danger-600') }}">
-                            {{ $pct }}%
-                        </div>
-                        <div class="sla-bar flex-1">
-                            <div class="sla-fill {{ $pct >= 90 ? '' : ($pct >= 70 ? 'is-warn' : 'is-danger') }}"
-                                 style="width:{{ $pct }}%"></div>
-                        </div>
+                    <div class="sla-bar mt-2">
+                        <div class="sla-fill {{ $pct >= 90 ? '' : ($pct >= 70 ? 'is-warn' : 'is-danger') }}"
+                             style="width:{{ $pct }}%"></div>
                     </div>
                     @if ($over > 0)
                         <div class="tile-sub text-danger-600">{{ number_format($over) }} past the limit</div>
@@ -90,58 +142,35 @@
         </div>
         <div class="card-foot">
             <a href="{{ route('reports.glimpse') }}" class="btn btn-primary btn-sm">
-                Performance at a glance @include('partials.icon', ['name' => 'arrow-right'])
+                Full glimpse @include('partials.icon', ['name' => 'arrow-right'])
             </a>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-head"><h3>Needs attention</h3></div>
-        <div class="card-body">
-            <dl class="kv">
-                <dt>Awaiting deposit</dt>
-                <dd><span class="badge badge-{{ $h['pending_pay'] > 0 ? 'warn' : 'good' }}">{{ number_format($h['pending_pay']) }}</span></dd>
-                <dt>Sub judice</dt>
-                <dd><span class="badge badge-{{ $h['sub_judice'] > 0 ? 'warn' : 'good' }}">{{ number_format($h['sub_judice']) }}</span></dd>
-                <dt>Objections open</dt>
-                <dd><span class="badge badge-{{ $objections['open'] > 0 ? 'warn' : 'good' }}">{{ number_format($objections['open']) }}</span></dd>
-                <dt>Litigation stays</dt>
-                <dd><span class="badge badge-{{ ($litigation['stays'] ?? 0) > 0 ? 'danger' : 'good' }}">{{ number_format($litigation['stays'] ?? 0) }}</span></dd>
-            </dl>
-            <hr class="divider">
-            <div class="btn-row">
-                <a href="{{ route('reports.executive') }}" class="btn btn-outline btn-sm">Full consolidated report</a>
-                <a href="{{ route('reports.registers') }}" class="btn btn-ghost btn-sm">Registers</a>
+        <div class="card-head"><h3>Arrears ageing</h3></div>
+        <div class="card-body chart-card-body">
+            <div class="chart-frame is-md">
+                <canvas data-etpb-chart="bar" data-etpb-source="exec-age-data"
+                        aria-label="Outstanding arrears by age"></canvas>
             </div>
+            <script type="application/json" id="exec-age-data">@json($ageChart)</script>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-head"><h3>Top districts</h3></div>
-    <div class="table-wrap border-0 rounded-none">
-        <table class="data">
-            <thead>
-            <tr><th>District</th><th class="num">Cases</th><th class="num">Regularized</th>
-                <th class="num">Outstanding</th><th class="num">Recovery</th></tr>
-            </thead>
-            <tbody>
-            @forelse ($byDistrict->take(6) as $d)
-                @php $rec = (float) $d->assessed > 0 ? round((float) $d->recovered / (float) $d->assessed * 100) : 0; @endphp
-                <tr>
-                    <td>{{ $d->district?->name ?? 'Not recorded' }}</td>
-                    <td class="num">{{ number_format($d->total) }}</td>
-                    <td class="num">{{ number_format($d->regularized) }}</td>
-                    <td class="num">{{ number_format((float) $d->outstanding, 0) }}</td>
-                    <td class="num">
-                        <span class="badge badge-{{ $rec >= 60 ? 'good' : ($rec >= 25 ? 'warn' : 'neutral') }}">{{ $rec }}%</span>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="5" class="row-muted">No applications yet.</td></tr>
-            @endforelse
-            </tbody>
-        </table>
+<div class="card mb-[1.15rem]">
+    <div class="card-head"><h3>Busiest districts</h3></div>
+    <div class="card-body chart-card-body">
+        @if ($byDistrict->isEmpty())
+            <p class="muted mb-0">No applications yet.</p>
+        @else
+            <div class="chart-frame is-sm">
+                <canvas data-etpb-chart="hbar" data-etpb-source="exec-district-data"
+                        aria-label="Cases by district"></canvas>
+            </div>
+            <script type="application/json" id="exec-district-data">@json($districtChart)</script>
+        @endif
     </div>
 </div>
 
@@ -150,7 +179,7 @@
     <div class="card-head">
         <h3>Recent activity</h3>
         <div class="card-actions">
-            <a href="{{ route('applications.index') }}" class="btn btn-outline btn-sm">All applications</a>
+            <a href="{{ route('applications.index') }}" class="btn btn-outline btn-sm">All</a>
         </div>
     </div>
     <div class="table-wrap border-0 rounded-none">
@@ -159,7 +188,7 @@
             <tr><th>Application</th><th>Applicant</th><th>District</th><th>Status</th><th>Updated</th></tr>
             </thead>
             <tbody>
-            @foreach ($recent as $app)
+            @foreach ($recent->take(5) as $app)
                 <tr>
                     <td class="nowrap"><a href="{{ route('applications.show', $app) }}">{{ $app->application_no }}</a></td>
                     <td>{{ $app->applicant?->full_name }}</td>

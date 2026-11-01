@@ -13,6 +13,18 @@
     </p>
 </div>
 
+@php
+    $recoveryChart = [
+        'labels' => ['Recovered', 'Outstanding'],
+        'values' => [(float) $totals->p, (float) $totals->b],
+        'colors' => ['#2F66B0', '#E8891A'],
+        'centerLabel' => 'Arrears',
+        'centerValue' => ((float) $totals->a > 0
+            ? round((float) $totals->p / (float) $totals->a * 100) . '%'
+            : '0%'),
+    ];
+@endphp
+
 <div class="tiles">
     <div class="tile">
         <div class="tile-label">Assessed</div>
@@ -28,6 +40,17 @@
     <div class="tile is-danger">
         <div class="tile-label">Outstanding</div>
         <div class="tile-value">Rs. {{ number_format((float) $totals->b, 0) }}</div>
+    </div>
+</div>
+
+<div class="card mb-[1.15rem]">
+    <div class="card-head"><h3>Recovery split</h3></div>
+    <div class="card-body chart-card-body">
+        <div class="chart-frame is-sm">
+            <canvas data-etpb-chart="doughnut" data-etpb-source="arrears-recovery-data"
+                    aria-label="Recovered versus outstanding arrears"></canvas>
+        </div>
+        <script type="application/json" id="arrears-recovery-data">@json($recoveryChart)</script>
     </div>
 </div>
 

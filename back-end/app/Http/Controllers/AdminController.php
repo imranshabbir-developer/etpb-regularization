@@ -51,7 +51,7 @@ class AdminController extends Controller
             ->when($request->filled('role'), fn ($q) => $q->whereHas('roles',
                 fn ($r) => $r->where('code', $request->string('role'))))
             ->orderBy('name')
-            ->paginate(25)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.users', [
@@ -175,7 +175,7 @@ class AdminController extends Controller
         return view('admin.masters', [
             'provinces'   => DB::table('provinces')->orderBy('name')->get(),
             'districts'   => District::with(['province:id,name', 'unitProfile:id,code,name'])
-                                ->orderBy('name')->paginate(30),
+                                ->orderBy('name')->paginate(10),
             'profiles'    => DB::table('unit_conversion_profiles')->orderByDesc('is_default')->get(),
             'factors'     => DB::table('unit_conversion_factors')
                                 ->orderBy('unit_profile_id')->orderBy('display_order')->get()
@@ -263,7 +263,7 @@ class AdminController extends Controller
             ->when($request->filled('event'), fn ($q) => $q->where('event', $request->string('event')))
             ->when($request->filled('user'), fn ($q) => $q->where('user_id', $request->integer('user')))
             ->orderByDesc('created_at')
-            ->paginate(50)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.audit', [

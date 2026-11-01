@@ -64,11 +64,16 @@
     display: block;
     border-radius: 1rem;
     overflow: hidden;
-    background: #fff;
+    background: var(--surface-raised, #fff);
     box-shadow:
         0 24px 64px rgba(8, 18, 36, .45),
         0 0 0 1px rgba(255, 255, 255, .12);
     line-height: 0;
+}
+:root[data-theme="dark"] .promo-modal-frame {
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, .55),
+        0 0 0 1px rgba(255, 255, 255, .08);
 }
 .promo-modal-img {
     display: block;
@@ -91,14 +96,14 @@
     cursor: pointer;
     display: grid;
     place-items: center;
-    color: #162033;
-    background: #fff;
+    color: var(--text-c, #162033);
+    background: var(--surface-raised, #fff);
     box-shadow: 0 6px 18px rgba(8, 18, 36, .28);
     transition: transform .15s, background .15s;
 }
 .promo-modal-close:hover {
     transform: scale(1.06);
-    background: #F3F7FD;
+    background: var(--tint, #F3F7FD);
 }
 @media (max-width: 480px) {
     .promo-modal-dialog { max-width: 94vw; }
