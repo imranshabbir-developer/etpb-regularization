@@ -8,35 +8,38 @@
     @vite(['resources/css/app.css'])
 </head>
 <body>
-<div class="auth-page auth-page-login">
+@php
+    $demoPassword = 'Etpb@2026#Change';
+    $roleRail = [
+        ['label' => 'Admin',     'email' => 'admin@etpb.gov.pk',       'short' => 'SA'],
+        ['label' => 'Chairman',  'email' => 'chairman@etpb.gov.pk',    'short' => 'CH'],
+        ['label' => 'Secretary', 'email' => 'secretary@etpb.gov.pk',   'short' => 'SE'],
+        ['label' => 'Admin LHR', 'email' => 'admin.lhr@etpb.gov.pk',   'short' => 'AD'],
+        ['label' => 'DO / DA',   'email' => 'do.lhr@etpb.gov.pk',      'short' => 'DO'],
+        ['label' => 'Dealing',   'email' => 'da.lhr@etpb.gov.pk',      'short' => 'DA'],
+        ['label' => 'Accounts',  'email' => 'accounts.lhr@etpb.gov.pk','short' => 'AC'],
+        ['label' => 'Legal',     'email' => 'legal.lhr@etpb.gov.pk',   'short' => 'LG'],
+        ['label' => 'Auditor',   'email' => 'audit@etpb.gov.pk',       'short' => 'AU'],
+    ];
+@endphp
 
-    <aside class="auth-aside">
-        <div class="auth-aside-brand">
+<div class="login-wow">
+    <div class="login-wow-orb login-wow-orb-a" aria-hidden="true"></div>
+    <div class="login-wow-orb login-wow-orb-b" aria-hidden="true"></div>
+    <div class="login-wow-grid" aria-hidden="true"></div>
+
+    <div class="login-wow-center">
+        <div class="login-wow-brand">
             <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>
-            <span class="brand-text">
+            <div>
                 <strong>Evacuee Trust Property Board</strong>
-                <span>Government of Pakistan</span>
-            </span>
+                <span>Regularization of Possession</span>
+            </div>
         </div>
 
-        <div class="auth-aside-hero">
-            <h2 class="auth-hero-title">Regularization of Possession</h2>
-        </div>
-
-        <div class="auth-aside-footer">
-            <p>
-                Applications by existing occupants of urban evacuee trust properties to be
-                treated as tenants under Clause 3(ii) of the Scheme for the Management and
-                Disposal of Urban Evacuee Trust Properties, 1977.
-            </p>
-            <div class="auth-legal">A secure digital portal for regularization workflow.</div>
-        </div>
-    </aside>
-
-    <main class="auth-main">
-        <div class="auth-card auth-card-login">
+        <div class="auth-card auth-card-login login-wow-card">
             <h1>Sign in</h1>
-            <p class="lede">Use the official credentials issued by your district office.</p>
+            <p class="lede">Use the credentials issued by your district office.</p>
 
             @if (session('status'))
                 <div class="alert alert-good" role="status">
@@ -56,7 +59,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login.attempt') }}" novalidate>
+            <form method="POST" action="{{ route('login.attempt') }}" id="loginForm" novalidate>
                 @csrf
 
                 <div class="field">
@@ -93,11 +96,45 @@
             </p>
 
             <p class="faint" style="font-size:.8rem;margin:0">
-                Access is logged. Sign-in attempts, record views and downloads are recorded
-                against your account in the audit trail.
+                Access is logged. Sign-in attempts and record views are audited.
             </p>
         </div>
-    </main>
+    </div>
+
+    <aside class="login-role-rail" aria-label="Demo role autofill">
+        <p class="login-role-rail-title">Roles</p>
+        @foreach ($roleRail as $role)
+            <button type="button"
+                    class="login-role-chip"
+                    title="{{ $role['label'] }} — click to fill email &amp; password"
+                    data-email="{{ $role['email'] }}"
+                    data-password="{{ $demoPassword }}">
+                <span class="login-role-short">{{ $role['short'] }}</span>
+                <span class="login-role-label">{{ $role['label'] }}</span>
+            </button>
+        @endforeach
+        <p class="login-role-rail-hint">Click a role to autofill. Then press Sign in.</p>
+    </aside>
 </div>
+
+<script>
+(function () {
+    var email = document.getElementById('email');
+    var password = document.getElementById('password');
+    document.querySelectorAll('.login-role-chip').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            email.value = btn.getAttribute('data-email') || '';
+            password.value = btn.getAttribute('data-password') || '';
+            email.focus();
+            document.querySelectorAll('.login-role-chip').forEach(function (b) {
+                b.classList.remove('is-active');
+            });
+            btn.classList.add('is-active');
+        });
+    });
+})();
+</script>
+
+@include('partials.promo-modal')
 </body>
 </html>

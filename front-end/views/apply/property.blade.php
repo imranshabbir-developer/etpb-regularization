@@ -5,71 +5,49 @@
 
 @section('content')
 
-@php $pr = $draft['property'] ?? []; @endphp
+@php
+    $pr = $draft['property'] ?? [];
+    $typeOptions = [
+        'OPEN_PLOT' => 'Open Plot',
+        'RESIDENTIAL' => 'Residential',
+        'COMMERCIAL' => 'Commercial',
+        'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-commercial',
+        'OTHER' => 'Others',
+    ];
+@endphp
 
 <div class="container-narrow">
     @include('partials.wizard-steps')
 
     <div class="page-head">
         <h1>The property</h1>
-        <p class="lede">Where it is, what it is, and how big it is.</p>
+        <p class="lede">Only the essentials are required now. Everything else can wait for the office.</p>
     </div>
 
     <form method="POST" action="{{ route('apply.property.store') }}" id="propertyForm" novalidate>
         @csrf
 
+        <div class="essentials-banner">
+            <span aria-hidden="true">★</span>
+            <div>
+                <strong>Required on this step:</strong> property address, district, and geo coordinates.
+                Open the sections below only if you already know the rest.
+            </div>
+        </div>
+
         <div class="card">
-            <div class="card-head"><h3>Identify the property</h3></div>
+            <div class="card-head"><h3>Where is the property?</h3></div>
             <div class="card-body">
-                <div class="grid-2">
-                    <div class="field">
-                        <label for="property_no">Property number <span class="req">*</span></label>
-                        <input type="text" id="property_no" name="property_no"
-                               class="input @error('property_no') is-invalid @enderror"
-                               value="{{ old('property_no', $pr['property_no'] ?? '') }}" required maxlength="60">
-                        <p class="hint">As it appears on your papers or the ETPB record.</p>
-                        @error('property_no')<p class="error-text">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div class="field">
-                        <label for="sub_unit_no">Sub-unit number</label>
-                        <input type="text" id="sub_unit_no" name="sub_unit_no" class="input"
-                               value="{{ old('sub_unit_no', $pr['sub_unit_no'] ?? '') }}" maxlength="60">
-                        <p class="hint">Only if the property is divided. Leave blank otherwise.</p>
-                    </div>
-
-                    <div class="field">
-                        <label for="property_type">What kind of property? <span class="req">*</span></label>
-                        <select id="property_type" name="property_type" class="select">
-                            @foreach (['HOUSE' => 'House', 'SHOP' => 'Shop', 'BUILDING' => 'Building',
-                                       'PLOT' => 'Plot', 'AGRI_LAND' => 'Agricultural land',
-                                       'OTHER' => 'Something else'] as $v => $l)
-                                <option value="{{ $v }}" @selected(old('property_type', $pr['property_type'] ?? '') === $v)>{{ $l }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label for="usage_type">How is it used? <span class="req">*</span></label>
-                        <select id="usage_type" name="usage_type" class="select">
-                            @foreach (['RESIDENTIAL' => 'I live in it', 'COMMERCIAL' => 'Business use',
-                                       'RESIDENTIAL_CUM_COMMERCIAL' => 'Both home and business',
-                                       'OTHER' => 'Something else'] as $v => $l)
-                                <option value="{{ $v }}" @selected(old('usage_type', $pr['usage_type'] ?? '') === $v)>{{ $l }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
                 <div class="field">
-                    <label for="property_address">Full address <span class="req">*</span></label>
+                    <label for="property_address">Property address <span class="req">*</span></label>
                     <textarea id="property_address" name="property_address"
                               class="textarea @error('property_address') is-invalid @enderror"
-                              required maxlength="500">{{ old('property_address', $pr['property_address'] ?? '') }}</textarea>
+                              required maxlength="500"
+                              placeholder="Street / mohalla / landmark">{{ old('property_address', $pr['property_address'] ?? '') }}</textarea>
                     @error('property_address')<p class="error-text">{{ $message }}</p>@enderror
                 </div>
 
-                <div class="grid-3">
+                <div class="grid-2">
                     <div class="field">
                         <label for="district_id">District <span class="req">*</span></label>
                         <select id="district_id" name="district_id"
@@ -84,13 +62,84 @@
                         </select>
                         @error('district_id')<p class="error-text">{{ $message }}</p>@enderror
                     </div>
+                    <div class="field">
+                        <label>Province</label>
+                        <input type="text" id="provinceEcho" class="input" readonly
+                               value="Choose a district" tabindex="-1">
+                    </div>
+                </div>
 
+                <fieldset class="group">
+                    <legend>Geo coordinates <span class="req">*</span></legend>
+                    <p class="hint mt-0">
+                        Stand at the property if you can, then tap the button — your phone fills these in.
+                    </p>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="latitude">Latitude <span class="req">*</span></label>
+                            <input type="text" id="latitude" name="latitude"
+                                   class="input @error('latitude') is-invalid @enderror"
+                                   value="{{ old('latitude', $pr['latitude'] ?? '') }}"
+                                   inputmode="decimal" placeholder="31.5204" required>
+                            @error('latitude')<p class="error-text">{{ $message }}</p>@enderror
+                        </div>
+                        <div class="field">
+                            <label for="longitude">Longitude <span class="req">*</span></label>
+                            <input type="text" id="longitude" name="longitude"
+                                   class="input @error('longitude') is-invalid @enderror"
+                                   value="{{ old('longitude', $pr['longitude'] ?? '') }}"
+                                   inputmode="decimal" placeholder="74.3587" required>
+                            @error('longitude')<p class="error-text">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" id="geoBtn">
+                        @include('partials.icon', ['name' => 'map']) Use my current location
+                    </button>
+                    <span id="geoMsg" class="hint ms-2"></span>
+                </fieldset>
+            </div>
+        </div>
+
+        <details class="optional-panel">
+            <summary>
+                More property details
+                <span class="badge badge-neutral">Optional — office can fill later</span>
+            </summary>
+            <div class="optional-body">
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="property_no">Property number</label>
+                        <input type="text" id="property_no" name="property_no" class="input"
+                               value="{{ old('property_no', $pr['property_no'] ?? '') }}" maxlength="60">
+                    </div>
+                    <div class="field">
+                        <label for="sub_unit_no">Sub-unit number</label>
+                        <input type="text" id="sub_unit_no" name="sub_unit_no" class="input"
+                               value="{{ old('sub_unit_no', $pr['sub_unit_no'] ?? '') }}" maxlength="60">
+                    </div>
+                    <div class="field">
+                        <label for="property_type">What kind of property?</label>
+                        <select id="property_type" name="property_type" class="select">
+                            <option value="">Not sure yet</option>
+                            @foreach ($typeOptions as $v => $l)
+                                <option value="{{ $v }}" @selected(old('property_type', $pr['property_type'] ?? '') === $v)>{{ $l }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="usage_type">How is it used?</label>
+                        <select id="usage_type" name="usage_type" class="select">
+                            <option value="">Not sure yet</option>
+                            @foreach ($typeOptions as $v => $l)
+                                <option value="{{ $v }}" @selected(old('usage_type', $pr['usage_type'] ?? '') === $v)>{{ $l }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="field">
                         <label for="city">City or town</label>
                         <input type="text" id="city" name="city" class="input"
                                value="{{ old('city', $pr['city'] ?? '') }}" maxlength="120">
                     </div>
-
                     <div class="field">
                         <label for="tehsil_id">Tehsil</label>
                         <select id="tehsil_id" name="tehsil_id" class="select">
@@ -98,39 +147,26 @@
                         </select>
                         <p class="hint" id="tehsilHint">Filled in once you pick a district.</p>
                     </div>
-                </div>
-
-                <div class="grid-2">
                     <div class="field">
                         <label for="mouza_name">Mouza</label>
                         <input type="text" id="mouza_name" name="mouza_name" class="input"
                                value="{{ old('mouza_name', $pr['mouza_name'] ?? '') }}"
                                maxlength="150" list="mouzaList">
                         <datalist id="mouzaList"></datalist>
-                        <p class="hint">If you know it. Type it in, or pick from the list where one exists.</p>
-                    </div>
-                    <div class="field">
-                        <label>Province</label>
-                        <input type="text" id="provinceEcho" class="input" readonly
-                               value="Choose a district" tabindex="-1">
-                        <p class="hint">Set automatically by the district.</p>
                     </div>
                 </div>
             </div>
-        </div>
+        </details>
 
-        {{-- ---------- Area ---------- --}}
-        <div class="card">
-            <div class="card-head">
-                <h3>How big is it?</h3>
-                <div class="card-actions"><span class="clause">Converted to sqft</span></div>
-            </div>
-            <div class="card-body">
-                <p class="muted text-[.9rem]">
-                    Enter the area however your papers record it. We will convert it to square feet
-                    and show you the working.
+        <details class="optional-panel">
+            <summary>
+                Area of the Property / Land
+                <span class="badge badge-neutral">Optional</span>
+            </summary>
+            <div class="optional-body">
+                <p class="muted text-[.9rem] mb-3">
+                    Default standard is <strong>1 Marla = 225 sqft</strong> unless you choose another.
                 </p>
-
                 <div class="grid-2">
                     <div class="field">
                         <label for="area_mode">How would you like to enter it?</label>
@@ -143,7 +179,6 @@
                             </option>
                         </select>
                     </div>
-
                     <div class="field">
                         <label for="unit_profile_id">Measurement standard</label>
                         <select id="unit_profile_id" name="unit_profile_id" class="select">
@@ -154,17 +189,14 @@
                                 </option>
                             @endforeach
                         </select>
-                        <p class="hint">Leave this as it is unless your district office tells you otherwise.</p>
                     </div>
                 </div>
 
                 <div id="areaSingle" class="grid-2">
                     <div class="field">
                         <label for="area_value">Area</label>
-                        <input type="text" id="area_value" name="area_value"
-                               class="input @error('area_value') is-invalid @enderror"
+                        <input type="text" id="area_value" name="area_value" class="input"
                                value="{{ old('area_value', $pr['area_value'] ?? '') }}" inputmode="decimal">
-                        @error('area_value')<p class="error-text">{{ $message }}</p>@enderror
                     </div>
                     <div class="field">
                         <label for="area_unit">Unit</label>
@@ -198,65 +230,80 @@
                     </div>
                 </div>
 
-                <div class="field">
-                    <label for="covered_area_sqft">Covered area in square feet</label>
-                    <input type="text" id="covered_area_sqft" name="covered_area_sqft" class="input"
-                           value="{{ old('covered_area_sqft', $pr['covered_area_sqft'] ?? '') }}" inputmode="decimal">
-                    <p class="hint">Optional — the built-up part, if you know it.</p>
+                <div class="grid-3 mt-3">
+                    <div class="field">
+                        <label for="total_area_sqft">Total Area (sqft)</label>
+                        <input type="text" id="total_area_sqft" name="total_area_sqft" class="input"
+                               value="{{ old('total_area_sqft', $pr['total_area_sqft'] ?? '') }}" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="covered_area_sqft">Covered Area (sqft)</label>
+                        <input type="text" id="covered_area_sqft" name="covered_area_sqft" class="input"
+                               value="{{ old('covered_area_sqft', $pr['covered_area_sqft'] ?? '') }}" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="open_area_sqft">Open Area (sqft)</label>
+                        <input type="text" id="open_area_sqft" name="open_area_sqft" class="input"
+                               value="{{ old('open_area_sqft', $pr['open_area_sqft'] ?? '') }}" inputmode="decimal">
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="number_of_floors">Number of floors</label>
+                        <input type="number" id="number_of_floors" name="number_of_floors" class="input"
+                               value="{{ old('number_of_floors', $pr['number_of_floors'] ?? '') }}"
+                               min="0" max="100" inputmode="numeric">
+                    </div>
+                    <div class="field">
+                        <label>Floor-wise covered area (sqft)</label>
+                        <div class="grid-2" id="floorWiseFields">
+                            @for ($i = 1; $i <= 4; $i++)
+                                <input type="text" name="floor_wise_covered_area[]" class="input"
+                                       placeholder="Floor {{ $i }}"
+                                       value="{{ old('floor_wise_covered_area.'.($i-1), $pr['floor_wise_covered_area'][$i-1] ?? '') }}"
+                                       inputmode="decimal">
+                            @endfor
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </details>
 
-        {{-- ---------- Revenue and geo ---------- --}}
-        <div class="card">
-            <div class="card-head"><h3>Revenue record and location</h3></div>
-            <div class="card-body">
-                <p class="muted text-[.9rem]">All optional, but they help the officer find the record faster.</p>
-
-                <div class="grid-3">
-                    @foreach (['khewat_no' => 'Khewat no.', 'khatooni_no' => 'Khatooni no.', 'khasra_no' => 'Khasra no.'] as $f => $l)
+        <details class="optional-panel">
+            <summary>
+                Revenue record numbers
+                <span class="badge badge-neutral">Optional</span>
+            </summary>
+            <div class="optional-body">
+                <div class="grid-2">
+                    @foreach (['khewat_no' => 'Khewat no.', 'khatooni_no' => 'Khatooni no.'] as $f => $l)
                         <div class="field">
                             <label for="{{ $f }}">{{ $l }}</label>
                             <input type="text" id="{{ $f }}" name="{{ $f }}" class="input"
                                    value="{{ old($f, $pr[$f] ?? '') }}" maxlength="40">
                         </div>
                     @endforeach
-                </div>
-
-                <fieldset class="group">
-                    <legend>Geo coordinates</legend>
-                    <p class="hint mt-0">
-                        The department asks for these. If you are standing at the property on a phone,
-                        tap the button and your device will fill them in.
-                    </p>
-                    <div class="grid-2">
-                        <div class="field">
-                            <label for="latitude">Latitude</label>
-                            <input type="text" id="latitude" name="latitude" class="input"
-                                   value="{{ old('latitude', $pr['latitude'] ?? '') }}"
-                                   inputmode="decimal" placeholder="31.5204">
-                        </div>
-                        <div class="field">
-                            <label for="longitude">Longitude</label>
-                            <input type="text" id="longitude" name="longitude" class="input"
-                                   value="{{ old('longitude', $pr['longitude'] ?? '') }}"
-                                   inputmode="decimal" placeholder="74.3587">
-                        </div>
+                    <div class="field">
+                        <label for="khasra_no">Khasra / Survey No.</label>
+                        <input type="text" id="khasra_no" name="khasra_no" class="input"
+                               value="{{ old('khasra_no', $pr['khasra_no'] ?? '') }}" maxlength="40">
                     </div>
-                    <button type="button" class="btn btn-outline btn-sm" id="geoBtn">
-                        @include('partials.icon', ['name' => 'map']) Use my current location
-                    </button>
-                    <span id="geoMsg" class="hint ms-2"></span>
-                </fieldset>
-
-                <div class="wizard-actions">
-                    <a href="{{ route('apply.applicant') }}" class="btn btn-ghost">Back</a>
-                    <span class="spacer"></span>
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        Continue @include('partials.icon', ['name' => 'arrow-right'])
-                    </button>
+                    <div class="field">
+                        <label for="survey_no">Survey No. (if separate)</label>
+                        <input type="text" id="survey_no" name="survey_no" class="input"
+                               value="{{ old('survey_no', $pr['survey_no'] ?? '') }}" maxlength="60">
+                    </div>
                 </div>
             </div>
+        </details>
+
+        <div class="wizard-actions">
+            <a href="{{ route('apply.applicant') }}" class="btn btn-ghost">Back</a>
+            <span class="spacer"></span>
+            <button type="submit" class="btn btn-primary btn-lg">
+                Continue @include('partials.icon', ['name' => 'arrow-right'])
+            </button>
         </div>
     </form>
 </div>
@@ -279,6 +326,7 @@
     var timer;
 
     function sync() {
+        if (!mode || !single || !compound) return;
         var isSingle = mode.value === 'SINGLE';
         single.hidden = !isSingle;
         compound.hidden = isSingle;
@@ -286,6 +334,7 @@
     }
 
     function components() {
+        if (!mode) return null;
         if (mode.value === 'SINGLE') {
             var v = document.getElementById('area_value').value;
             if (!v) return null;
@@ -302,6 +351,7 @@
 
     function recalc() {
         clearTimeout(timer);
+        if (!preview || !profile) return;
         var comp = components();
         if (!comp) { preview.hidden = true; return; }
 
@@ -323,8 +373,8 @@
         }, 300);
     }
 
-    mode.addEventListener('change', sync);
-    profile.addEventListener('change', recalc);
+    if (mode) mode.addEventListener('change', sync);
+    if (profile) profile.addEventListener('change', recalc);
     ['area_value', 'area_unit', 'acres', 'kanals', 'marlas', 'sarsais'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
@@ -332,7 +382,6 @@
         el.addEventListener('change', recalc);
     });
 
-    // ---- cascading geography ----------------------------------------------
     var districtSel = document.getElementById('district_id');
     var tehsilSel   = document.getElementById('tehsil_id');
     var provinceBox = document.getElementById('provinceEcho');
@@ -343,15 +392,16 @@
     var savedTehsil = @json(old('tehsil_id', $pr['tehsil_id'] ?? null));
 
     function loadTehsils() {
+        if (!districtSel || !tehsilSel) return;
         var id = districtSel.value;
         tehsilSel.innerHTML = '<option value="">Choose a district first</option>';
-        mouzaList.innerHTML = '';
-        if (!id) { provinceBox.value = 'Choose a district'; return; }
+        if (mouzaList) mouzaList.innerHTML = '';
+        if (!id) { if (provinceBox) provinceBox.value = 'Choose a district'; return; }
 
         fetch(tehsilUrl + '?district=' + encodeURIComponent(id), { headers: { 'Accept': 'application/json' } })
             .then(function (r) { return r.json(); })
             .then(function (d) {
-                provinceBox.value = d.province || '';
+                if (provinceBox) provinceBox.value = d.province || '';
                 tehsilSel.innerHTML = '<option value="">Not sure / not listed</option>';
                 (d.tehsils || []).forEach(function (t) {
                     var o = document.createElement('option');
@@ -359,15 +409,18 @@
                     if (String(savedTehsil) === String(t.id)) o.selected = true;
                     tehsilSel.appendChild(o);
                 });
-                tehsilHint.textContent = d.tehsils && d.tehsils.length
-                    ? d.tehsils.length + ' tehsil(s) in this district.'
-                    : 'No tehsil list loaded for this district yet — you can leave this blank.';
+                if (tehsilHint) {
+                    tehsilHint.textContent = d.tehsils && d.tehsils.length
+                        ? d.tehsils.length + ' tehsil(s) in this district.'
+                        : 'No tehsil list loaded for this district yet — you can leave this blank.';
+                }
                 loadMouzas();
             })
-            .catch(function () { tehsilHint.textContent = 'Could not load tehsils.'; });
+            .catch(function () { if (tehsilHint) tehsilHint.textContent = 'Could not load tehsils.'; });
     }
 
     function loadMouzas() {
+        if (!mouzaList || !tehsilSel) return;
         mouzaList.innerHTML = '';
         if (!tehsilSel.value) return;
         fetch(mouzaUrl + '?tehsil=' + encodeURIComponent(tehsilSel.value), { headers: { 'Accept': 'application/json' } })
@@ -379,7 +432,7 @@
                     mouzaList.appendChild(o);
                 });
             })
-            .catch(function () { /* free text still works */ });
+            .catch(function () {});
     }
 
     if (districtSel) {
@@ -388,7 +441,6 @@
     }
     if (tehsilSel) tehsilSel.addEventListener('change', loadMouzas);
 
-    // ---- geolocation ------------------------------------------------------
     var geoBtn = document.getElementById('geoBtn');
     var geoMsg = document.getElementById('geoMsg');
     if (geoBtn && navigator.geolocation) {
@@ -404,7 +456,7 @@
         });
     } else if (geoBtn) {
         geoBtn.disabled = true;
-        geoMsg.textContent = 'Your browser cannot provide a location.';
+        if (geoMsg) geoMsg.textContent = 'Your browser cannot provide a location.';
     }
 
     sync();

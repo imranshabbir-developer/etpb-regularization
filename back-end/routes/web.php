@@ -319,6 +319,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::get('/apply/{application}/occupants', [ApplyController::class, 'occupants'])->name('apply.occupants');
         Route::post('/apply/{application}/occupants', [ApplyController::class, 'storeOccupants'])->name('apply.occupants.store');
         Route::get('/apply/{application}/deposit', [ApplyController::class, 'fee'])->name('apply.fee');
+        Route::post('/apply/{application}/biometric', [ApplyController::class, 'storeBiometric'])->name('apply.biometric.store');
         Route::post('/apply/{application}/submit', [ApplyController::class, 'submit'])->name('apply.submit');
         Route::get('/apply/{application}/done', [ApplyController::class, 'done'])->name('apply.done');
     });

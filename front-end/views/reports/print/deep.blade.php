@@ -37,13 +37,6 @@
     <tr><td class="k">CNIC</td><td class="v">{{ $a->applicant?->formattedCnic() }}</td></tr>
     <tr><td class="k">Contact</td><td class="v">{{ $a->applicant?->contact }}</td></tr>
     <tr><td class="k">Address</td><td class="v">{{ $a->applicant?->postal_address }}</td></tr>
-    @if ($a->applicant?->hasRemissionGround())
-        <tr><td class="k">Clause 12 ground</td><td class="v">
-            @if ($a->applicant->is_indigent) Indigent @endif
-            @if ($a->applicant->is_widow) Widow @endif
-            @if ($a->applicant->is_orphan) Orphan @endif
-        </td></tr>
-    @endif
 </table>
 
 <h2>{{ ++$n }}. Property particulars</h2>
@@ -130,6 +123,9 @@
         <tr><td class="k">Cut-off applied</td><td class="v">{{ $fmt($poss->cutoff_applied) }}</td></tr>
         <tr><td class="k">Eligible</td><td class="v">{{ $poss->is_eligible ? 'Yes' : 'No' }}</td></tr>
         <tr><td class="k">Judicial verdict</td><td class="v">{{ $fmt($poss->date_of_judicial_verdict) }}</td></tr>
+        @if ($poss->court_name)<tr><td class="k">Name of Court</td><td class="v">{{ $poss->court_name }}</td></tr>@endif
+        @if ($poss->judicial_reference)<tr><td class="k">Case reference</td><td class="v">{{ $poss->judicial_reference }}</td></tr>@endif
+        @if ($poss->judgment_gist)<tr><td class="k">Gist of Decision</td><td class="v">{{ $poss->judgment_gist }}</td></tr>@endif
         <tr><td class="k">Arrears run from</td>
             <td class="v">{{ $fmt($poss->arrears_from) }}
                 ({{ ucwords(strtolower(str_replace('_', ' ', $poss->arrears_from_basis))) }})</td></tr>

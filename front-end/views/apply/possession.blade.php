@@ -11,8 +11,7 @@
     <div class="page-head">
         <h1>Your possession</h1>
         <p class="lede">
-            When your possession began decides both whether you qualify and how far back
-            rent is owed, so take care over the date.
+            When possession began decides both whether you qualify and how far back rent is owed.
         </p>
     </div>
 
@@ -21,7 +20,6 @@
         <div>
             <p class="mb-0">
                 Possession must have begun <strong>prior to {{ $cutoffStated->format('j F Y') }}</strong>.
-                A later date cannot be accepted &mdash; the cut-off is fixed by the Scheme itself.
                 <span class="clause">Clause 3(ii)(a)</span>
             </p>
         </div>
@@ -29,6 +27,14 @@
 
     <form method="POST" action="{{ route('apply.possession.store') }}" novalidate>
         @csrf
+
+        <div class="essentials-banner">
+            <span aria-hidden="true">★</span>
+            <div>
+                <strong>Required:</strong> date of possession, how you came to hold it, and the declaration.
+                Court judgment details are optional on this step.
+            </div>
+        </div>
 
         <div class="card">
             <div class="card-body">
@@ -59,21 +65,46 @@
                     </div>
                 </div>
 
+                <div class="alert alert-info">
+                    @include('partials.icon', ['name' => 'info'])
+                    <div>
+                        <p class="mb-0">
+                            Rent is counted from the earliest of <strong>1 July 2000</strong>, your
+                            possession date, or a court judgment date (if any).
+                            <span class="clause">Clause 3(ii)(b)</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="field flex items-start gap-2">
+                    <input type="checkbox" id="declaration" name="declaration" value="1"
+                           class="mt-1" required @checked(old('declaration'))>
+                    <label for="declaration" class="m-0 font-medium text-[.9rem]">
+                        I declare that the information I have given is true.
+                        <span class="req">*</span>
+                    </label>
+                </div>
+                @error('declaration')<p class="error-text">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <details class="optional-panel">
+            <summary>
+                Story of possession &amp; court judgment
+                <span class="badge badge-neutral">Optional — office can fill later</span>
+            </summary>
+            <div class="optional-body">
                 <div class="field">
                     <label for="possession_description">Tell us briefly how it happened</label>
                     <textarea id="possession_description" name="possession_description"
                               class="textarea" maxlength="2000">{{ old('possession_description') }}</textarea>
-                    <p class="hint">
-                        A few lines is enough. This helps the officer understand your case.
-                    </p>
                 </div>
 
                 <fieldset class="group">
                     <legend>Has a court ever ruled about this property?</legend>
                     <p class="hint mt-0">
-                        If a court gave a judgment or declaration in your favour and it is
-                        <strong>earlier</strong> than your possession, rent is counted from the
-                        court&rsquo;s date instead. <span class="clause">Clause 3(ii)(b)</span>
+                        If a judgment in your favour is earlier than possession, rent may run from
+                        the court&rsquo;s date. <span class="clause">Clause 3(ii)(b)</span>
                     </p>
                     <div class="grid-2">
                         <div class="field">
@@ -83,50 +114,37 @@
                                    max="{{ now()->toDateString() }}">
                         </div>
                         <div class="field">
+                            <label for="court_name">Name of Court</label>
+                            <input type="text" id="court_name" name="court_name"
+                                   class="input" value="{{ old('court_name') }}" maxlength="200">
+                        </div>
+                        <div class="field">
                             <label for="judicial_reference">Court and case number</label>
                             <input type="text" id="judicial_reference" name="judicial_reference"
                                    class="input" value="{{ old('judicial_reference') }}" maxlength="150">
                         </div>
                     </div>
-                </fieldset>
-
-                <div class="alert alert-info">
-                    @include('partials.icon', ['name' => 'info'])
-                    <div>
-                        <p class="mb-0">
-                            <strong>Rent will be owed from the earliest</strong> of 1 July 2000, the
-                            date your possession began, or the date of a court judgment. If you have
-                            held the property since the 1990s, that means rent from the 1990s.
-                            The exact figure is worked out by the District Officer.
-                        </p>
+                    <div class="field">
+                        <label for="judgment_gist">Gist of Decision / Judgement</label>
+                        <textarea id="judgment_gist" name="judgment_gist" class="textarea"
+                                  maxlength="700" rows="3"
+                                  placeholder="Up to 100 words">{{ old('judgment_gist') }}</textarea>
+                        @error('judgment_gist')<p class="error-text">{{ $message }}</p>@enderror
                     </div>
-                </div>
-
-                <div class="field flex items-start gap-2">
-                    <input type="checkbox" id="declaration" name="declaration" value="1"
-                           class="mt-1" required @checked(old('declaration'))>
-                    <label for="declaration" class="m-0 font-medium text-[.9rem]">
-                        I declare that the information I have given is true. I understand that a
-                        false statement may lead to my application being rejected.
-                        <span class="req">*</span>
-                    </label>
-                </div>
-                @error('declaration')<p class="error-text">{{ $message }}</p>@enderror
-
-                <div class="wizard-actions">
-                    <a href="{{ route('apply.property') }}" class="btn btn-ghost">Back</a>
-                    <span class="spacer"></span>
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        Save and continue @include('partials.icon', ['name' => 'arrow-right'])
-                    </button>
-                </div>
-
-                <p class="hint mt-2 mb-0">
-                    Your application will be created and given a number. You can then attach your
-                    documents and come back later if you need to.
-                </p>
+                </fieldset>
             </div>
+        </details>
+
+        <div class="wizard-actions">
+            <a href="{{ route('apply.property') }}" class="btn btn-ghost">Back</a>
+            <span class="spacer"></span>
+            <button type="submit" class="btn btn-primary btn-lg">
+                Save and continue @include('partials.icon', ['name' => 'arrow-right'])
+            </button>
         </div>
+        <p class="hint mt-2 mb-0">
+            Your application will be created and given a number. Documents and deposit can follow.
+        </p>
     </form>
 </div>
 

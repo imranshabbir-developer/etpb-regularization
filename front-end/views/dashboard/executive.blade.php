@@ -15,99 +15,40 @@
         if ($n >= 100000)   return 'Rs. ' . number_format($n / 100000, 2) . ' lac';
         return 'Rs. ' . number_format($n, 0);
     };
-
-    $monthLabels = $monthly->keys()->map(fn ($ym) => \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->format('M'))->values();
-    $stageLabels = collect($h['by_status'])->map(fn ($n, $s) => \App\Services\WorkflowService::LABELS[$s] ?? $s)->values();
-    $stageValues = collect($h['by_status'])->values();
-    $districtSlice = $byDistrict->take(6);
-    $districtLabels = $districtSlice->map(fn ($d) => $d->district?->name ?? '—')->values();
-    $districtCases = $districtSlice->map(fn ($d) => (int) $d->total)->values();
-    $ageLabels = collect($ageing)->pluck('label')->values();
-    $ageAmounts = collect($ageing)->map(fn ($b) => (float) $b['amount'])->values();
-
-    // Chart payloads prepared here so Blade does not parse multi-line @json([...]).
-    $chartIntakeData = [
-        'labels' => $monthLabels,
-        'intake' => $monthly->values()->map(fn ($n) => (int) $n)->values(),
-        'disposal' => $disposal->values()->map(fn ($n) => (int) $n)->values(),
-        'intakeLabel' => 'Submitted',
-        'disposalLabel' => 'Regularized',
-    ];
-    $chartStagesData = [
-        'labels' => $stageLabels,
-        'values' => $stageValues->map(fn ($n) => (int) $n)->values(),
-    ];
-    $chartDistrictsData = [
-        'labels' => $districtLabels,
-        'values' => $districtCases,
-        'label' => 'Applications',
-        'horizontal' => true,
-        'color' => '#166534',
-    ];
-    $chartAgeingData = [
-        'labels' => $ageLabels,
-        'values' => $ageAmounts,
-        'label' => 'Outstanding',
-        'money' => true,
-        'color' => '#b45309',
-    ];
+    $breachCount = ($breaches['assessment']->count() ?? 0) + ($breaches['approval']->count() ?? 0);
 @endphp
 
 <div class="page-head">
     <h1>{{ now()->hour < 12 ? 'Good morning' : (now()->hour < 17 ? 'Good afternoon' : 'Good evening') }},
         {{ $first }}</h1>
     <p class="lede">
-        {{ auth()->user()->primaryRole()?->name }} &middot; where the scheme stands today
+        {{ auth()->user()->primaryRole()?->name }} &middot; essential figures only
+        @cannot('do', 'records.correct')
+            &middot; <span class="badge badge-info">View only</span>
+        @endcannot
     </p>
 </div>
 
 <div class="tiles">
     <div class="tile">
-        <div class="tile-label">Applications</div>
-        <div class="tile-value">{{ number_format($h['all']) }}</div>
-        <div class="tile-sub">{{ number_format($h['open']) }} open &middot; {{ $h['disposal_rate'] }}% disposed</div>
+        <div class="tile-label">Open cases</div>
+        <div class="tile-value">{{ number_format($h['open']) }}</div>
+        <div class="tile-sub">{{ number_format($h['all']) }} total &middot; {{ $h['disposal_rate'] }}% disposed</div>
     </div>
     <div class="tile">
         <div class="tile-label">Regularized</div>
         <div class="tile-value">{{ number_format($h['regularized']) }}</div>
-        <div class="tile-sub">{{ number_format((float) $h['area_sqft'] / 5445, 1) }} Kanal on record</div>
-    </div>
-    <div class="tile is-gold">
-        <div class="tile-label">Rent secured</div>
-        <div class="tile-value">{{ $short((float) $h['monthly_rent'] * 12) }}</div>
-        <div class="tile-sub">a year</div>
+        <div class="tile-sub">{{ $short((float) $h['monthly_rent'] * 12) }} / year secured</div>
     </div>
     <div class="tile {{ $h['recovery_rate'] < 50 ? 'is-warn' : '' }}">
-        <div class="tile-label">Arrears recovered</div>
+        <div class="tile-label">Arrears recovery</div>
         <div class="tile-value">{{ $h['recovery_rate'] }}%</div>
         <div class="tile-sub">{{ $short($h['outstanding']) }} outstanding</div>
     </div>
-</div>
-
-<div class="grid-2 items-start gap-[1.15rem]">
-    <div class="card">
-        <div class="card-head">
-            <h3>Intake vs regularisation</h3>
-            <span class="badge badge-neutral">12 months</span>
-        </div>
-        <div class="card-body">
-            <div class="chart-frame is-lg">
-                <canvas id="chartIntake" data-etpb-chart="line-dual" data-etpb-source="chart-intake-data" aria-label="Intake versus regularisation trend"></canvas>
-            </div>
-            <script type="application/json" id="chart-intake-data">@json($chartIntakeData)</script>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-head">
-            <h3>Caseload by stage</h3>
-        </div>
-        <div class="card-body">
-            <div class="chart-frame is-lg">
-                <canvas id="chartStages" data-etpb-chart="doughnut" data-etpb-source="chart-stages-data" aria-label="Caseload by workflow stage"></canvas>
-            </div>
-            <script type="application/json" id="chart-stages-data">@json($chartStagesData)</script>
-        </div>
+    <div class="tile {{ $breachCount > 0 ? 'is-danger' : 'is-gold' }}">
+        <div class="tile-label">SLA breaches</div>
+        <div class="tile-value">{{ number_format($breachCount) }}</div>
+        <div class="tile-sub">assessment + approval deadlines</div>
     </div>
 </div>
 
@@ -159,101 +100,78 @@
         <div class="card-body">
             <dl class="kv">
                 <dt>Awaiting deposit</dt>
-                <dd><span class="badge badge-{{ $h['pending_pay'] > 0 ? 'warn' : 'good' }}">{{ number_format($h['pending_pay']) }}</span>
-                    <span class="faint text-[.8rem]">not processed until paid</span></dd>
+                <dd><span class="badge badge-{{ $h['pending_pay'] > 0 ? 'warn' : 'good' }}">{{ number_format($h['pending_pay']) }}</span></dd>
                 <dt>Sub judice</dt>
                 <dd><span class="badge badge-{{ $h['sub_judice'] > 0 ? 'warn' : 'good' }}">{{ number_format($h['sub_judice']) }}</span></dd>
                 <dt>Objections open</dt>
                 <dd><span class="badge badge-{{ $objections['open'] > 0 ? 'warn' : 'good' }}">{{ number_format($objections['open']) }}</span></dd>
-                <dt>Fee collected</dt>
-                <dd>{{ $short($h['fee_total']) }}
-                    <span class="faint text-[.8rem]">({{ number_format($h['fee_count']) }} instruments)</span></dd>
+                <dt>Litigation stays</dt>
+                <dd><span class="badge badge-{{ ($litigation['stays'] ?? 0) > 0 ? 'danger' : 'good' }}">{{ number_format($litigation['stays'] ?? 0) }}</span></dd>
             </dl>
             <hr class="divider">
             <div class="btn-row">
-                <a href="{{ route('reports.executive') }}" class="btn btn-outline btn-sm">Consolidated report</a>
+                <a href="{{ route('reports.executive') }}" class="btn btn-outline btn-sm">Full consolidated report</a>
                 <a href="{{ route('reports.registers') }}" class="btn btn-ghost btn-sm">Registers</a>
             </div>
         </div>
     </div>
 </div>
 
-<div class="grid-2 items-start gap-[1.15rem]">
-    <div class="card">
-        <div class="card-head"><h3>District caseload</h3></div>
-        <div class="card-body">
-            <div class="chart-frame">
-                <canvas id="chartDistricts" data-etpb-chart="bar" data-etpb-source="chart-districts-data" aria-label="Applications by district"></canvas>
-            </div>
-            <script type="application/json" id="chart-districts-data">@json($chartDistrictsData)</script>
-        </div>
-        <div class="card-foot">
-            <a href="{{ route('reports.executive') }}" class="btn btn-ghost btn-sm">Full district table in consolidated report</a>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-head"><h3>Arrears ageing</h3></div>
-        <div class="card-body">
-            <div class="chart-frame">
-                <canvas id="chartAgeing" data-etpb-chart="bar" data-etpb-source="chart-ageing-data" aria-label="Outstanding arrears by age"></canvas>
-            </div>
-            <script type="application/json" id="chart-ageing-data">@json($chartAgeingData)</script>
-        </div>
-    </div>
-</div>
-
-<div class="grid-2 items-start gap-[1.15rem]">
-    <div class="card">
-        <div class="card-head"><h3>Busiest districts</h3></div>
-        <div class="table-wrap border-0 rounded-none">
-            <table class="data">
-                <thead>
-                <tr><th>District</th><th class="num">Cases</th><th class="num">Regularized</th>
-                    <th class="num">Outstanding</th><th class="num">Recovery</th></tr>
-                </thead>
-                <tbody>
-                @forelse ($byDistrict->take(8) as $d)
-                    @php $rec = (float) $d->assessed > 0 ? round((float) $d->recovered / (float) $d->assessed * 100) : 0; @endphp
-                    <tr>
-                        <td>{{ $d->district?->name ?? 'Not recorded' }}</td>
-                        <td class="num">{{ number_format($d->total) }}</td>
-                        <td class="num">{{ number_format($d->regularized) }}</td>
-                        <td class="num">{{ number_format((float) $d->outstanding, 0) }}</td>
-                        <td class="num">
-                            <span class="badge badge-{{ $rec >= 60 ? 'good' : ($rec >= 25 ? 'warn' : 'neutral') }}">{{ $rec }}%</span>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="5" class="row-muted">No applications yet.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-head"><h3>Litigation &amp; stays</h3></div>
-        <div class="card-body">
-            <dl class="kv">
-                <dt>On register</dt><dd>{{ number_format($litigation['total']) }}</dd>
-                <dt>Pending</dt><dd><span class="badge badge-{{ $litigation['pending'] > 0 ? 'warn' : 'good' }}">{{ number_format($litigation['pending']) }}</span></dd>
-                <dt>Restraining orders</dt><dd><span class="badge badge-{{ $litigation['stays'] > 0 ? 'danger' : 'good' }}">{{ number_format($litigation['stays']) }}</span></dd>
-            </dl>
-            @if (($breaches['assessment']->count() + $breaches['approval']->count()) > 0)
-                <hr class="divider">
-                <p class="mb-2 text-[.85rem]">
-                    <strong class="text-danger-600">{{ $breaches['assessment']->count() + $breaches['approval']->count() }}</strong>
-                    statutory deadline{{ ($breaches['assessment']->count() + $breaches['approval']->count()) === 1 ? '' : 's' }} breached —
-                    named in the consolidated report.
-                </p>
-            @endif
-            <div class="btn-row">
-                <a href="{{ route('reports.glimpse') }}" class="btn btn-primary btn-sm">At a glance (PDF / Word / Excel)</a>
-                <a href="{{ route('reports.registers', ['register' => 'litigation']) }}" class="btn btn-outline btn-sm">Litigation register</a>
-            </div>
-        </div>
+<div class="card">
+    <div class="card-head"><h3>Top districts</h3></div>
+    <div class="table-wrap border-0 rounded-none">
+        <table class="data">
+            <thead>
+            <tr><th>District</th><th class="num">Cases</th><th class="num">Regularized</th>
+                <th class="num">Outstanding</th><th class="num">Recovery</th></tr>
+            </thead>
+            <tbody>
+            @forelse ($byDistrict->take(6) as $d)
+                @php $rec = (float) $d->assessed > 0 ? round((float) $d->recovered / (float) $d->assessed * 100) : 0; @endphp
+                <tr>
+                    <td>{{ $d->district?->name ?? 'Not recorded' }}</td>
+                    <td class="num">{{ number_format($d->total) }}</td>
+                    <td class="num">{{ number_format($d->regularized) }}</td>
+                    <td class="num">{{ number_format((float) $d->outstanding, 0) }}</td>
+                    <td class="num">
+                        <span class="badge badge-{{ $rec >= 60 ? 'good' : ($rec >= 25 ? 'warn' : 'neutral') }}">{{ $rec }}%</span>
+                    </td>
+                </tr>
+            @empty
+                <tr><td colspan="5" class="row-muted">No applications yet.</td></tr>
+            @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
+
+@if ($recent->isNotEmpty())
+<div class="card">
+    <div class="card-head">
+        <h3>Recent activity</h3>
+        <div class="card-actions">
+            <a href="{{ route('applications.index') }}" class="btn btn-outline btn-sm">All applications</a>
+        </div>
+    </div>
+    <div class="table-wrap border-0 rounded-none">
+        <table class="data">
+            <thead>
+            <tr><th>Application</th><th>Applicant</th><th>District</th><th>Status</th><th>Updated</th></tr>
+            </thead>
+            <tbody>
+            @foreach ($recent as $app)
+                <tr>
+                    <td class="nowrap"><a href="{{ route('applications.show', $app) }}">{{ $app->application_no }}</a></td>
+                    <td>{{ $app->applicant?->full_name }}</td>
+                    <td>{{ $app->district?->name }}</td>
+                    <td><span class="badge badge-{{ $app->statusTone() }}">{{ $app->statusLabel() }}</span></td>
+                    <td class="nowrap faint">{{ $app->updated_at?->diffForHumans() }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 @endsection

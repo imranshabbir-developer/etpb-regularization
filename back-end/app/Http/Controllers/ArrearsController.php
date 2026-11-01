@@ -191,7 +191,7 @@ class ArrearsController extends Controller
         $this->authoriseDistrict($request, $application);
 
         $data = $request->validate([
-            'ground'                => ['required', Rule::in(['INDIGENT', 'ORPHAN', 'WIDOW', 'INCAPABLE', 'OTHER'])],
+            'ground'                => ['required', Rule::in(['INCAPABLE', 'OTHER'])],
             'remission_type'        => ['required', Rule::in(['NOMINAL_RENT', 'REMIT_RENT', 'REMIT_ARREARS', 'PARTIAL'])],
             'nominal_monthly_rent'  => ['nullable', 'numeric', 'min:0', 'required_if:remission_type,NOMINAL_RENT'],
             'remitted_amount'       => ['nullable', 'numeric', 'min:0'],

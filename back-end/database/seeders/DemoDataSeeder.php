@@ -116,15 +116,24 @@ class DemoDataSeeder extends Seeder
                     'cnic'           => $cnic,
                     'contact'        => '030' . (1 + $i % 5) . '-' . str_pad((string) (1000000 + $i * 7717), 7, '0', STR_PAD_LEFT),
                     'postal_address' => $propertyNo . ', ' . $districtName,
-                    'is_widow'       => str_contains($parentage, 'Late'),
-                    'is_indigent'    => $i % 11 === 0,
                 ]);
 
                 $property = Property::create([
                     'property_no'   => $propertyNo,
                     'sub_unit_no'   => $i % 4 === 0 ? (string) (1 + $i % 3) : null,
-                    'property_type' => $i % 5 === 0 ? 'SHOP' : 'HOUSE',
-                    'usage_type'    => $i % 5 === 0 ? 'COMMERCIAL' : 'RESIDENTIAL',
+                    'property_type' => match ($i % 5) {
+                        0 => 'COMMERCIAL',
+                        1 => 'OPEN_PLOT',
+                        2 => 'RESIDENTIAL_CUM_COMMERCIAL',
+                        3 => 'OTHER',
+                        default => 'RESIDENTIAL',
+                    },
+                    'usage_type'    => match ($i % 5) {
+                        0 => 'COMMERCIAL',
+                        1 => 'OPEN_PLOT',
+                        2 => 'RESIDENTIAL_CUM_COMMERCIAL',
+                        default => 'RESIDENTIAL',
+                    },
                     'address'       => $propertyNo . ', ' . $districtName,
                     'province_id'   => $district->province_id,
                     'district_id'   => $district->id,

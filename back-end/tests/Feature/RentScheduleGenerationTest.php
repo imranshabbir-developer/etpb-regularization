@@ -222,7 +222,7 @@ class RentScheduleGenerationTest extends TestCase
         ]);
 
         $propertyId = DB::table('properties')->insertGetId([
-            'property_no' => 'KN-14-B', 'property_type' => 'HOUSE', 'usage_type' => 'RESIDENTIAL',
+            'property_no' => 'KN-14-B', 'property_type' => 'RESIDENTIAL', 'usage_type' => 'RESIDENTIAL',
             'address' => '14-B Krishan Nagar, Lahore',
             'province_id' => $provinceId, 'district_id' => $districtId,
             'created_at' => now(), 'updated_at' => now(),

@@ -99,6 +99,10 @@
 
 @include('partials.help-widget')
 
+@if (request()->routeIs('dashboard'))
+    @include('partials.promo-modal')
+@endif
+
 <script>
 (function () {
     // ---- mobile navigation ------------------------------------------------

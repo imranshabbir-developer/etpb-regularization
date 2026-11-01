@@ -106,9 +106,6 @@ class ApplyController extends Controller
             'email'               => ['nullable', 'email', 'max:150'],
             'postal_address'      => ['required', 'string', 'max:500'],
             'address_district_id' => ['nullable', 'integer', 'exists:districts,id'],
-            'is_indigent'         => ['nullable', 'boolean'],
-            'is_widow'            => ['nullable', 'boolean'],
-            'is_orphan'           => ['nullable', 'boolean'],
         ], [
             'cnic.digits' => 'Your CNIC must be exactly 13 digits, without dashes.',
         ]);
@@ -138,39 +135,70 @@ class ApplyController extends Controller
 
     public function storeProperty(Request $request): RedirectResponse
     {
+        $typeOpts = ['OPEN_PLOT', 'RESIDENTIAL', 'COMMERCIAL', 'RESIDENTIAL_CUM_COMMERCIAL', 'OTHER'];
+
         $data = $request->validate([
-            'property_no'       => ['required', 'string', 'max:60'],
-            'sub_unit_no'       => ['nullable', 'string', 'max:60'],
-            'property_type'     => ['required', Rule::in(['HOUSE', 'SHOP', 'BUILDING', 'PLOT', 'AGRI_LAND', 'OTHER'])],
-            'usage_type'        => ['required', Rule::in(['RESIDENTIAL', 'COMMERCIAL', 'RESIDENTIAL_CUM_COMMERCIAL', 'OTHER'])],
-            'property_address'  => ['required', 'string', 'max:500'],
-            'district_id'       => ['required', 'integer', 'exists:districts,id'],
-            'tehsil_id'         => ['nullable', 'integer', 'exists:tehsils,id'],
-            'mouza_name'        => ['nullable', 'string', 'max:150'],
-            'city'              => ['nullable', 'string', 'max:120'],
-            'khewat_no'         => ['nullable', 'string', 'max:40'],
-            'khatooni_no'       => ['nullable', 'string', 'max:40'],
-            'khasra_no'         => ['nullable', 'string', 'max:40'],
-            'latitude'          => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude'         => ['nullable', 'numeric', 'between:-180,180'],
-            'unit_profile_id'   => ['nullable', 'integer', 'exists:unit_conversion_profiles,id'],
-            'area_mode'         => ['required', Rule::in(['SINGLE', 'COMPOUND'])],
-            'area_unit'         => ['required_if:area_mode,SINGLE', 'nullable', 'string', 'max:20'],
-            'area_value'        => ['required_if:area_mode,SINGLE', 'nullable', 'numeric', 'min:0'],
-            'acres'             => ['nullable', 'numeric', 'min:0'],
-            'kanals'            => ['nullable', 'numeric', 'min:0'],
-            'marlas'            => ['nullable', 'numeric', 'min:0'],
-            'sarsais'           => ['nullable', 'numeric', 'min:0'],
-            'covered_area_sqft' => ['nullable', 'numeric', 'min:0'],
+            'property_no'              => ['nullable', 'string', 'max:60'],
+            'sub_unit_no'              => ['nullable', 'string', 'max:60'],
+            'property_type'            => ['nullable', Rule::in($typeOpts)],
+            'usage_type'               => ['nullable', Rule::in($typeOpts)],
+            'property_address'         => ['required', 'string', 'max:500'],
+            'district_id'              => ['required', 'integer', 'exists:districts,id'],
+            'tehsil_id'                => ['nullable', 'integer', 'exists:tehsils,id'],
+            'mouza_name'               => ['nullable', 'string', 'max:150'],
+            'city'                     => ['nullable', 'string', 'max:120'],
+            'khewat_no'                => ['nullable', 'string', 'max:40'],
+            'khatooni_no'              => ['nullable', 'string', 'max:40'],
+            'khasra_no'                => ['nullable', 'string', 'max:40'],
+            'survey_no'                => ['nullable', 'string', 'max:60'],
+            'latitude'                 => ['required', 'numeric', 'between:-90,90'],
+            'longitude'                => ['required', 'numeric', 'between:-180,180'],
+            'unit_profile_id'          => ['nullable', 'integer', 'exists:unit_conversion_profiles,id'],
+            'area_mode'                => ['nullable', Rule::in(['SINGLE', 'COMPOUND'])],
+            'area_unit'                => ['nullable', 'string', 'max:20'],
+            'area_value'               => ['nullable', 'numeric', 'min:0'],
+            'acres'                    => ['nullable', 'numeric', 'min:0'],
+            'kanals'                   => ['nullable', 'numeric', 'min:0'],
+            'marlas'                   => ['nullable', 'numeric', 'min:0'],
+            'sarsais'                  => ['nullable', 'numeric', 'min:0'],
+            'total_area_sqft'          => ['nullable', 'numeric', 'min:0'],
+            'covered_area_sqft'        => ['nullable', 'numeric', 'min:0'],
+            'open_area_sqft'           => ['nullable', 'numeric', 'min:0'],
+            'number_of_floors'         => ['nullable', 'integer', 'min:0', 'max:100'],
+            'floor_wise_covered_area'  => ['nullable', 'array'],
+            'floor_wise_covered_area.*'=> ['nullable', 'numeric', 'min:0'],
+        ], [
+            'latitude.required'  => 'Geo coordinates are mandatory. Use your phone location or type latitude and longitude.',
+            'longitude.required' => 'Geo coordinates are mandatory. Use your phone location or type latitude and longitude.',
         ]);
 
-        // Fail here rather than at the end, while the applicant is still on the
-        // screen that owns the mistake.
-        try {
-            $this->area->toSqft($this->areaComponents($data),
-                $data['unit_profile_id'] ?? $this->area->defaultProfileId());
-        } catch (Throwable $e) {
-            throw ValidationException::withMessages(['area_value' => $e->getMessage()]);
+        $data['property_type'] = $data['property_type'] ?? 'RESIDENTIAL';
+        $data['usage_type'] = $data['usage_type'] ?? 'RESIDENTIAL';
+        $data['area_mode'] = $data['area_mode'] ?? 'SINGLE';
+        $data['unit_profile_id'] = $data['unit_profile_id'] ?? $this->area->defaultProfileId();
+
+        // Derive open area when total and covered are known.
+        if (! empty($data['total_area_sqft']) && isset($data['covered_area_sqft']) && $data['covered_area_sqft'] !== null
+            && ($data['open_area_sqft'] === null || $data['open_area_sqft'] === '')) {
+            $data['open_area_sqft'] = max(0, (float) $data['total_area_sqft'] - (float) $data['covered_area_sqft']);
+        }
+
+        // Sum floor-wise covered into covered_area_sqft when covered was left blank.
+        if (! empty($data['floor_wise_covered_area']) && empty($data['covered_area_sqft'])) {
+            $data['covered_area_sqft'] = array_sum(array_map('floatval', $data['floor_wise_covered_area']));
+        }
+
+        // Area may be left for staff to complete later. If components are given,
+        // convert now so the applicant sees errors on this step. Direct Total Area
+        // (sqft) is also accepted without conversion.
+        $components = $this->areaComponents($data);
+        $hasComponents = collect($components)->contains(fn ($v) => $v !== null && $v !== '' && (float) $v > 0);
+        if ($hasComponents) {
+            try {
+                $this->area->toSqft($components, $data['unit_profile_id']);
+            } catch (Throwable $e) {
+                throw ValidationException::withMessages(['area_value' => $e->getMessage()]);
+            }
         }
 
         $this->mergeDraft($request, ['property' => $data]);
@@ -202,11 +230,23 @@ class ApplyController extends Controller
             'possession_nature'        => ['required', Rule::in(['SELF', 'INHERITED', 'PURCHASED', 'ALLOTTED', 'OTHER'])],
             'possession_description'   => ['nullable', 'string', 'max:2000'],
             'date_of_judicial_verdict' => ['nullable', 'date', 'before_or_equal:today'],
+            'court_name'               => ['nullable', 'string', 'max:200'],
             'judicial_reference'       => ['nullable', 'string', 'max:150'],
+            'judgment_gist'            => ['nullable', 'string', 'max:700'],
             'declaration'              => ['accepted'],
         ], [
             'declaration.accepted' => 'You must confirm that the information you have given is true.',
+            'judgment_gist.max'    => 'Gist of Decision / Judgement must stay within about 100 words.',
         ]);
+
+        if (! empty($data['judgment_gist'])) {
+            $words = preg_split('/\s+/u', trim($data['judgment_gist']), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            if (count($words) > 100) {
+                throw ValidationException::withMessages([
+                    'judgment_gist' => 'Gist of Decision / Judgement may contain at most 100 words.',
+                ]);
+            }
+        }
 
         if (! $this->eligibility->isWithinCutoff($data['date_of_possession'])) {
             throw ValidationException::withMessages([
@@ -329,11 +369,16 @@ class ApplyController extends Controller
     {
         $this->authoriseOwn($request, $application);
 
+        $application->load(['feePayments', 'documents', 'applicant']);
+
         return view('apply.fee', $this->chrome(6, [
-            'application' => $application->load(['feePayments', 'documents', 'applicant']),
+            'application' => $application,
             'feeAmount'   => $this->settings->decimal('processing_fee', '5000.00'),
             'districts'   => District::orderBy('name')->get(['id', 'name']),
             'readiness'   => $this->workflow->check($application->id, WorkflowService::SUBMITTED),
+            'missingDocs' => $this->workflow->missingMandatoryDocumentNames($application->id),
+            'hasBiometric'=> filled($application->applicant?->thumb_impression_path),
+            'paymentApiNote' => 'Online payment of Rs. 5,000 via the ETPB payment API will be integrated when credentials are provided. Until then, record the instrument below and attach a payment receipt under Evidence if you have one.',
         ]));
     }
 
@@ -342,6 +387,13 @@ class ApplyController extends Controller
         $this->authoriseOwn($request, $application);
 
         $user = $request->user();
+        $application->loadMissing('applicant');
+
+        // Biometric / thumb impression is mandatory before final submit.
+        if (empty($application->applicant?->thumb_impression_path)) {
+            return back()->with('error',
+                'Biometric verification is mandatory. Capture your thumb impression before submitting.');
+        }
 
         try {
             $this->workflow->transition(
@@ -354,6 +406,26 @@ class ApplyController extends Controller
         }
 
         return redirect()->route('apply.done', $application);
+    }
+
+    /** Capture mandatory biometric / thumb impression before submit. */
+    public function storeBiometric(Request $request, Application $application): RedirectResponse
+    {
+        $this->authoriseOwn($request, $application);
+
+        $data = $request->validate([
+            'thumb' => ['required', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
+        ], [
+            'thumb.required' => 'Capture or upload your thumb impression to continue.',
+        ]);
+
+        $path = $data['thumb']->store("biometrics/{$application->id}", 'local');
+
+        $application->applicant()->update([
+            'thumb_impression_path' => $path,
+        ]);
+
+        return back()->with('status', 'Biometric / thumb impression saved. You may now submit.');
     }
 
     public function done(Request $request, Application $application): View
@@ -375,8 +447,36 @@ class ApplyController extends Controller
         $pr = $draft['property'];
 
         $district = District::findOrFail($pr['district_id']);
-        $profileId = $pr['unit_profile_id'] ?? $this->area->profileForDistrict($district->id);
-        $converted = $this->area->toSqft($this->areaComponents($pr), $profileId);
+        $profileId = $pr['unit_profile_id'] ?? $this->area->profileForDistrict($district->id)
+            ?: $this->area->defaultProfileId();
+
+        $components = $this->areaComponents($pr);
+        $hasComponents = collect($components)->contains(fn ($v) => $v !== null && $v !== '' && (float) $v > 0);
+        if ($hasComponents) {
+            $converted = $this->area->toSqft($components, $profileId);
+        } elseif (! empty($pr['total_area_sqft'])) {
+            $converted = [
+                'sqft'  => (string) $pr['total_area_sqft'],
+                'trace' => [
+                    'profile_id'   => $profileId,
+                    'profile_code' => 'DIRECT_SQFT',
+                    'note'         => 'Entered directly as Total Area (sqft).',
+                    'total_sqft'   => (string) $pr['total_area_sqft'],
+                    'computed_at'  => now()->toIso8601String(),
+                ],
+            ];
+        } else {
+            // Staff will complete area later (illiterate-friendly intake).
+            $converted = [
+                'sqft'  => '0',
+                'trace' => [
+                    'profile_id'  => $profileId,
+                    'note'        => 'Area deferred — to be completed by office staff.',
+                    'computed_at' => now()->toIso8601String(),
+                ],
+            ];
+        }
+
         $assessment = $this->eligibility->assess(
             $possession['date_of_possession'],
             $possession['date_of_judicial_verdict'] ?? null,
@@ -393,57 +493,68 @@ class ApplyController extends Controller
                 'email'               => $ap['email'] ?? $user->email,
                 'postal_address'      => $ap['postal_address'],
                 'address_district_id' => $ap['address_district_id'] ?? null,
-                'is_indigent'         => $ap['is_indigent'] ?? false,
-                'is_widow'            => $ap['is_widow'] ?? false,
-                'is_orphan'           => $ap['is_orphan'] ?? false,
                 'created_by'          => $user->id,
             ]);
+
+            $covered = isset($pr['covered_area_sqft']) && $pr['covered_area_sqft'] !== ''
+                ? (float) $pr['covered_area_sqft'] : null;
+            $totalSqft = (float) $converted['sqft'];
+            if (! empty($pr['total_area_sqft'])) {
+                $totalSqft = (float) $pr['total_area_sqft'];
+            }
+            $open = isset($pr['open_area_sqft']) && $pr['open_area_sqft'] !== ''
+                ? (float) $pr['open_area_sqft']
+                : ($covered !== null ? max(0, $totalSqft - $covered) : null);
 
             // A mouza typed by the applicant is kept as free text against the
             // property rather than silently creating a revenue master record.
             $property = Property::create([
-                'property_no'   => $pr['property_no'],
-                'sub_unit_no'   => $pr['sub_unit_no'] ?? null,
-                'property_type' => $pr['property_type'],
-                'usage_type'    => $pr['usage_type'],
-                'address'       => trim($pr['property_address']
-                                   . (! empty($pr['mouza_name']) ? ' (Mouza ' . $pr['mouza_name'] . ')' : '')),
-                'province_id'   => $district->province_id,
-                'district_id'   => $district->id,
-                'tehsil_id'     => $pr['tehsil_id'] ?? null,
-                'city'          => $pr['city'] ?? null,
-                'khewat_no'     => $pr['khewat_no'] ?? null,
-                'khatooni_no'   => $pr['khatooni_no'] ?? null,
-                'khasra_no'     => $pr['khasra_no'] ?? null,
-                'created_by'    => $user->id,
+                'property_no'              => $pr['property_no'] ?: null,
+                'sub_unit_no'              => $pr['sub_unit_no'] ?? null,
+                'property_type'            => $pr['property_type'] ?? 'RESIDENTIAL',
+                'usage_type'               => $pr['usage_type'] ?? 'RESIDENTIAL',
+                'address'                  => trim($pr['property_address']
+                                           . (! empty($pr['mouza_name']) ? ' (Mouza ' . $pr['mouza_name'] . ')' : '')),
+                'province_id'              => $district->province_id,
+                'district_id'              => $district->id,
+                'tehsil_id'                => $pr['tehsil_id'] ?? null,
+                'city'                     => $pr['city'] ?? null,
+                'khewat_no'                => $pr['khewat_no'] ?? null,
+                'khatooni_no'              => $pr['khatooni_no'] ?? null,
+                'khasra_no'                => $pr['khasra_no'] ?? null,
+                'survey_no'                => $pr['survey_no'] ?? null,
+                'number_of_floors'         => $pr['number_of_floors'] ?? null,
+                'floor_wise_covered_area'  => ! empty($pr['floor_wise_covered_area'])
+                    ? array_values(array_filter($pr['floor_wise_covered_area'], fn ($v) => $v !== null && $v !== ''))
+                    : null,
+                'created_by'               => $user->id,
             ]);
 
             $property->areas()->create([
                 'unit_profile_id'    => $profileId,
-                'entry_mode'         => $pr['area_mode'],
-                'entered_unit_code'  => $pr['area_mode'] === 'SINGLE' ? ($pr['area_unit'] ?? null) : null,
-                'entered_value'      => $pr['area_mode'] === 'SINGLE' ? ($pr['area_value'] ?? null) : null,
+                'entry_mode'         => $pr['area_mode'] ?? 'SINGLE',
+                'entered_unit_code'  => ($pr['area_mode'] ?? 'SINGLE') === 'SINGLE' ? ($pr['area_unit'] ?? null) : null,
+                'entered_value'      => ($pr['area_mode'] ?? 'SINGLE') === 'SINGLE' ? ($pr['area_value'] ?? null) : null,
                 'acres'              => $pr['acres'] ?? null,
                 'kanals'             => $pr['kanals'] ?? null,
                 'marlas'             => $pr['marlas'] ?? null,
                 'sarsais'            => $pr['sarsais'] ?? null,
-                'area_sqft'          => $converted['sqft'],
-                'covered_area_sqft'  => $pr['covered_area_sqft'] ?? null,
+                'area_sqft'          => $totalSqft,
+                'covered_area_sqft'  => $covered,
+                'open_area_sqft'     => $open,
                 'conversion_trace'   => $converted['trace'],
                 'is_current'         => true,
                 'created_by'         => $user->id,
             ]);
 
-            if (! empty($pr['latitude']) && ! empty($pr['longitude'])) {
-                $property->geoTags()->create([
-                    'latitude'    => $pr['latitude'],
-                    'longitude'   => $pr['longitude'],
-                    'source'      => 'MANUAL',
-                    'captured_at' => now(),
-                    'captured_by' => $user->id,
-                    'is_primary'  => true,
-                ]);
-            }
+            $property->geoTags()->create([
+                'latitude'    => $pr['latitude'],
+                'longitude'   => $pr['longitude'],
+                'source'      => 'MANUAL',
+                'captured_at' => now(),
+                'captured_by' => $user->id,
+                'is_primary'  => true,
+            ]);
 
             $application = Application::create([
                 'application_no'  => Application::nextApplicationNo($district->id),
@@ -462,7 +573,9 @@ class ApplyController extends Controller
                 'possession_nature'        => $possession['possession_nature'],
                 'possession_description'   => $possession['possession_description'] ?? null,
                 'date_of_judicial_verdict' => $possession['date_of_judicial_verdict'] ?? null,
+                'court_name'               => $possession['court_name'] ?? null,
                 'judicial_reference'       => $possession['judicial_reference'] ?? null,
+                'judgment_gist'            => $possession['judgment_gist'] ?? null,
                 'arrears_from'             => $assessment['arrears_from'],
                 'arrears_from_basis'       => $assessment['arrears_from_basis'],
                 'is_eligible'              => $assessment['is_eligible'],

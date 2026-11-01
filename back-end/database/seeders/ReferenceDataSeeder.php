@@ -28,51 +28,103 @@ class ReferenceDataSeeder extends Seeder
      */
     private function unitProfiles(): void
     {
+        // URBAN (225 sqft/Marla) is the system default when the applicant does
+        // not choose a standard. Ghunta (1089 sqft) is offered as its own profile
+        // and also as a unit inside REVENUE / URBAN for mixed entry.
         $profiles = [
             [
                 'code' => 'REVENUE',
                 'name' => 'Revenue / Legal Standard (1 Marla = 272.25 sqft)',
                 'description' => 'The Kanal-Marla system used in Pakistani revenue records. '
                     . '1 Acre = 8 Kanal = 160 Marla = 43,560 sqft.',
-                'is_default' => true,
+                'is_default' => false,
                 'units' => [
                     ['SQFT',    'Square Foot',  'مربع فٹ', '1.0000',       1, false],
                     ['SQYD',    'Square Yard',  'گز',      '9.0000',       2, false],
                     ['SARSAI',  'Sarsai',       'سرسائی',  '30.2500',      3, true],
                     ['MARLA',   'Marla',        'مرلہ',    '272.2500',     4, true],
-                    ['KANAL',   'Kanal',        'کنال',    '5445.0000',    5, true],
-                    ['ACRE',    'Acre (Killa)', 'ایکڑ',    '43560.0000',   6, true],
-                    ['MURABBA', 'Murabba',      'مربع',    '1089000.0000', 7, false],
+                    ['GHUNTA',  'Ghunta',       'گھنٹہ',   '1089.0000',    5, false],
+                    ['KANAL',   'Kanal',        'کنال',    '5445.0000',    6, true],
+                    ['ACRE',    'Acre (Killa)', 'ایکڑ',    '43560.0000',   7, true],
+                    ['MURABBA', 'Murabba',      'مربع',    '1089000.0000', 8, false],
                 ],
             ],
             [
                 'code' => 'URBAN',
                 'name' => 'Urban / Housing Society Standard (1 Marla = 225 sqft)',
                 'description' => 'The 25-square-yard Marla used by most urban housing schemes. '
-                    . '1 Kanal = 20 Marla = 4,500 sqft. The Acre is unchanged at 43,560 sqft.',
+                    . '1 Kanal = 20 Marla = 4,500 sqft. The Acre is unchanged at 43,560 sqft. '
+                    . 'This is the system default when no standard is supplied.',
+                'is_default' => true,
+                'units' => [
+                    ['SQFT',   'Square Foot', 'مربع فٹ', '1.0000',     1, false],
+                    ['SQYD',   'Square Yard', 'گز',      '9.0000',     2, false],
+                    ['MARLA',  'Marla',       'مرلہ',    '225.0000',   3, true],
+                    ['GHUNTA', 'Ghunta',      'گھنٹہ',   '1089.0000',  4, false],
+                    ['KANAL',  'Kanal',       'کنال',    '4500.0000',  5, true],
+                    ['ACRE',   'Acre',        'ایکڑ',    '43560.0000', 6, true],
+                ],
+            ],
+            [
+                'code' => 'GHUNTA',
+                'name' => '1 Ghunta (1089 sqft)',
+                'description' => 'Ghunta-based measurement. 1 Ghunta = 1089 sqft. '
+                    . 'Marla is shown at the urban 225 sqft factor for mixed entry.',
                 'is_default' => false,
                 'units' => [
-                    ['SQFT',  'Square Foot', 'مربع فٹ', '1.0000',     1, false],
-                    ['SQYD',  'Square Yard', 'گز',      '9.0000',     2, false],
-                    ['MARLA', 'Marla',       'مرلہ',    '225.0000',   3, true],
-                    ['KANAL', 'Kanal',       'کنال',    '4500.0000',  4, true],
-                    ['ACRE',  'Acre',        'ایکڑ',    '43560.0000', 5, true],
+                    ['SQFT',   'Square Foot', 'مربع فٹ', '1.0000',     1, false],
+                    ['SQYD',   'Square Yard', 'گز',      '9.0000',     2, false],
+                    ['MARLA',  'Marla',       'مرلہ',    '225.0000',   3, true],
+                    ['GHUNTA', 'Ghunta',      'گھنٹہ',   '1089.0000',  4, true],
+                    ['KANAL',  'Kanal',       'کنال',    '4500.0000',  5, true],
+                    ['ACRE',   'Acre',        'ایکڑ',    '43560.0000', 6, true],
                 ],
             ],
         ];
 
         foreach ($profiles as $p) {
-            $id = DB::table('unit_conversion_profiles')->insertGetId([
-                'code'        => $p['code'],
-                'name'        => $p['name'],
-                'description' => $p['description'],
-                'is_default'  => $p['is_default'],
-                'is_active'   => true,
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ]);
+            $id = DB::table('unit_conversion_profiles')->where('code', $p['code'])->value('id');
+            if ($id) {
+                DB::table('unit_conversion_profiles')->where('id', $id)->update([
+                    'name'        => $p['name'],
+                    'description' => $p['description'],
+                    'is_default'  => $p['is_default'],
+                    'is_active'   => true,
+                    'updated_at'  => now(),
+                ]);
+            } else {
+                $id = DB::table('unit_conversion_profiles')->insertGetId([
+                    'code'        => $p['code'],
+                    'name'        => $p['name'],
+                    'description' => $p['description'],
+                    'is_default'  => $p['is_default'],
+                    'is_active'   => true,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+            }
 
             foreach ($p['units'] as [$code, $name, $nameUr, $sqft, $order, $compound]) {
+                $exists = DB::table('unit_conversion_factors')
+                    ->where('unit_profile_id', $id)
+                    ->where('unit_code', $code)
+                    ->exists();
+                if ($exists) {
+                    DB::table('unit_conversion_factors')
+                        ->where('unit_profile_id', $id)
+                        ->where('unit_code', $code)
+                        ->update([
+                            'unit_name'             => $name,
+                            'unit_name_ur'          => $nameUr,
+                            'sqft_per_unit'         => $sqft,
+                            'display_order'         => $order,
+                            'is_compound_component' => $compound,
+                            'is_active'             => true,
+                            'updated_at'            => now(),
+                        ]);
+                    continue;
+                }
+
                 DB::table('unit_conversion_factors')->insert([
                     'unit_profile_id'       => $id,
                     'unit_code'             => $code,
@@ -171,10 +223,11 @@ class ReferenceDataSeeder extends Seeder
              . 'year-by-year ledger; the 6-year statutory cycle still governs the law.',
              'Requirements specification', true],
 
-            ['default_unit_profile', 'REVENUE', 'STRING', 'measurement',
+            ['default_unit_profile', 'URBAN', 'STRING', 'measurement',
              'Default area conversion profile',
-             'REVENUE (1 Marla = 272.25 sqft) or URBAN (1 Marla = 225 sqft).',
-             'Pakistani revenue measurement practice', true],
+             'URBAN (1 Marla = 225 sqft) is the default when unspecified. '
+             . 'REVENUE (272.25) and GHUNTA (1089) remain available.',
+             'Board meeting Nov 2026', true],
 
             ['organisation_name', 'Evacuee Trust Property Board', 'STRING', 'general',
              'Organisation name', 'Printed on notices, orders and reports.', null, true],
@@ -202,29 +255,33 @@ class ReferenceDataSeeder extends Seeder
 
     private function documentTypes(): void
     {
+        // All evidence types are optional — staff / Administrator / District Officer
+        // can attach missing documents later from the case file.
         // [code, name, name_ur, category, certified, mandatory, waivable, proves_date, order]
         $types = [
-            ['JAMABANDI', 'Jamabandi (Record of Rights)', 'جمع بندی', 'REVENUE_RECORD', true, true, true, true, 1],
-            ['MUTATION', 'Mutation (Intiqal)', 'انتقال', 'REVENUE_RECORD', true, true, true, true, 2],
-            ['KHASRA_GIRDAWARI', 'Khasra Girdawari', 'خسرہ گرداوری', 'REVENUE_RECORD', true, true, true, true, 3],
-            ['GEO_TAG', 'GEO Tagging (Geo Coordinates)', 'جیو ٹیگنگ', 'SURVEY', false, true, false, false, 4],
+            ['JAMABANDI', 'Jamabandi (Record of Rights)', 'جمع بندی', 'REVENUE_RECORD', true, false, true, true, 1],
+            ['MUTATION', 'Mutation (Intiqal)', 'انتقال', 'REVENUE_RECORD', true, false, true, true, 2],
+            ['KHASRA_GIRDAWARI', 'Khasra Girdawari', 'خسرہ گرداوری', 'REVENUE_RECORD', true, false, true, true, 3],
+            ['GEO_TAG', 'GEO Tagging (Geo Coordinates)', 'جیو ٹیگنگ', 'SURVEY', false, false, true, false, 4],
             ['BUILDING_PLAN', 'Approved Building Plan', 'منظور شدہ نقشہ', 'PLAN', true, false, true, false, 5],
-            ['LOCATION_PLAN', 'Location Plan / Site Plan', 'محل وقوع کا نقشہ', 'PLAN', false, true, true, false, 6],
+            ['LOCATION_PLAN', 'Location Plan / Site Plan', 'محل وقوع کا نقشہ', 'PLAN', false, false, true, false, 6],
             ['SATELLITE_IMAGERY', 'Satellite Imagery', 'سیٹلائٹ تصویر', 'SURVEY', false, false, true, true, 7],
-            ['BILL_ELECTRICITY', 'Electricity Bill', 'بجلی کا بل', 'UTILITY', false, true, true, true, 8],
+            ['BILL_ELECTRICITY', 'Electricity Bill', 'بجلی کا بل', 'UTILITY', false, false, true, true, 8],
             ['BILL_GAS', 'SNGPL / SSGC Gas Bill', 'گیس کا بل', 'UTILITY', false, false, true, true, 9],
             ['BILL_WASA', 'WASA / Water Bill', 'واسا بل', 'UTILITY', false, false, true, true, 10],
             ['COURT_ORDER', 'Court Order / Judicial Declaration', 'عدالتی حکم', 'JUDICIAL', true, false, true, true, 11],
-            ['AFFIDAVIT_POSSESSION', 'Affidavit (date of possession and nominee)', 'حلف نامہ', 'AFFIDAVIT', true, true, false, true, 12],
-            ['CNIC_COPY', 'CNIC Copy', 'شناختی کارڈ کی نقل', 'IDENTITY', false, true, false, false, 13],
-            ['NOMINATION_FORM', 'Nomination Form (Scheme para 3)', 'نامزدگی فارم', 'STATUTORY', false, true, false, false, 14],
-            ['FEE_INSTRUMENT', 'Processing Fee Instrument (Rs. 5,000)', 'فیس انسٹرومنٹ', 'FINANCIAL', false, true, false, false, 15],
+            ['AFFIDAVIT_POSSESSION', 'Affidavit (date of possession and nominee)', 'حلف نامہ', 'AFFIDAVIT', true, false, true, true, 12],
+            ['CNIC_COPY', 'CNIC Copy', 'شناختی کارڈ کی نقل', 'IDENTITY', false, false, true, false, 13],
+            ['NOMINATION_FORM', 'Nomination Form (Scheme para 3)', 'نامزدگی فارم', 'STATUTORY', false, false, true, false, 14],
+            ['FEE_INSTRUMENT', 'Processing Fee Instrument (Rs. 5,000)', 'فیس انسٹرومنٹ', 'FINANCIAL', false, false, true, false, 15],
+            ['POSSESSION_CERTIFICATE', 'Possession certificate by Revenue Officer / Tehsildar / Mukhtiarkar', 'قبضہ سرٹیفکیٹ', 'REVENUE_RECORD', false, false, true, true, 16],
+            ['PAYMENT_RECEIPT', 'Payment Receipt (Rs. 5,000 / ETPB payment)', 'ادائیگی کی رسید', 'FINANCIAL', false, false, true, false, 17],
+            ['ASSESSMENT_SHEET', 'Rent Assessment Sheet', 'کرایہ تشخیص شیٹ', 'FINANCIAL', false, false, true, false, 18],
             ['OTHER', 'Any Other Supporting Document', 'دیگر دستاویز', 'OTHER', false, false, true, false, 99],
         ];
 
         foreach ($types as [$code, $name, $ur, $cat, $cert, $mand, $waiv, $proves, $order]) {
-            DB::table('document_types')->insert([
-                'code'                       => $code,
+            $payload = [
                 'name'                       => $name,
                 'name_ur'                    => $ur,
                 'category'                   => $cat,
@@ -234,8 +291,15 @@ class ReferenceDataSeeder extends Seeder
                 'proves_possession_date'     => $proves,
                 'display_order'              => $order,
                 'is_active'                  => true,
-                'created_at'                 => now(),
                 'updated_at'                 => now(),
+            ];
+            if (DB::table('document_types')->where('code', $code)->exists()) {
+                DB::table('document_types')->where('code', $code)->update($payload);
+                continue;
+            }
+            DB::table('document_types')->insert($payload + [
+                'code'       => $code,
+                'created_at' => now(),
             ]);
         }
     }

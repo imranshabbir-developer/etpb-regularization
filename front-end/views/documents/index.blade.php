@@ -148,13 +148,16 @@
                         </div>
 
                         <div class="field">
-                            <label for="file">File <span class="req">*</span></label>
-                            <input type="file" id="file" name="file" class="input" required
-                                   accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff">
-                            <p class="hint">
-                                PDF, JPEG, PNG or TIFF, up to {{ number_format($maxKb / 1024, 0) }} MB.
-                                The file type is checked from the file itself, not its extension.
-                            </p>
+                            <label for="file">Upload file <span class="req">*</span></label>
+                            @include('partials.file-dropzone', [
+                                'name' => 'file',
+                                'id' => 'file',
+                                'required' => true,
+                                'accept' => '.pdf,.jpg,.jpeg,.png,.tif,.tiff',
+                                'title' => 'Drop a file here or click to browse',
+                                'subtitle' => 'PDF, JPEG, PNG or TIFF',
+                                'hint' => 'Up to '.number_format($maxKb / 1024, 0).' MB. Type is checked from the file itself, not its extension.',
+                            ])
                         </div>
 
                         <div class="field" style="display:flex;align-items:flex-start;gap:.45rem">

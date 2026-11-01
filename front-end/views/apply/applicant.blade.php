@@ -10,11 +10,19 @@
 
     <div class="page-head">
         <h1>About you</h1>
-        <p class="lede">Your own particulars, as they appear on your CNIC.</p>
+        <p class="lede">Just the particulars needed to open your file. Extra details can wait.</p>
     </div>
 
     <form method="POST" action="{{ route('apply.applicant.store') }}" novalidate>
         @csrf
+
+        <div class="essentials-banner">
+            <span aria-hidden="true">★</span>
+            <div>
+                <strong>Required:</strong> full name, parentage, CNIC, mobile, and postal address
+                (about 5 fields). Email and living district are optional.
+            </div>
+        </div>
 
         <div class="card">
             <div class="card-body">
@@ -58,23 +66,16 @@
                                required maxlength="150">
                         @error('parentage_name')<p class="error-text">{{ $message }}</p>@enderror
                     </div>
+                </div>
 
-                    <div class="field">
-                        <label for="contact">Mobile number <span class="req">*</span></label>
-                        <input type="tel" id="contact" name="contact"
-                               class="input @error('contact') is-invalid @enderror"
-                               value="{{ old('contact', $draft['applicant']['contact'] ?? $profile?->contact ?? auth()->user()->contact) }}"
-                               required maxlength="20" placeholder="0300-1234567">
-                        <p class="hint">We will use this to reach you about your application.</p>
-                        @error('contact')<p class="error-text">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div class="field">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" class="input"
-                               value="{{ old('email', $draft['applicant']['email'] ?? $profile?->email ?? auth()->user()->email) }}"
-                               maxlength="150">
-                    </div>
+                <div class="field">
+                    <label for="contact">Mobile number <span class="req">*</span></label>
+                    <input type="tel" id="contact" name="contact"
+                           class="input @error('contact') is-invalid @enderror"
+                           value="{{ old('contact', $draft['applicant']['contact'] ?? $profile?->contact ?? auth()->user()->contact) }}"
+                           required maxlength="20" placeholder="0300-1234567">
+                    <p class="hint">The office will call this number if anything is unclear.</p>
+                    @error('contact')<p class="error-text">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="field">
@@ -82,54 +83,46 @@
                     <textarea id="postal_address" name="postal_address"
                               class="textarea @error('postal_address') is-invalid @enderror"
                               required maxlength="500">{{ old('postal_address', $draft['applicant']['postal_address'] ?? $profile?->postal_address ?? '') }}</textarea>
-                    <p class="hint">Where notices should be sent, if different from the property.</p>
                     @error('postal_address')<p class="error-text">{{ $message }}</p>@enderror
                 </div>
+            </div>
+        </div>
 
-                <div class="field">
-                    <label for="address_district_id">District you live in</label>
-                    <select id="address_district_id" name="address_district_id" class="select">
-                        <option value="">Select a district</option>
-                        @foreach ($districts as $d)
-                            <option value="{{ $d->id }}"
-                                @selected((int) old('address_district_id', $draft['applicant']['address_district_id'] ?? $profile?->address_district_id ?? 0) === $d->id)>
-                                {{ $d->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <fieldset class="group">
-                    <legend>Do any of these apply to you?</legend>
-                    <p class="hint mt-0">
-                        The Chairman may reduce or waive the rent for people who are indigent,
-                        widowed or orphaned. Tick only what you can evidence.
-                        <span class="clause">Clause 12</span>
-                    </p>
-                    <div class="grid-3">
-                        <label class="font-medium">
-                            <input type="checkbox" name="is_indigent" value="1"
-                                   @checked(old('is_indigent', $draft['applicant']['is_indigent'] ?? false))> Indigent
-                        </label>
-                        <label class="font-medium">
-                            <input type="checkbox" name="is_widow" value="1"
-                                   @checked(old('is_widow', $draft['applicant']['is_widow'] ?? false))> Widow
-                        </label>
-                        <label class="font-medium">
-                            <input type="checkbox" name="is_orphan" value="1"
-                                   @checked(old('is_orphan', $draft['applicant']['is_orphan'] ?? false))> Orphan
-                        </label>
+        <details class="optional-panel">
+            <summary>
+                Extra contact details
+                <span class="badge badge-neutral">Optional</span>
+            </summary>
+            <div class="optional-body">
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" class="input"
+                               value="{{ old('email', $draft['applicant']['email'] ?? $profile?->email ?? auth()->user()->email) }}"
+                               maxlength="150">
                     </div>
-                </fieldset>
-
-                <div class="wizard-actions">
-                    <a href="{{ route('apply.start') }}" class="btn btn-ghost">Back</a>
-                    <span class="spacer"></span>
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        Continue @include('partials.icon', ['name' => 'arrow-right'])
-                    </button>
+                    <div class="field">
+                        <label for="address_district_id">District you live in</label>
+                        <select id="address_district_id" name="address_district_id" class="select">
+                            <option value="">Select a district</option>
+                            @foreach ($districts as $d)
+                                <option value="{{ $d->id }}"
+                                    @selected((int) old('address_district_id', $draft['applicant']['address_district_id'] ?? $profile?->address_district_id ?? 0) === $d->id)>
+                                    {{ $d->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </div>
+        </details>
+
+        <div class="wizard-actions">
+            <a href="{{ route('apply.start') }}" class="btn btn-ghost">Back</a>
+            <span class="spacer"></span>
+            <button type="submit" class="btn btn-primary btn-lg">
+                Continue @include('partials.icon', ['name' => 'arrow-right'])
+            </button>
         </div>
     </form>
 </div>

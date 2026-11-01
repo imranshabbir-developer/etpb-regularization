@@ -143,14 +143,6 @@
                         <dt>CNIC</dt><dd class="num">{{ $a->applicant?->maskedCnic() }}</dd>
                         <dt>Contact</dt><dd>{{ $a->applicant?->contact }}</dd>
                         <dt>Address</dt><dd>{{ $a->applicant?->postal_address }}</dd>
-                        @if ($a->applicant?->hasRemissionGround())
-                            <dt>Clause 12 ground</dt>
-                            <dd>
-                                @if ($a->applicant->is_indigent)<span class="badge badge-gold">Indigent</span>@endif
-                                @if ($a->applicant->is_widow)<span class="badge badge-gold">Widow</span>@endif
-                                @if ($a->applicant->is_orphan)<span class="badge badge-gold">Orphan</span>@endif
-                            </dd>
-                        @endif
                     </dl>
                 </div>
             </div>
@@ -168,7 +160,17 @@
                         <dt>Address</dt><dd>{{ $p?->address }}</dd>
                         <dt>Location</dt><dd>{{ $p?->locationChain() }}</dd>
                         @if ($p?->khasra_no)
-                            <dt>Khasra no.</dt><dd>{{ $p->khasra_no }}</dd>
+                            <dt>Khasra / Survey No.</dt><dd>{{ $p->khasra_no }}</dd>
+                        @endif
+                        @if ($p?->survey_no)
+                            <dt>Survey No.</dt><dd>{{ $p->survey_no }}</dd>
+                        @endif
+                        @if ($p?->number_of_floors)
+                            <dt>Number of floors</dt><dd>{{ $p->number_of_floors }}</dd>
+                        @endif
+                        @if (! empty($p?->floor_wise_covered_area))
+                            <dt>Floor-wise covered</dt>
+                            <dd class="num">{{ collect($p->floor_wise_covered_area)->filter()->implode(' / ') }} sqft</dd>
                         @endif
                         @if ($p?->primaryGeoTag)
                             <dt>Geo coordinates</dt>
@@ -178,10 +180,16 @@
 
                     @if ($area)
                         <hr class="divider">
-                        <h4>Area</h4>
+                        <h4>Area of the Property / Land</h4>
                         <dl class="kv">
-                            <dt>Canonical area</dt>
+                            <dt>Total area</dt>
                             <dd><strong>{{ number_format((float) $area->area_sqft, 2) }} sqft</strong></dd>
+                            @if ($area->covered_area_sqft !== null)
+                                <dt>Covered area</dt><dd>{{ number_format((float) $area->covered_area_sqft, 2) }} sqft</dd>
+                            @endif
+                            @if ($area->open_area_sqft !== null)
+                                <dt>Open area</dt><dd>{{ number_format((float) $area->open_area_sqft, 2) }} sqft</dd>
+                            @endif
                             <dt>Standard applied</dt>
                             <dd>{{ $a->unitProfile?->name }}</dd>
                         </dl>
@@ -234,6 +242,18 @@
                             @if ($poss->date_of_judicial_verdict)
                                 <dt>Judicial verdict</dt>
                                 <dd>{{ \Illuminate\Support\Carbon::parse($poss->date_of_judicial_verdict)->format('d-m-Y') }}</dd>
+                            @endif
+                            @if ($poss->court_name)
+                                <dt>Name of Court</dt>
+                                <dd>{{ $poss->court_name }}</dd>
+                            @endif
+                            @if ($poss->judicial_reference)
+                                <dt>Case reference</dt>
+                                <dd>{{ $poss->judicial_reference }}</dd>
+                            @endif
+                            @if ($poss->judgment_gist)
+                                <dt>Gist of Decision</dt>
+                                <dd>{{ $poss->judgment_gist }}</dd>
                             @endif
                         </dl>
                         <div class="alert {{ $poss->is_eligible ? 'alert-good' : 'alert-danger' }} mt-2">

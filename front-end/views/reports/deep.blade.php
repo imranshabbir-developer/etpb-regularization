@@ -72,14 +72,6 @@
             <dt>Contact</dt><dd>{{ $a->applicant?->contact }}</dd>
             @if ($a->applicant?->email)<dt>Email</dt><dd>{{ $a->applicant->email }}</dd>@endif
             <dt>Address</dt><dd>{{ $a->applicant?->postal_address }}</dd>
-            @if ($a->applicant?->hasRemissionGround())
-                <dt>Clause 12 ground</dt>
-                <dd>
-                    @if ($a->applicant->is_indigent)<span class="badge badge-gold">Indigent</span>@endif
-                    @if ($a->applicant->is_widow)<span class="badge badge-gold">Widow</span>@endif
-                    @if ($a->applicant->is_orphan)<span class="badge badge-gold">Orphan</span>@endif
-                </dd>
-            @endif
         </dl>
     </div>
 </div>
@@ -216,6 +208,9 @@
                     </span>
                 </dd>
                 <dt>Judicial verdict</dt><dd>{{ $fmt($poss->date_of_judicial_verdict) }}</dd>
+                @if ($poss->court_name)<dt>Name of Court</dt><dd>{{ $poss->court_name }}</dd>@endif
+                @if ($poss->judicial_reference)<dt>Case reference</dt><dd>{{ $poss->judicial_reference }}</dd>@endif
+                @if ($poss->judgment_gist)<dt>Gist of Decision</dt><dd>{{ $poss->judgment_gist }}</dd>@endif
                 <dt>Arrears run from</dt>
                 <dd>
                     <strong>{{ $fmt($poss->arrears_from) }}</strong>

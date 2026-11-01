@@ -17,9 +17,6 @@ class Applicant extends Model
     {
         return [
             'date_of_birth' => 'date',
-            'is_indigent'   => 'boolean',
-            'is_widow'      => 'boolean',
-            'is_orphan'     => 'boolean',
             'is_verified'   => 'boolean',
         ];
     }
@@ -37,8 +34,8 @@ class Applicant extends Model
     }
 
     /**
-     * CNIC is masked by default. Clause 12 status (indigent, widow, orphan)
-     * and full CNIC are privileged views and are audited when opened.
+     * CNIC is masked by default. Full CNIC is a privileged view and is audited
+     * when opened.
      */
     public function maskedCnic(): string
     {
@@ -56,11 +53,5 @@ class Applicant extends Model
         }
 
         return substr($this->cnic, 0, 5) . '-' . substr($this->cnic, 5, 7) . '-' . substr($this->cnic, -1);
-    }
-
-    /** Whether any Clause 12 remission ground is recorded. */
-    public function hasRemissionGround(): bool
-    {
-        return $this->is_indigent || $this->is_widow || $this->is_orphan;
     }
 }

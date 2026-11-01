@@ -134,21 +134,24 @@ class WorkflowGuardTest extends TestCase
         $this->assertStringContainsString('Chairman ETPB', implode(' ', $check['reasons']));
     }
 
-    public function test_submission_is_blocked_while_mandatory_evidence_is_missing(): void
+    public function test_submission_is_allowed_while_recommended_evidence_is_missing(): void
     {
         $this->recordFee();
 
         $check = $this->workflow->check($this->applicationId, WorkflowService::SUBMITTED);
 
-        $this->assertFalse($check['allowed']);
-        $this->assertStringContainsString('Mandatory evidence is missing', implode(' ', $check['reasons']));
-        $this->assertStringContainsString('Jamabandi', implode(' ', $check['reasons']));
+        $this->assertTrue($check['allowed'], implode(' ', $check['reasons']));
+        // Meeting policy: every evidence type is optional — staff may attach later.
+        $this->assertSame(
+            [],
+            $this->workflow->missingMandatoryDocumentNames($this->applicationId),
+            'No document type is mandatory; advisory uploads must not block submission.',
+        );
     }
 
-    public function test_submission_succeeds_once_fee_and_evidence_are_on_record(): void
+    public function test_submission_succeeds_once_the_fee_instrument_is_on_record(): void
     {
         $this->recordFee();
-        $this->uploadMandatoryDocuments();
 
         $check = $this->workflow->check($this->applicationId, WorkflowService::SUBMITTED);
         $this->assertTrue($check['allowed'], implode(' ', $check['reasons']));
@@ -423,7 +426,7 @@ class WorkflowGuardTest extends TestCase
 
         $propertyId = DB::table('properties')->insertGetId([
             'property_no'   => 'KN-14-B',
-            'property_type' => 'HOUSE',
+            'property_type' => 'RESIDENTIAL',
             'usage_type'    => 'RESIDENTIAL',
             'address'       => '14-B Krishan Nagar, Lahore',
             'province_id'   => $provinceId,

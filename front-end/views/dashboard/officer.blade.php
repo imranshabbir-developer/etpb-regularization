@@ -23,8 +23,12 @@
     </p>
 </div>
 
-<div class="soft-panel">
-    <p><strong>Start with the cards below.</strong> Each card opens a work queue. Open the first item that needs attention and process it step by step.</p>
+<div class="essentials-banner">
+    <span aria-hidden="true">◆</span>
+    <div>
+        <strong>Your queues for today.</strong> Tap a card to open that worklist —
+        finish the first item that needs attention, then move to the next.
+    </div>
 </div>
 
 {{-- ---------- Work, not statistics: each tile is a link to the work ---------- --}}

@@ -17,7 +17,13 @@
     </div>
 
     <div class="soft-panel">
-        <p><strong>This form is simple.</strong> It has six short steps, your progress is saved automatically between steps, and you can come back later if you need more time.</p>
+        <p>
+            <strong>Start with the basics.</strong> You only need about
+            8&ndash;10 essential particulars (who you are, where the property is,
+            when possession began, geo pin, and biometric). Leave anything you
+            do not know blank &mdash; office staff can sit with you later and
+            complete the rest on the one-window desk. Progress is saved between steps.
+        </p>
     </div>
 
     @if ($inProgress->isNotEmpty())

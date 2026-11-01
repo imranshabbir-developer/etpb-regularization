@@ -307,25 +307,10 @@
             </div>
             <div class="card-body">
                 <p class="muted" style="font-size:.86rem">
-                    The Chairman may assess a nominal rent, or remit rent or arrears, for persons
-                    who are indigent, orphans, widows or otherwise incapable of meeting the liability.
-                    Only the Chairman is competent to grant it.
+                    The Chairman may assess a nominal rent, or remit rent or arrears, where the
+                    applicant is otherwise incapable of meeting the liability or on other recorded
+                    grounds. Only the Chairman is competent to grant it.
                 </p>
-
-                @if ($application->applicant?->hasRemissionGround())
-                    <div class="alert alert-info">
-                        @include('partials.icon', ['name' => 'info'])
-                        <div>
-                            <p class="mb-0">
-                                The applicant is recorded as
-                                @if ($application->applicant->is_indigent) indigent @endif
-                                @if ($application->applicant->is_widow) a widow @endif
-                                @if ($application->applicant->is_orphan) an orphan @endif
-                                — a Clause 12 ground is already on file.
-                            </p>
-                        </div>
-                    </div>
-                @endif
 
                 @foreach ($remissions as $rem)
                     <div class="inline-list">
@@ -377,9 +362,6 @@
                             <div class="field">
                                 <label for="ground">Ground</label>
                                 <select id="ground" name="ground" class="select">
-                                    <option value="INDIGENT">Indigent</option>
-                                    <option value="WIDOW">Widow</option>
-                                    <option value="ORPHAN">Orphan</option>
                                     <option value="INCAPABLE">Otherwise incapable</option>
                                     <option value="OTHER">Other</option>
                                 </select>

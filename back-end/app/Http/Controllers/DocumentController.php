@@ -83,7 +83,13 @@ class DocumentController extends Controller
 
         $type = DocumentType::findOrFail($data['document_type_id']);
 
-        if ($type->is_certified_copy_required && ! $request->boolean('is_certified_copy')) {
+        // Certified-copy rule is advisory for staff / one-window uploads so
+        // missing papers can still be attached from the officer dashboard.
+        $isStaffUpload = $request->user()->hasPermission('documents.verify')
+            || $request->user()->hasPermission('applications.view_all')
+            || $request->user()->hasPermission('applications.view_district');
+
+        if ($type->is_certified_copy_required && ! $request->boolean('is_certified_copy') && ! $isStaffUpload) {
             return back()->withInput()->with('error', sprintf(
                 'A %s must be filed as a certified copy. Confirm the copy is certified, or upload the certified one.',
                 $type->name,
@@ -109,7 +115,7 @@ class DocumentController extends Controller
         ApplicationDocument::create([
             'application_id'    => $application->id,
             'document_type_id'  => $type->id,
-            'title'             => $data['title'] ?: $type->name,
+            'title'             => ($data['title'] ?? null) ?: $type->name,
             'file_path'         => $path,
             'original_filename' => mb_substr($file->getClientOriginalName(), 0, 255),
             'mime_type'         => $mime,

@@ -51,7 +51,12 @@
 @endphp
 
 <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="sidebar-glow" aria-hidden="true">
+        <span class="sidebar-glow-orb sidebar-glow-orb-a"></span>
+        <span class="sidebar-glow-orb sidebar-glow-orb-b"></span>
+    </div>
 
+    <div class="sidebar-body">
     <div class="sidebar-mobile-head">
         <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>
         <span class="brand-text">
@@ -95,7 +100,7 @@
     @if ($isApplicant)
         <div class="sidebar-group">
             <h6>Help</h6>
-            <div class="px-4 pb-2" style="padding-inline-start: calc(var(--stripe-w) + .95rem)">
+            <div class="px-3 pb-2">
                 <p class="text-[.78rem] text-pk-200 leading-snug mb-2">
                     Not sure about something? Use <strong>Ask about the scheme</strong> at the
                     bottom of the screen.
@@ -103,4 +108,5 @@
             </div>
         </div>
     @endif
+    </div>
 </nav>

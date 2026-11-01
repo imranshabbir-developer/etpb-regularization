@@ -17,7 +17,8 @@ class Property extends Model
     protected function casts(): array
     {
         return [
-            'is_rural_agricultural' => 'boolean',
+            'is_rural_agricultural'   => 'boolean',
+            'floor_wise_covered_area' => 'array',
         ];
     }
 
@@ -44,9 +45,11 @@ class Property extends Model
     /** "Property 14-B, Sub-unit 2" or just "Property 14-B". */
     public function identity(): string
     {
+        $no = $this->property_no ?: 'Unnumbered';
+
         return $this->sub_unit_no
-            ? "Property {$this->property_no}, Sub-unit {$this->sub_unit_no}"
-            : "Property {$this->property_no}";
+            ? "Property {$no}, Sub-unit {$this->sub_unit_no}"
+            : "Property {$no}";
     }
 
     /** Mouza, City, Tehsil, District, Province — the chain the spec asks for. */
@@ -64,22 +67,22 @@ class Property extends Model
     public function usageLabel(): string
     {
         return match ($this->usage_type) {
+            'OPEN_PLOT'                  => 'Open Plot',
             'RESIDENTIAL'                => 'Residential',
             'COMMERCIAL'                 => 'Commercial',
-            'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-Commercial',
-            default                      => 'Other',
+            'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-commercial',
+            default                      => 'Others',
         };
     }
 
     public function typeLabel(): string
     {
         return match ($this->property_type) {
-            'HOUSE'     => 'House',
-            'SHOP'      => 'Shop',
-            'BUILDING'  => 'Building',
-            'PLOT'      => 'Plot',
-            'AGRI_LAND' => 'Agricultural Land',
-            default     => 'Other',
+            'OPEN_PLOT'                  => 'Open Plot',
+            'RESIDENTIAL'                => 'Residential',
+            'COMMERCIAL'                 => 'Commercial',
+            'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-commercial',
+            default                      => 'Others',
         };
     }
 }

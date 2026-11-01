@@ -123,17 +123,14 @@ class ApplicationController extends Controller
                 'email'               => $data['email'] ?? null,
                 'postal_address'      => $data['postal_address'],
                 'address_district_id' => $data['address_district_id'] ?? null,
-                'is_indigent'         => $data['is_indigent'] ?? false,
-                'is_widow'            => $data['is_widow'] ?? false,
-                'is_orphan'           => $data['is_orphan'] ?? false,
                 'created_by'          => $user->id,
             ]);
 
             $property = Property::create([
-                'property_no'   => $data['property_no'],
+                'property_no'   => $data['property_no'] ?: null,
                 'sub_unit_no'   => $data['sub_unit_no'] ?? null,
-                'property_type' => $data['property_type'],
-                'usage_type'    => $data['usage_type'],
+                'property_type' => $data['property_type'] ?? 'RESIDENTIAL',
+                'usage_type'    => $data['usage_type'] ?? 'RESIDENTIAL',
                 'address'       => $data['property_address'],
                 'province_id'   => $district->province_id,
                 'district_id'   => $district->id,
@@ -143,6 +140,7 @@ class ApplicationController extends Controller
                 'khewat_no'     => $data['khewat_no'] ?? null,
                 'khatooni_no'   => $data['khatooni_no'] ?? null,
                 'khasra_no'     => $data['khasra_no'] ?? null,
+                'survey_no'     => $data['survey_no'] ?? null,
                 'created_by'    => $user->id,
             ]);
 
@@ -327,15 +325,12 @@ class ApplicationController extends Controller
             'email'               => ['nullable', 'email', 'max:150'],
             'postal_address'      => ['required', 'string', 'max:500'],
             'address_district_id' => ['nullable', 'integer', 'exists:districts,id'],
-            'is_indigent'         => ['nullable', 'boolean'],
-            'is_widow'            => ['nullable', 'boolean'],
-            'is_orphan'           => ['nullable', 'boolean'],
 
             // Property
-            'property_no'      => ['required', 'string', 'max:60'],
+            'property_no'      => ['nullable', 'string', 'max:60'],
             'sub_unit_no'      => ['nullable', 'string', 'max:60'],
-            'property_type'    => ['required', Rule::in(['HOUSE', 'SHOP', 'BUILDING', 'PLOT', 'AGRI_LAND', 'OTHER'])],
-            'usage_type'       => ['required', Rule::in(['RESIDENTIAL', 'COMMERCIAL', 'RESIDENTIAL_CUM_COMMERCIAL', 'OTHER'])],
+            'property_type'    => ['nullable', Rule::in(['OPEN_PLOT', 'RESIDENTIAL', 'COMMERCIAL', 'RESIDENTIAL_CUM_COMMERCIAL', 'OTHER'])],
+            'usage_type'       => ['nullable', Rule::in(['OPEN_PLOT', 'RESIDENTIAL', 'COMMERCIAL', 'RESIDENTIAL_CUM_COMMERCIAL', 'OTHER'])],
             'property_address' => ['required', 'string', 'max:500'],
             'district_id'      => ['required', 'integer', 'exists:districts,id'],
             'tehsil_id'        => ['nullable', 'integer', 'exists:tehsils,id'],
@@ -344,28 +339,33 @@ class ApplicationController extends Controller
             'khewat_no'        => ['nullable', 'string', 'max:40'],
             'khatooni_no'      => ['nullable', 'string', 'max:40'],
             'khasra_no'        => ['nullable', 'string', 'max:40'],
-            'latitude'         => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude'        => ['nullable', 'numeric', 'between:-180,180'],
+            'survey_no'        => ['nullable', 'string', 'max:60'],
+            'latitude'         => ['required', 'numeric', 'between:-90,90'],
+            'longitude'        => ['required', 'numeric', 'between:-180,180'],
 
             // Area
             'unit_profile_id'   => ['nullable', 'integer', 'exists:unit_conversion_profiles,id'],
-            'area_mode'         => ['required', Rule::in(['SINGLE', 'COMPOUND'])],
-            'area_unit'         => ['required_if:area_mode,SINGLE', 'nullable', 'string', 'max:20'],
-            'area_value'        => ['required_if:area_mode,SINGLE', 'nullable', 'numeric', 'min:0'],
+            'area_mode'         => ['nullable', Rule::in(['SINGLE', 'COMPOUND'])],
+            'area_unit'         => ['nullable', 'string', 'max:20'],
+            'area_value'        => ['nullable', 'numeric', 'min:0'],
             'acres'             => ['nullable', 'numeric', 'min:0'],
             'kanals'            => ['nullable', 'numeric', 'min:0'],
             'marlas'            => ['nullable', 'numeric', 'min:0'],
             'sarsais'           => ['nullable', 'numeric', 'min:0'],
             'square_yards'      => ['nullable', 'numeric', 'min:0'],
             'square_feet'       => ['nullable', 'numeric', 'min:0'],
+            'total_area_sqft'   => ['nullable', 'numeric', 'min:0'],
             'covered_area_sqft' => ['nullable', 'numeric', 'min:0'],
+            'open_area_sqft'    => ['nullable', 'numeric', 'min:0'],
 
             // Possession
             'date_of_possession'       => ['required', 'date', 'before_or_equal:today'],
             'possession_nature'        => ['required', Rule::in(['SELF', 'INHERITED', 'PURCHASED', 'ALLOTTED', 'OTHER'])],
             'possession_description'   => ['nullable', 'string', 'max:2000'],
             'date_of_judicial_verdict' => ['nullable', 'date', 'before_or_equal:today'],
+            'court_name'               => ['nullable', 'string', 'max:200'],
             'judicial_reference'       => ['nullable', 'string', 'max:150'],
+            'judgment_gist'            => ['nullable', 'string', 'max:700'],
         ], [
             'cnic.digits' => 'The CNIC must be exactly 13 digits, without dashes.',
         ]);

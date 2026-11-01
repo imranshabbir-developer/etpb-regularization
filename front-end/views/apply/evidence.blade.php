@@ -5,25 +5,27 @@
 
 @section('content')
 
-@php
-    $mandatory = $types->where('is_mandatory', true);
-    $filed = $mandatory->filter(fn ($t) => ($uploaded->get($t->id)?->isNotEmpty() ?? false));
-@endphp
-
 <div class="container-narrow">
     @include('partials.wizard-steps')
 
     <div class="page-head">
         <h1>Evidence of your possession</h1>
         <p class="lede">
-            {{ $application->application_no }} &mdash; attach what you have. Documents marked
-            <strong>certified copy</strong> must be certified.
+            {{ $application->application_no }} &mdash; you may <strong>skip this step</strong>.
+            Attach what you have; the office can upload the rest later.
         </p>
         <div class="inline-list mt-1">
-            <span class="badge badge-{{ $filed->count() === $mandatory->count() ? 'good' : 'warn' }}">
-                {{ $filed->count() }} of {{ $mandatory->count() }} required documents attached
-            </span>
+            <span class="badge badge-info">{{ $application->documents->count() }} attached</span>
+            <span class="badge badge-neutral">All optional</span>
             <span class="clause">Clause 3(ii)(c)</span>
+        </div>
+    </div>
+
+    <div class="essentials-banner">
+        <span aria-hidden="true">→</span>
+        <div>
+            Nothing on this page is mandatory to continue.
+            Use <strong>Continue</strong> below if you have nothing to attach right now.
         </div>
     </div>
 
@@ -39,18 +41,23 @@
                         <label for="document_type_id">Which document is this? <span class="req">*</span></label>
                         <select id="document_type_id" name="document_type_id" class="select" required>
                             @foreach ($types as $t)
-                                <option value="{{ $t->id }}">
-                                    {{ $t->name }}@if ($t->is_mandatory) — required @endif
-                                </option>
+                                <option value="{{ $t->id }}">{{ $t->name }}</option>
                             @endforeach
                         </select>
+                        <p class="hint">Optional evidence — none of these are mandatory to continue.</p>
                     </div>
 
                     <div class="field">
-                        <label for="file">Choose the file <span class="req">*</span></label>
-                        <input type="file" id="file" name="file" class="input" required
-                               accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff">
-                        <p class="hint">A PDF or a clear photo. Up to 10 MB.</p>
+                        <label for="file">Upload the document <span class="req">*</span></label>
+                        @include('partials.file-dropzone', [
+                            'name' => 'file',
+                            'id' => 'file',
+                            'required' => true,
+                            'accept' => '.pdf,.jpg,.jpeg,.png,.tif,.tiff',
+                            'title' => 'Drop a document here or click to browse',
+                            'subtitle' => 'PDF or a clear photo',
+                            'hint' => 'Up to 10 MB. Only needed when you attach a document now — you may skip this whole step.',
+                        ])
                     </div>
                 </div>
 
@@ -101,7 +108,7 @@
                 <div class="flex flex-wrap items-start gap-2 justify-between py-2">
                     <div class="min-w-0">
                         <strong class="text-[.9rem]">{{ $type->name }}</strong>
-                        @if ($type->is_mandatory)<span class="badge badge-danger">Required</span>@endif
+                        <span class="badge badge-neutral">Optional</span>
                         @if ($type->is_certified_copy_required)<span class="badge badge-gold">Certified copy</span>@endif
 
                         @if ($docs && $docs->isNotEmpty())
@@ -139,7 +146,8 @@
                 </a>
             </div>
             <p class="hint mt-2 mb-0">
-                You can add more documents later, up until you submit.
+                You may continue with no documents. Missing papers can be uploaded later by you,
+                or by the Administrator / District Officer / one-window desk from the case file.
             </p>
         </div>
     </div>

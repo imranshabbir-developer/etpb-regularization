@@ -75,18 +75,6 @@
                     @error('postal_address')<p class="error-text">{{ $message }}</p>@enderror
                 </div>
 
-                <fieldset class="group">
-                    <legend>Grounds for remission &mdash; Clause 12</legend>
-                    <p class="hint" style="margin-top:-.3rem">
-                        The Chairman may assess a nominal rent, or remit rent or arrears, for persons who are
-                        indigent, orphans or widows. Tick only what the applicant can evidence.
-                    </p>
-                    <div class="grid-3">
-                        <label style="font-weight:500"><input type="checkbox" name="is_indigent" value="1" @checked(old('is_indigent'))> Indigent</label>
-                        <label style="font-weight:500"><input type="checkbox" name="is_widow" value="1" @checked(old('is_widow'))> Widow</label>
-                        <label style="font-weight:500"><input type="checkbox" name="is_orphan" value="1" @checked(old('is_orphan'))> Orphan</label>
-                    </div>
-                </fieldset>
             </div>
         </div>
 
@@ -95,11 +83,21 @@
             <div class="card-head"><h3>Property particulars</h3></div>
             <div class="card-body">
                 <div class="grid-3">
+                    @php
+                        $typeOptions = [
+                            'OPEN_PLOT' => 'Open Plot',
+                            'RESIDENTIAL' => 'Residential',
+                            'COMMERCIAL' => 'Commercial',
+                            'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-commercial',
+                            'OTHER' => 'Others',
+                        ];
+                    @endphp
                     <div class="field">
-                        <label for="property_no">Property no. <span class="req">*</span></label>
+                        <label for="property_no">Property no.</label>
                         <input type="text" id="property_no" name="property_no"
                                class="input @error('property_no') is-invalid @enderror"
-                               value="{{ old('property_no') }}" required maxlength="60">
+                               value="{{ old('property_no') }}" maxlength="60">
+                        <p class="hint">Optional.</p>
                         @error('property_no')<p class="error-text">{{ $message }}</p>@enderror
                     </div>
 
@@ -111,22 +109,19 @@
                     </div>
 
                     <div class="field">
-                        <label for="property_type">Type <span class="req">*</span></label>
+                        <label for="property_type">Type</label>
                         <select id="property_type" name="property_type" class="select">
-                            @foreach (['HOUSE' => 'House', 'SHOP' => 'Shop', 'BUILDING' => 'Building',
-                                       'PLOT' => 'Plot', 'AGRI_LAND' => 'Agricultural land', 'OTHER' => 'Other'] as $v => $l)
-                                <option value="{{ $v }}" @selected(old('property_type') === $v)>{{ $l }}</option>
+                            @foreach ($typeOptions as $v => $l)
+                                <option value="{{ $v }}" @selected(old('property_type', 'RESIDENTIAL') === $v)>{{ $l }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="field">
-                        <label for="usage_type">Usage <span class="req">*</span></label>
+                        <label for="usage_type">Usage</label>
                         <select id="usage_type" name="usage_type" class="select">
-                            @foreach (['RESIDENTIAL' => 'Residential', 'COMMERCIAL' => 'Commercial',
-                                       'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-commercial',
-                                       'OTHER' => 'Other'] as $v => $l)
-                                <option value="{{ $v }}" @selected(old('usage_type') === $v)>{{ $l }}</option>
+                            @foreach ($typeOptions as $v => $l)
+                                <option value="{{ $v }}" @selected(old('usage_type', 'RESIDENTIAL') === $v)>{{ $l }}</option>
                             @endforeach
                         </select>
                     </div>

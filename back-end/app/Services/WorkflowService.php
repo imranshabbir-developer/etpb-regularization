@@ -246,7 +246,7 @@ class WorkflowService
     private function guardsFor(string $to): array
     {
         $guards = match ($to) {
-            self::SUBMITTED               => [$this->feeRecorded(), $this->mandatoryDocuments()],
+            self::SUBMITTED               => [$this->feeRecorded()],
             self::SCRUTINY                => [$this->paymentConfirmed()],
             self::SITE_INSPECTION         => [$this->eligible()],
             self::ASSESSMENT_PROPOSED     => [$this->notSubJudice()],
@@ -332,26 +332,41 @@ class WorkflowService
         };
     }
 
+    /**
+     * Missing mandatory heads — advisory for the filing desk / DO.
+     * Submission itself is not blocked: the applicant may file first and
+     * attach evidence later, or the District Officer may return the case
+     * as deficient under RETURNED_DEFICIENT.
+     *
+     * @return list<string>
+     */
+    public function missingMandatoryDocumentNames(int $applicationId): array
+    {
+        $app = $this->application($applicationId);
+
+        $required = DB::table('document_types')
+            ->where('is_mandatory', true)
+            ->where('is_active', true)
+            ->pluck('name', 'id');
+
+        $present = DB::table('application_documents')
+            ->where('application_id', $app->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', ['PENDING', 'VERIFIED', 'WAIVED'])
+            ->pluck('document_type_id')
+            ->unique();
+
+        return $required->except($present->all())->values()->all();
+    }
+
     private function mandatoryDocuments(): callable
     {
-        return static function (object $app): ?string {
-            $required = DB::table('document_types')
-                ->where('is_mandatory', true)
-                ->where('is_active', true)
-                ->pluck('name', 'id');
+        return function (object $app): ?string {
+            $missing = $this->missingMandatoryDocumentNames((int) $app->id);
 
-            $present = DB::table('application_documents')
-                ->where('application_id', $app->id)
-                ->whereNull('deleted_at')
-                ->whereIn('status', ['PENDING', 'VERIFIED', 'WAIVED'])
-                ->pluck('document_type_id')
-                ->unique();
-
-            $missing = $required->except($present->all());
-
-            return $missing->isEmpty()
+            return $missing === []
                 ? null
-                : 'Mandatory evidence is missing: ' . $missing->implode(', ') . '.';
+                : 'Mandatory evidence is missing: ' . implode(', ', $missing) . '.';
         };
     }
 

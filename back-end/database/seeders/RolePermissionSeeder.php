@@ -77,6 +77,7 @@ class RolePermissionSeeder extends Seeder
             ['approvals.administrator', 'Approve regularization as Administrator'],
             ['approvals.chairman', 'Exercise Chairman powers'],
             ['approvals.remand', 'Remand an application'],
+            ['records.correct', 'Correct wrong entries / modify records (Chairman only)'],
         ],
         'outcome' => [
             ['nominees.manage', 'Record the nomination form and legal heirs'],
@@ -129,21 +130,21 @@ class RolePermissionSeeder extends Seeder
             ],
             [
                 'code' => 'CHAIRMAN', 'name' => 'Chairman, ETPB', 'level' => 10,
-                'desc' => 'Extends the 60-day assessment period, calls for record, remits rent '
-                    . 'under Clause 12, and cancels a tenancy obtained by fraud under Clause 23.',
+                'desc' => 'Sole authority for corrections / wrong-entry fixes / modifications. '
+                    . 'Also extends SLA, remits rent under Clause 12, and cancels fraudulent tenancy.',
                 'perms' => [
-                    'applications.view_all', 'documents.view', 'documents.download', 'fee.view',
-                    'assessment.view', 'assessment.extend_sla', 'notices.view', 'arrears.view',
-                    'arrears.remit', 'litigation.view', 'approvals.chairman', 'approvals.remand',
-                    'tenancy.cancel', 'reports.deep', 'reports.executive', 'reports.registers',
+                    'applications.view_all', 'applications.update', 'documents.view', 'documents.download',
+                    'documents.upload', 'fee.view', 'assessment.view', 'assessment.extend_sla',
+                    'notices.view', 'arrears.view', 'arrears.remit', 'litigation.view',
+                    'approvals.chairman', 'approvals.remand', 'tenancy.cancel', 'records.correct',
+                    'reports.deep', 'reports.executive', 'reports.registers',
                     'reports.export', 'audit.view',
                 ],
             ],
             [
                 'code' => 'SECRETARY', 'name' => 'Secretary to the Board', 'level' => 15,
-                'desc' => 'Board Secretariat — consolidated and detailed reporting for the '
-                    . 'Chairman, the Minister-in-charge and senior government. Read-only '
-                    . 'oversight; not a statutory deciding office under Clause 3(ii).',
+                'desc' => 'Board Secretariat — view-only. Cannot alter or make any entry. '
+                    . 'Consolidated reporting for the Chairman and senior government.',
                 'perms' => [
                     'applications.view_all', 'documents.view', 'documents.download', 'fee.view',
                     'assessment.view', 'notices.view', 'arrears.view', 'litigation.view',
@@ -153,11 +154,12 @@ class RolePermissionSeeder extends Seeder
             ],
             [
                 'code' => 'ADMINISTRATOR', 'name' => 'Administrator', 'level' => 20,
-                'desc' => 'Approves regularization within one month after recording reasons '
-                    . '(Clause 3(ii)(d)); may call for the record of any assessment.',
+                'desc' => 'Approves regularization; may upload missing documents for applicants '
+                    . 'and call for the record of any assessment.',
                 'perms' => [
-                    'applications.view_all', 'applications.assign', 'documents.view',
-                    'documents.download', 'fee.view', 'assessment.view', 'notices.view',
+                    'applications.view_all', 'applications.assign', 'applications.update',
+                    'documents.view', 'documents.download', 'documents.upload',
+                    'fee.view', 'assessment.view', 'notices.view',
                     'objections.decide', 'hearings.schedule', 'hearings.record', 'arrears.view',
                     'litigation.view', 'approvals.administrator', 'approvals.remand',
                     'reports.deep', 'reports.executive', 'reports.registers', 'reports.export',
@@ -166,12 +168,11 @@ class RolePermissionSeeder extends Seeder
             [
                 'code' => 'DISTRICT_OFFICER', 'name' => 'District Officer', 'level' => 40,
                 'desc' => 'Deputy or Assistant Administrator in charge of a district office '
-                    . '(Clause 2(i)(f)). Assesses and fixes rent, issues notices, hears '
-                    . 'objections and executes the tenancy agreement.',
+                    . '(Clause 2(i)(f)). Assesses and fixes rent; may upload missing applicant documents.',
                 'perms' => [
-                    'applications.view_district', 'applications.scrutinise',
+                    'applications.view_district', 'applications.scrutinise', 'applications.update',
                     'applications.return_deficient', 'applications.reject_ineligible',
-                    'documents.view', 'documents.download', 'documents.verify', 'documents.waive',
+                    'documents.view', 'documents.download', 'documents.upload', 'documents.verify', 'documents.waive',
                     'fee.view', 'assessment.view', 'assessment.propose', 'assessment.rate_inputs',
                     'assessment.fix_rent', 'assessment.reassess', 'notices.issue', 'notices.view',
                     'objections.record', 'objections.decide', 'hearings.schedule', 'hearings.record',
@@ -183,7 +184,8 @@ class RolePermissionSeeder extends Seeder
             ],
             [
                 'code' => 'DEALING_ASSISTANT', 'name' => 'Dealing Assistant', 'level' => 60,
-                'desc' => 'Data entry for walk-in applicants, diary and dispatch of notices.',
+                'desc' => 'One-window / walk-in desk: files and completes applications on behalf of '
+                    . 'illiterate applicants; diary and dispatch of notices.',
                 'perms' => [
                     'applications.view_district', 'applications.create', 'applications.update',
                     'applications.submit', 'documents.upload', 'documents.view', 'fee.record',

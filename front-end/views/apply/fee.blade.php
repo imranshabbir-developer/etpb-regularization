@@ -168,15 +168,81 @@
         </div>
     @endunless
 
+    <div class="card">
+        <div class="card-head">
+            <h3>Biometric verification <span class="req">*</span></h3>
+            <div class="card-actions"><span class="badge badge-{{ $hasBiometric ? 'good' : 'warn' }}">
+                {{ $hasBiometric ? 'Captured' : 'Required' }}
+            </span></div>
+        </div>
+        <div class="card-body">
+            <p class="muted text-[.9rem]">
+                Biometric verification is mandatory. Upload a clear photo of your thumb impression
+                (or a scan from the office biometric device).
+            </p>
+            @if ($hasBiometric)
+                <div class="alert alert-good">
+                    @include('partials.icon', ['name' => 'check'])
+                    <div><p class="mb-0">Thumb impression is on file for this applicant.</p></div>
+                </div>
+            @endif
+            <form method="POST" action="{{ route('apply.biometric.store', $application) }}"
+                  enctype="multipart/form-data" class="mt-2">
+                @csrf
+                <div class="field">
+                    <label for="thumb">Thumb impression image <span class="req">*</span></label>
+                    @include('partials.file-dropzone', [
+                        'name' => 'thumb',
+                        'id' => 'thumb',
+                        'required' => true,
+                        'accept' => '.jpg,.jpeg,.png,.webp',
+                        'title' => 'Drop thumb impression photo here or click to browse',
+                        'subtitle' => 'JPEG, PNG or WebP from phone or biometric device',
+                        'hint' => 'A clear photo of the thumb impression is required before submit.',
+                    ])
+                </div>
+                <button type="submit" class="btn btn-outline mt-2">
+                    @include('partials.icon', ['name' => 'check'])
+                    {{ $hasBiometric ? 'Replace biometric' : 'Save biometric' }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        @include('partials.icon', ['name' => 'info'])
+        <div><p class="mb-0">{{ $paymentApiNote }}</p></div>
+    </div>
+
     {{-- ---------- Submit ---------- --}}
     <div class="card">
         <div class="card-head"><h3>Submit your application</h3></div>
         <div class="card-body">
+            @unless ($hasBiometric)
+                <div class="alert alert-danger">
+                    @include('partials.icon', ['name' => 'alert'])
+                    <div><p class="mb-0">Capture biometric verification above before you can submit.</p></div>
+                </div>
+            @endunless
             @if ($readiness['allowed'])
                 <div class="alert alert-good">
                     @include('partials.icon', ['name' => 'check'])
-                    <div><p class="mb-0">Everything needed is on file. You can submit now.</p></div>
+                    <div><p class="mb-0">You can submit now. Your application will be stored and sent for processing.</p></div>
                 </div>
+                @if (! empty($missingDocs))
+                    <div class="alert alert-warn mt-3">
+                        @include('partials.icon', ['name' => 'alert'])
+                        <div>
+                            <strong>Recommended evidence not yet attached</strong>
+                            <span class="faint">(you may still submit; the District Officer can ask for these later):</span>
+                            <ul class="mb-0">
+                                @foreach ($missingDocs as $docName)
+                                    <li>{{ $docName }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
             @else
                 <div class="alert alert-warn">
                     @include('partials.icon', ['name' => 'alert'])
@@ -200,7 +266,7 @@
                     </a>
                     <span class="spacer"></span>
                     <button type="submit" class="btn btn-primary btn-lg"
-                            @disabled(! $readiness['allowed'])>
+                            @disabled(! $readiness['allowed'] || ! $hasBiometric)>
                         @include('partials.icon', ['name' => 'check']) Submit my application
                     </button>
                 </div>

@@ -149,7 +149,7 @@ class PublicApplicantCaseSeeder extends Seeder
 
         $property = Property::create([
             'property_no'   => 'DEMO-MT-01',
-            'property_type' => 'HOUSE',
+            'property_type' => 'RESIDENTIAL',
             'usage_type'    => 'RESIDENTIAL',
             'address'       => 'Model Town, Lahore',
             'province_id'   => $lahore->province_id,
@@ -364,7 +364,7 @@ class PublicApplicantCaseSeeder extends Seeder
 
             $property = Property::create([
                 'property_no'   => $propertyNo,
-                'property_type' => 'HOUSE',
+                'property_type' => 'RESIDENTIAL',
                 'usage_type'    => 'RESIDENTIAL',
                 'address'       => $propertyNo . ', Sant Nagar, Lahore',
                 'province_id'   => $lahore->province_id,
