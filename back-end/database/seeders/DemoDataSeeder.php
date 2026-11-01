@@ -56,38 +56,97 @@ class DemoDataSeeder extends Seeder
         $mandatory = DocumentType::where('is_mandatory', true)->get();
 
         // [name, parentage, cnic, district, property, area (K/M/S), possession, target stage, rent]
+        // Lahore-heavy (≥5 per live queue stage) so DO Lahore dashboards/queues populate fully;
+        // other districts feed Chairman charts and cross-district reports.
         $cases = [
-            ['Ram Lal',            'Diwan Chand',    '3520111000011', 'Lahore',      'KN-08',   [1, 2, 0],  '1996-05-14', 'REGULARIZED',           26000],
-            ['Sardar Gurmeet Singh','Harnam Singh',  '3520111000012', 'Lahore',      'KN-11-A', [0, 9, 0],  '1999-11-02', 'REGULARIZED',           18500],
-            ['Parkash Devi',       'Late Sohan Lal', '3520111000013', 'Rawalpindi',  'RWP-42',  [0, 6, 4],  '2001-03-19', 'REGULARIZED',           14200],
+            // —— Regularized (closed / reports) ——
+            ['Ram Lal',            'Diwan Chand',    '3520211000001', 'Lahore',      'LH-RG-01', [1, 2, 0],  '1996-05-14', 'REGULARIZED',           26000],
+            ['Sardar Gurmeet Singh','Harnam Singh',  '3520211000002', 'Lahore',      'LH-RG-02', [0, 9, 0],  '1999-11-02', 'REGULARIZED',           18500],
+            ['Parkash Devi',       'Late Sohan Lal', '3520211000003', 'Lahore',      'LH-RG-03', [0, 6, 4],  '2001-03-19', 'REGULARIZED',           14200],
+            ['Naseem Akhtar',      'Late Anwar',     '3520211000004', 'Lahore',      'LH-RG-04', [0, 8, 0],  '1998-08-21', 'REGULARIZED',           17500],
+            ['Jagdish Rai',        'Mulkh Raj',      '3520211000005', 'Lahore',      'LH-RG-05', [1, 0, 0],  '2000-01-09', 'REGULARIZED',           22000],
+            ['Fazal Ilahi',        'Ghulam Rasool',  '3520211000006', 'Rawalpindi',  'RWP-RG-01',[0, 7, 0],  '2002-06-18', 'REGULARIZED',           15600],
 
-            ['Muhammad Ilyas',     'Ghulam Nabi',    '3520111000014', 'Lahore',      'KN-19',   [1, 0, 0],  '2004-07-08', 'PENDING_ADMIN_APPROVAL', 21000],
-            ['Bashir Ahmed',       'Karam Din',      '3520111000015', 'Faisalabad',  'FSD-07',  [0, 14, 0], '1998-02-25', 'PENDING_ADMIN_APPROVAL', 24500],
-            ['Kishan Chand',       'Tara Chand',     '3520111000016', 'Multan',      'MUL-21',  [2, 0, 0],  '2000-09-30', 'PENDING_ADMIN_APPROVAL', 31000],
+            // —— Pending Administrator approval ——
+            ['Muhammad Ilyas',     'Ghulam Nabi',    '3520211000010', 'Lahore',      'LH-AD-01', [1, 0, 0],  '2004-07-08', 'PENDING_ADMIN_APPROVAL', 21000],
+            ['Bashir Ahmed',       'Karam Din',      '3520211000011', 'Lahore',      'LH-AD-02', [0, 14, 0], '1998-02-25', 'PENDING_ADMIN_APPROVAL', 24500],
+            ['Kishan Chand',       'Tara Chand',     '3520211000012', 'Lahore',      'LH-AD-03', [2, 0, 0],  '2000-09-30', 'PENDING_ADMIN_APPROVAL', 31000],
+            ['Suraya Bibi',        'Late Rafiq',     '3520211000013', 'Lahore',      'LH-AD-04', [0, 10, 0], '2003-11-14', 'PENDING_ADMIN_APPROVAL', 18900],
+            ['Harbans Lal',        'Gian Chand',     '3520211000014', 'Lahore',      'LH-AD-05', [0, 5, 3],  '2001-04-02', 'PENDING_ADMIN_APPROVAL', 13400],
+            ['Tariq Mahmood',      'Ashiq Hussain',  '3520211000015', 'Faisalabad',  'FSD-AD-01',[0, 12, 0], '1997-12-05', 'PENDING_ADMIN_APPROVAL', 26800],
 
-            ['Abdul Rehman',       'Fazal Din',      '3520111000017', 'Lahore',      'KN-27',   [0, 11, 0], '2005-06-12', 'ARREARS_COMPUTED',       16800],
-            ['Shanti Bai',         'Mohan Lal',      '3520111000018', 'Gujranwala',  'GRW-13',  [0, 8, 5],  '2003-01-07', 'ARREARS_COMPUTED',       12900],
+            // —— Arrears computed (recovery queue) ——
+            ['Abdul Rehman',       'Fazal Din',      '3520211000020', 'Lahore',      'LH-AR-01', [0, 11, 0], '2005-06-12', 'ARREARS_COMPUTED',       16800],
+            ['Shanti Bai',         'Mohan Lal',      '3520211000021', 'Lahore',      'LH-AR-02', [0, 8, 5],  '2003-01-07', 'ARREARS_COMPUTED',       12900],
+            ['Waqar Ahmed',        'Saeed Ahmed',    '3520211000022', 'Lahore',      'LH-AR-03', [1, 3, 0],  '1999-09-22', 'ARREARS_COMPUTED',       20500],
+            ['Kamla Devi',         'Bhagat Ram',     '3520211000023', 'Lahore',      'LH-AR-04', [0, 6, 0],  '2006-03-30', 'ARREARS_COMPUTED',       11200],
+            ['Imtiaz Ali',         'Noor Ali',       '3520211000024', 'Lahore',      'LH-AR-05', [0, 9, 2],  '2002-10-11', 'ARREARS_COMPUTED',       19100],
+            ['Razia Begum',        'Late Qasim',     '3520211000025', 'Gujranwala',  'GRW-AR-01',[0, 7, 0],  '2004-05-19', 'ARREARS_COMPUTED',       14800],
 
-            ['Nazir Hussain',      'Sultan Ali',     '3520111000019', 'Sialkot',     'SKT-05',  [1, 5, 0],  '2002-04-21', 'OBJECTION_WINDOW',       19700],
-            ['Krishan Kumar',      'Banarsi Das',    '3520111000020', 'Lahore',      'KN-33',   [0, 13, 0], '1997-08-16', 'OBJECTION_WINDOW',       22300],
+            // —— Objection window + hearing (assessment + objections queues) ——
+            ['Nazir Hussain',      'Sultan Ali',     '3520211000030', 'Lahore',      'LH-OB-01', [1, 5, 0],  '2002-04-21', 'OBJECTION_WINDOW',       19700],
+            ['Krishan Kumar',      'Banarsi Das',    '3520211000031', 'Lahore',      'LH-OB-02', [0, 13, 0], '1997-08-16', 'OBJECTION_WINDOW',       22300],
+            ['Safia Begum',        'Late Iqbal',     '3520211000032', 'Lahore',      'LH-OB-03', [0, 8, 0],  '2005-01-28', 'OBJECTION_WINDOW',       16100],
+            ['Prem Nath',          'Shiv Dayal',     '3520211000033', 'Lahore',      'LH-OB-04', [0, 4, 4],  '2000-07-09', 'OBJECTION_WINDOW',       13800],
+            ['Ghulam Sarwar',      'Din Muhammad',   '3520211000034', 'Lahore',      'LH-OB-05', [1, 1, 0],  '1998-12-03', 'OBJECTION_WINDOW',       25400],
+            ['Amina Bibi',         'Late Yousaf',    '3520211000035', 'Multan',      'MUL-OB-01',[0, 10, 0], '2003-06-17', 'OBJECTION_WINDOW',       17200],
+            ['Lal Chand',          'Kesar Mal',      '3520211000036', 'Lahore',      'LH-HR-01', [0, 7, 0],  '2001-02-14', 'HEARING',                18300],
+            ['Shakeel Ahmed',      'Anwar Ali',      '3520211000037', 'Lahore',      'LH-HR-02', [0, 11, 0], '2004-09-01', 'HEARING',                21600],
 
-            ['Muhammad Younis',    'Allah Ditta',    '3520111000021', 'Rawalpindi',  'RWP-58',  [0, 7, 0],  '2006-12-03', 'ASSESSMENT_PROPOSED',    13400],
-            ['Sita Rani',          'Ram Piara',      '3520111000022', 'Faisalabad',  'FSD-16',  [1, 3, 0],  '1995-10-11', 'ASSESSMENT_PROPOSED',    20100],
+            // —— Assessment proposed / notice / rent fixed ——
+            ['Muhammad Younis',    'Allah Ditta',    '3520211000040', 'Lahore',      'LH-AS-01', [0, 7, 0],  '2006-12-03', 'ASSESSMENT_PROPOSED',    13400],
+            ['Sita Rani',          'Ram Piara',      '3520211000041', 'Lahore',      'LH-AS-02', [1, 3, 0],  '1995-10-11', 'ASSESSMENT_PROPOSED',    20100],
+            ['Farooq Ahmed',       'Habib Ullah',    '3520211000042', 'Lahore',      'LH-AS-03', [0, 9, 0],  '2007-04-22', 'ASSESSMENT_PROPOSED',    15700],
+            ['Veena Kumari',       'Ratan Lal',      '3520211000043', 'Lahore',      'LH-AS-04', [0, 5, 2],  '1999-08-08', 'ASSESSMENT_PROPOSED',    12100],
+            ['Saqib Mehmood',      'Tariq Mehmood',  '3520211000044', 'Lahore',      'LH-AS-05', [1, 2, 0],  '2002-11-29', 'ASSESSMENT_PROPOSED',    23900],
+            ['Nasreen Akhtar',     'Late Bashir',    '3520211000045', 'Rawalpindi',  'RWP-AS-01',[0, 6, 0],  '2005-05-16', 'ASSESSMENT_PROPOSED',    14500],
+            ['Chaudhry Latif',     'Allah Ditta',    '3520211000046', 'Lahore',      'LH-NT-01', [0, 8, 0],  '2003-03-07', 'NOTICE_ISSUED',          17800],
+            ['Meena Rani',         'Gopal Das',      '3520211000047', 'Lahore',      'LH-NT-02', [0, 12, 0], '2000-06-25', 'NOTICE_ISSUED',          22600],
+            ['Arshad Mahmood',     'Sadiq Ali',      '3520211000048', 'Lahore',      'LH-RF-01', [0, 10, 0], '2001-09-13', 'RENT_FIXED',             19400],
+            ['Pushpa Devi',        'Om Prakash',     '3520211000049', 'Lahore',      'LH-RF-02', [0, 6, 3],  '2004-01-20', 'RENT_FIXED',             15200],
 
-            ['Ghulam Farid',       'Noor Muhammad',  '3520111000023', 'Multan',      'MUL-34',  [0, 10, 0], '2007-05-27', 'SITE_INSPECTION',        null],
-            ['Dev Raj',            'Amar Nath',      '3520111000024', 'Lahore',      'KN-41',   [0, 12, 3], '2001-07-04', 'SITE_INSPECTION',        null],
-            ['Rashida Bibi',       'Late Sharif',    '3520111000025', 'Gujranwala',  'GRW-22',  [0, 5, 0],  '2008-02-14', 'SCRUTINY',               null],
+            // —— Site inspection + scrutiny (DO processing) ——
+            ['Ghulam Farid',       'Noor Muhammad',  '3520211000050', 'Lahore',      'LH-SI-01', [0, 10, 0], '2007-05-27', 'SITE_INSPECTION',        null],
+            ['Dev Raj',            'Amar Nath',      '3520211000051', 'Lahore',      'LH-SI-02', [0, 12, 3], '2001-07-04', 'SITE_INSPECTION',        null],
+            ['Rashida Bibi',       'Late Sharif',    '3520211000052', 'Lahore',      'LH-SI-03', [0, 5, 0],  '2008-02-14', 'SITE_INSPECTION',        null],
+            ['Balbir Singh',       'Kartar Singh',   '3520211000053', 'Lahore',      'LH-SI-04', [1, 0, 0],  '1999-10-30', 'SITE_INSPECTION',        null],
+            ['Shahid Hussain',     'Maqsood Ahmed',  '3520211000054', 'Lahore',      'LH-SI-05', [0, 8, 0],  '2006-08-19', 'SITE_INSPECTION',        null],
+            ['Ashok Kumar',        'Prem Nath',      '3520211000055', 'Lahore',      'LH-SC-01', [0, 9, 6],  '2004-11-23', 'SCRUTINY',               null],
+            ['Muhammad Aslam',     'Barkat Ali',     '3520211000056', 'Lahore',      'LH-SC-02', [1, 1, 0],  '2009-03-09', 'SCRUTINY',               null],
+            ['Bimla Devi',         'Hans Raj',       '3520211000057', 'Lahore',      'LH-SC-03', [0, 6, 0],  '2003-06-30', 'SCRUTINY',               null],
+            ['Naeem Ullah',        'Saeed Ullah',    '3520211000058', 'Lahore',      'LH-SC-04', [0, 11, 0], '2005-12-11', 'SCRUTINY',               null],
+            ['Savita Rani',        'Kailash Nath',   '3520211000059', 'Lahore',      'LH-SC-05', [0, 7, 2],  '2002-04-05', 'SCRUTINY',               null],
+            ['Zulfiqar Ali',       'Muhammad Sadiq', '3520211000060', 'Faisalabad',  'FSD-SC-01',[0, 15, 0], '2006-08-18', 'SCRUTINY',               null],
 
-            ['Ashok Kumar',        'Prem Nath',      '3520111000026', 'Sialkot',     'SKT-18',  [0, 9, 6],  '2004-11-23', 'SUBMITTED',              null],
-            ['Muhammad Aslam',     'Barkat Ali',     '3520111000027', 'Lahore',      'KN-52',   [1, 1, 0],  '2009-03-09', 'SUBMITTED',              null],
-            ['Bimla Devi',         'Hans Raj',       '3520111000028', 'Rawalpindi',  'RWP-71',  [0, 6, 0],  '2003-06-30', 'SUBMITTED',              null],
+            // —— Fee verification (paid, ready for DO) + submitted deposits ——
+            ['Iftikhar Ahmed',     'Rehmat Ali',     '3520211000061', 'Lahore',      'LH-FV-01', [0, 8, 0],  '2005-12-20', 'FEE_VERIFICATION',       null],
+            ['Raj Kumari',         'Lekh Raj',       '3520211000062', 'Lahore',      'LH-FV-02', [0, 7, 2],  '1999-04-05', 'FEE_VERIFICATION',       null],
+            ['Saleem Akhtar',      'Naseer Ahmed',   '3520211000063', 'Lahore',      'LH-FV-03', [0, 9, 0],  '2007-07-15', 'FEE_VERIFICATION',       null],
+            ['Kiran Bala',         'Roshan Lal',     '3520211000064', 'Lahore',      'LH-FV-04', [0, 5, 0],  '2001-11-08', 'FEE_VERIFICATION',       null],
+            ['Asghar Ali',         'Muhammad Ali',   '3520211000065', 'Lahore',      'LH-FV-05', [1, 2, 0],  '2003-02-27', 'FEE_VERIFICATION',       null],
+            ['Om Parkash',         'Jagan Nath',     '3520211000066', 'Lahore',      'LH-SB-01', [1, 4, 0],  '2000-02-28', 'SUBMITTED',              null],
+            ['Manzoor Hussain',    'Bashir Ahmed',   '3520211000067', 'Lahore',      'LH-SB-02', [0, 11, 4], '2007-09-15', 'SUBMITTED',              null],
+            ['Shabnam Bibi',       'Late Akram',     '3520211000068', 'Lahore',      'LH-SB-03', [0, 6, 0],  '2004-04-12', 'SUBMITTED',              null],
+            ['Ramesh Kumar',       'Suresh Kumar',   '3520211000069', 'Lahore',      'LH-SB-04', [0, 8, 0],  '2008-01-03', 'SUBMITTED',              null],
+            ['Khalid Mahmood',     'Aziz Ahmed',     '3520211000070', 'Lahore',      'LH-SB-05', [0, 10, 0], '2002-08-24', 'SUBMITTED',              null],
+            ['Perveen Akhtar',     'Late Hanif',     '3520211000071', 'Sialkot',     'SKT-SB-01',[0, 7, 0],  '2006-05-09', 'SUBMITTED',              null],
 
-            ['Zulfiqar Ali',       'Muhammad Sadiq', '3520111000029', 'Faisalabad',  'FSD-29',  [0, 15, 0], '2006-08-18', 'DRAFT',                  null],
-            ['Raj Kumari',         'Lekh Raj',       '3520111000030', 'Multan',      'MUL-45',  [0, 7, 2],  '1999-04-05', 'DRAFT',                  null],
-            ['Iftikhar Ahmed',     'Rehmat Ali',     '3520111000031', 'Lahore',      'KN-63',   [0, 8, 0],  '2005-12-20', 'DRAFT',                  null],
+            // —— Sub-judice / litigation inventory ——
+            ['Haroon Rashid',      'Abdul Rashid',   '3520211000080', 'Lahore',      'LH-SJ-01', [0, 9, 0],  '2001-05-17', 'SUB_JUDICE',             null],
+            ['Sunita Devi',        'Ram Lal',        '3520211000081', 'Lahore',      'LH-SJ-02', [0, 6, 0],  '2003-09-04', 'SUB_JUDICE',             null],
+            ['Javed Iqbal',        'Muhammad Iqbal', '3520211000082', 'Lahore',      'LH-SJ-03', [1, 0, 0],  '1998-03-21', 'SUB_JUDICE',             null],
+            ['Champa Bai',         'Late Ganga Ram', '3520211000083', 'Lahore',      'LH-SJ-04', [0, 8, 2],  '2005-10-10', 'SUB_JUDICE',             null],
+            ['Nisar Ahmed',        'Ismail Ahmed',   '3520211000084', 'Lahore',      'LH-SJ-05', [0, 12, 0], '2000-12-01', 'SUB_JUDICE',             null],
+            ['Gulzar Ahmed',       'Barkat Ali',     '3520211000085', 'Multan',      'MUL-SJ-01',[0, 7, 0],  '2004-07-28', 'SUB_JUDICE',             null],
 
-            ['Om Parkash',         'Jagan Nath',     '3520111000032', 'Lahore',      'KN-70',   [1, 4, 0],  '2000-02-28', 'SUB_JUDICE',             null],
-            ['Manzoor Hussain',    'Bashir Ahmed',   '3520111000033', 'Gujranwala',  'GRW-31',  [0, 11, 4], '2007-09-15', 'REJECTED',               null],
+            // —— Drafts / rejected (edge states for lists & charts) ——
+            ['Yasmeen Bibi',       'Late Rafique',   '3520211000090', 'Lahore',      'LH-DR-01', [0, 5, 0],  '2009-01-15', 'DRAFT',                  null],
+            ['Satish Kumar',       'Madan Lal',      '3520211000091', 'Lahore',      'LH-DR-02', [0, 8, 0],  '2006-06-06', 'DRAFT',                  null],
+            ['Afzal Hussain',      'Nazar Hussain',  '3520211000092', 'Lahore',      'LH-DR-03', [0, 4, 0],  '2008-09-19', 'DRAFT',                  null],
+            ['Rehana Kausar',      'Late Saleem',    '3520211000093', 'Lahore',      'LH-DR-04', [0, 7, 0],  '2007-11-02', 'DRAFT',                  null],
+            ['Deepak Raj',         'Kishori Lal',    '3520211000094', 'Lahore',      'LH-DR-05', [0, 6, 0],  '2005-03-14', 'DRAFT',                  null],
+            ['Mumtaz Ali',         'Ghulam Ali',     '3520211000095', 'Gujranwala',  'GRW-RJ-01',[0, 9, 0],  '2007-01-22', 'REJECTED',               null],
+            ['Anila Bibi',         'Late Zahoor',    '3520211000096', 'Lahore',      'LH-RJ-01', [0, 5, 0],  '2008-04-18', 'REJECTED',               null],
         ];
 
         DB::transaction(function () use (
@@ -101,8 +160,10 @@ class DemoDataSeeder extends Seeder
                     continue;
                 }
 
+                // Default URBAN profile has no SARSAI — fold any residual into marlas.
+                $marlas = $dims[1] + (int) ceil(($dims[2] ?? 0) / 9);
                 $converted = $area->toSqft(
-                    array_filter(['KANAL' => $dims[0], 'MARLA' => $dims[1], 'SARSAI' => $dims[2]]),
+                    array_filter(['KANAL' => $dims[0], 'MARLA' => $marlas]),
                     $profileId,
                 );
                 $assessment = $eligibility->assess($possession);
@@ -145,8 +206,8 @@ class DemoDataSeeder extends Seeder
                     'unit_profile_id'  => $profileId,
                     'entry_mode'       => 'COMPOUND',
                     'kanals'           => $dims[0] ?: null,
-                    'marlas'           => $dims[1] ?: null,
-                    'sarsais'          => $dims[2] ?: null,
+                    'marlas'           => $marlas ?: null,
+                    'sarsais'          => null,
                     'area_sqft'        => $converted['sqft'],
                     'conversion_trace' => $converted['trace'],
                     'is_current'       => true,
@@ -338,20 +399,23 @@ class DemoDataSeeder extends Seeder
             'created_at'          => now(), 'updated_at' => now(),
         ]);
 
-        if ($stage === 'OBJECTION_WINDOW') {
+        if (in_array($stage, ['OBJECTION_WINDOW', 'HEARING'], true)) {
+            // Mix FILED / UNDER_HEARING so objection-queue stats and charts both light up.
+            $objStatus = $stage === 'HEARING' || ($i % 3 === 0) ? 'UNDER_HEARING' : 'FILED';
+
             DB::table('objections')->insert([
                 'application_id'   => $application->id,
                 'public_notice_id' => $noticeId,
                 'objection_no'     => $application->application_no . '/OBJ/01',
-                'objector_name'    => ['Sattar Khan', 'Lachman Das'][$i % 2],
+                'objector_name'    => ['Sattar Khan', 'Lachman Das', 'Feroze Din', 'Ravi Das'][$i % 4],
                 'objector_cnic'    => '35201' . str_pad((string) (2200000 + $i), 8, '0', STR_PAD_LEFT),
                 'relationship_to_property' => 'Occupant of the adjoining sub-unit',
                 'plea'             => 'The proposed rent is excessive for this locality and does not '
                     . 'reflect the condition of the structure, which has had no major repair for many '
                     . 'years. The adjoining property relied upon is of newer construction.',
-                'filed_on'         => now()->subDays(30 - $i)->toDateString(),
+                'filed_on'         => now()->subDays(max(2, 30 - ($i % 20)))->toDateString(),
                 'is_within_time'   => true,
-                'status'           => 'FILED',
+                'status'           => $objStatus,
                 'created_at'       => now(), 'updated_at' => now(),
             ]);
         }
@@ -518,22 +582,32 @@ class DemoDataSeeder extends Seeder
             return;
         }
 
+        $aid = (int) $application->id;
+        $courts = [
+            'Senior Civil Judge, Lahore',
+            'Civil Judge Class-I, Lahore',
+            'Additional District Judge, Lahore',
+            'District Judge, Lahore',
+            'Senior Civil Judge, Multan',
+        ];
+
         DB::table('litigations')->insert([
             'application_id'         => $application->id,
             'property_id'            => $application->property_id,
-            'court_name'             => 'Senior Civil Judge, Lahore',
-            'case_no'                => 'Suit 1184/2025',
+            'court_name'             => $courts[$aid % count($courts)],
+            'case_no'                => 'Suit ' . (1100 + $aid) . '/2025',
             'case_title'             => $application->applicant->full_name . ' vs. ETPB',
-            'case_type'              => 'CIVIL_SUIT',
-            'filed_on'               => now()->subMonths(7)->toDateString(),
+            'case_type'              => $aid % 4 === 0 ? 'WRIT_PETITION' : 'CIVIL_SUIT',
+            'filed_on'               => now()->subMonths(3 + ($aid % 8))->toDateString(),
             'petitioner'             => $application->applicant->full_name,
             'respondent'             => 'Evacuee Trust Property Board',
             'is_pending'             => true,
-            'has_restraining_order'  => true,
-            'restraining_order_date' => now()->subMonths(6)->toDateString(),
-            'restraining_order_text' => 'The parties are directed to maintain status quo in respect '
-                . 'of the suit property until the next date of hearing.',
-            'next_hearing_date'      => now()->addDays(23)->toDateString(),
+            'has_restraining_order'  => $aid % 3 !== 0,
+            'restraining_order_date' => $aid % 3 !== 0 ? now()->subMonths(2 + ($aid % 5))->toDateString() : null,
+            'restraining_order_text' => $aid % 3 !== 0
+                ? 'The parties are directed to maintain status quo in respect of the suit property until the next date of hearing.'
+                : null,
+            'next_hearing_date'      => now()->addDays(7 + ($aid % 40))->toDateString(),
             'outcome'                => 'PENDING',
             'created_at'             => now(), 'updated_at' => now(),
         ]);

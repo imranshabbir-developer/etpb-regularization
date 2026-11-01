@@ -110,6 +110,14 @@ class RolePermissionSeeder extends Seeder
         $permissionIds = [];
         foreach ($this->modules as $module => $perms) {
             foreach ($perms as [$code, $name]) {
+                // Migrations may have inserted a few codes already (e.g. after
+                // migrate:fresh). Re-use those rows instead of failing on unique.
+                $existing = DB::table('permissions')->where('code', $code)->value('id');
+                if ($existing) {
+                    $permissionIds[$code] = (int) $existing;
+                    continue;
+                }
+
                 $permissionIds[$code] = DB::table('permissions')->insertGetId([
                     'code'       => $code,
                     'name'       => $name,
