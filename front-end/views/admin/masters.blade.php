@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
-@section('title', 'Reference data')
-@section('heading', 'Reference data')
+@section('title', __('Reference data'))
+@section('heading', __('Reference data'))
 
 @section('content')
 
 <div class="page-head">
-    <h1>Reference data</h1>
-    <p class="lede">Geography, measurement standards, document heads and rate sources.</p>
+    <h1>{{ __('Reference data') }}</h1>
+    <p class="lede">{{ __('Geography, measurement standards, document heads and rate sources.') }}</p>
 </div>
 
 <div class="tiles">
     @foreach ($counts as $label => $n)
         <div class="tile">
-            <div class="tile-label">{{ ucfirst($label) }}</div>
+            <div class="tile-label">{{ __(ucfirst($label)) }}</div>
             <div class="tile-value">{{ number_format($n) }}</div>
             @if ($label === 'mouzas' && $n === 0)
-                <div class="tile-sub">awaiting the Board of Revenue list</div>
+                <div class="tile-sub">{{ __('awaiting the Board of Revenue list') }}</div>
             @endif
         </div>
     @endforeach
@@ -27,10 +27,8 @@
         @include('partials.icon', ['name' => 'alert'])
         <div>
             <p class="mb-0">
-                <strong>No mouza list is loaded.</strong> Applicants can still type a mouza name
-                free-hand, and it is kept against the property, but it is not validated against a
-                revenue master. Loading the Board of Revenue mouza list for the districts in scope
-                would close that gap.
+                <strong>{{ __('No mouza list is loaded.') }}</strong>
+                {{ __('Applicants can still type a mouza name free-hand, and it is kept against the property, but it is not validated against a revenue master. Loading the Board of Revenue mouza list for the districts in scope would close that gap.') }}
             </p>
         </div>
     </div>
@@ -39,31 +37,28 @@
 {{-- ---------- Measurement standards ---------- --}}
 <div class="card">
     <div class="card-head">
-        <h3>Measurement standards</h3>
-        <div class="card-actions"><span class="clause">Affects every rent</span></div>
+        <h3>{{ __('Measurement standards') }}</h3>
+        <div class="card-actions"><span class="clause">{{ __('Affects every rent') }}</span></div>
     </div>
     <div class="card-body">
         <p class="muted text-[.9rem]">
-            A Marla is 272.25 sqft on the revenue standard and 225 sqft in most urban housing
-            schemes &mdash; a 21% difference that carries straight into the assessed rent.
-            The factors used are frozen onto each application when the area is recorded, so
-            changing a district here never restates an assessment already made.
+            {{ __('A Marla is 272.25 sqft on the revenue standard and 225 sqft in most urban housing schemes — a 21% difference that carries straight into the assessed rent. The factors used are frozen onto each application when the area is recorded, so changing a district here never restates an assessment already made.') }}
         </p>
 
         <div class="grid-2">
             @foreach ($profiles as $p)
                 <div>
                     <div class="inline-list">
-                        <strong>{{ $p->name }}</strong>
-                        @if ($p->is_default)<span class="badge badge-good">Default</span>@endif
+                        <strong>{{ __($p->name ?? '') }}</strong>
+                        @if ($p->is_default)<span class="badge badge-good">{{ __('Default') }}</span>@endif
                     </div>
                     <div class="table-wrap mt-1">
                         <table class="data">
-                            <thead><tr><th>Unit</th><th class="num">Square feet</th></tr></thead>
+                            <thead><tr><th>{{ __('Unit') }}</th><th class="num">{{ __('Square feet') }}</th></tr></thead>
                             <tbody>
                             @foreach ($factors[$p->id] ?? [] as $f)
                                 <tr>
-                                    <td>{{ $f->unit_name }}</td>
+                                    <td>{{ __($f->unit_name ?? '') }}</td>
                                     <td class="num">{{ rtrim(rtrim($f->sqft_per_unit, '0'), '.') }}</td>
                                 </tr>
                             @endforeach
@@ -79,22 +74,22 @@
 {{-- ---------- Districts ---------- --}}
 <div class="card">
     <div class="card-head">
-        <h3>Districts</h3>
+        <h3>{{ __('Districts') }}</h3>
         <span class="badge badge-neutral">{{ number_format($districts->total()) }}</span>
     </div>
     <div class="table-wrap border-0 rounded-none">
         <table class="data">
             <thead>
-            <tr><th>District</th><th>Province</th><th>Measurement standard</th><th></th></tr>
+            <tr><th>{{ __('District') }}</th><th>{{ __('Province') }}</th><th>{{ __('Measurement standard') }}</th><th></th></tr>
             </thead>
             <tbody>
             @foreach ($districts as $d)
                 <tr>
-                    <td>{{ $d->name }}</td>
-                    <td>{{ $d->province?->name }}</td>
+                    <td>{{ __($d->name ?? '') }}</td>
+                    <td>{{ __($d->province?->name ?? '') }}</td>
                     <td>
                         <span class="badge badge-{{ $d->unitProfile?->code === 'REVENUE' ? 'good' : 'gold' }}">
-                            {{ $d->unitProfile?->code ?? 'Not set' }}
+                            {{ $d->unitProfile?->code ?? __('Not set') }}
                         </span>
                     </td>
                     <td class="text-end">
@@ -109,7 +104,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <button class="btn btn-outline btn-sm" type="submit">Set</button>
+                            <button class="btn btn-outline btn-sm" type="submit">{{ __('Set') }}</button>
                         </form>
                     </td>
                 </tr>
@@ -126,18 +121,18 @@
     {{-- ---------- Document heads ---------- --}}
     <div class="card">
         <div class="card-head">
-            <h3>Evidence heads</h3>
-            <div class="card-actions"><span class="clause">Head 2</span></div>
+            <h3>{{ __('Evidence heads') }}</h3>
+            <div class="card-actions"><span class="clause">{{ __('Head 2') }}</span></div>
         </div>
         <div class="table-wrap border-0 rounded-none">
             <table class="data">
-                <thead><tr><th>Document</th><th>Required</th><th>Certified</th></tr></thead>
+                <thead><tr><th>{{ __('Document') }}</th><th>{{ __('Required') }}</th><th>{{ __('Certified') }}</th></tr></thead>
                 <tbody>
                 @foreach ($documentTypes as $t)
                     <tr>
-                        <td>{{ $t->name }}</td>
-                        <td>{!! $t->is_mandatory ? '<span class="badge badge-danger">Yes</span>' : '<span class="faint">No</span>' !!}</td>
-                        <td>{!! $t->is_certified_copy_required ? '<span class="badge badge-gold">Yes</span>' : '<span class="faint">No</span>' !!}</td>
+                        <td>{{ __($t->name ?? '') }}</td>
+                        <td>@if ($t->is_mandatory)<span class="badge badge-danger">{{ __('Yes') }}</span>@else<span class="faint">{{ __('No') }}</span>@endif</td>
+                        <td>@if ($t->is_certified_copy_required)<span class="badge badge-gold">{{ __('Yes') }}</span>@else<span class="faint">{{ __('No') }}</span>@endif</td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -148,17 +143,17 @@
     {{-- ---------- Rate sources ---------- --}}
     <div class="card">
         <div class="card-head">
-            <h3>Rate sources</h3>
-            <div class="card-actions"><span class="clause">Head 3</span></div>
+            <h3>{{ __('Rate sources') }}</h3>
+            <div class="card-actions"><span class="clause">{{ __('Head 3') }}</span></div>
         </div>
         <div class="table-wrap border-0 rounded-none">
             <table class="data">
-                <thead><tr><th>Source</th><th>Operative</th></tr></thead>
+                <thead><tr><th>{{ __('Source') }}</th><th>{{ __('Operative') }}</th></tr></thead>
                 <tbody>
                 @foreach ($rateSources as $r)
                     <tr>
-                        <td>{{ $r->name }}</td>
-                        <td>{!! $r->is_operative ? '<span class="badge badge-gold">The DO rate</span>' : '<span class="faint">Supporting</span>' !!}</td>
+                        <td>{{ __($r->name ?? '') }}</td>
+                        <td>@if ($r->is_operative)<span class="badge badge-gold">{{ __('The DO rate') }}</span>@else<span class="faint">{{ __('Supporting') }}</span>@endif</td>
                     </tr>
                 @endforeach
                 </tbody>

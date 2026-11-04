@@ -6,6 +6,7 @@ use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DueProcessController;
 use App\Http\Controllers\FeeController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ApplyController;
@@ -33,6 +34,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::redirect('/', '/dashboard')->name('home');
+
+Route::get('/language/{locale}', LocaleController::class)
+    ->whereIn('locale', ['ur', 'en'])
+    ->name('locale.switch');
 
 // ---- Guest ---------------------------------------------------------------
 

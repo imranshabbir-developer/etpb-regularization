@@ -33,12 +33,13 @@ class LookupController extends Controller
             ->first();
 
         return response()->json([
-            'province' => $district?->province,
+            'province' => $district?->province ? __($district->province) : null,
             'tehsils'  => DB::table('tehsils')
                 ->where('district_id', $data['district'])
                 ->where('is_active', true)
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name'])
+                ->map(fn ($t) => ['id' => $t->id, 'name' => __($t->name)]),
         ]);
     }
 

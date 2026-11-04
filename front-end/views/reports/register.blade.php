@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', $title)
-@section('heading', $title)
+@section('title', __($title))
+@section('heading', __($title))
 
 @section('content')
 
 <div class="page-head">
-    <h1>{{ $title }}</h1>
-    <p class="lede">As at {{ $generatedAt->format('d F Y, H:i') }}. Up to 2,000 rows.</p>
+    <h1>{{ __($title) }}</h1>
+    <p class="lede">{{ __('As at :date. Up to 2,000 rows.', ['date' => $generatedAt->translatedFormat('d F Y, H:i')]) }}</p>
 </div>
 
 <div class="card no-print">
@@ -15,7 +15,7 @@
         <div class="btn-row">
             @foreach ($registers as $code => $label)
                 <a href="{{ route('reports.registers', $code) }}"
-                   class="btn btn-{{ $code === $register ? 'primary' : 'outline' }} btn-sm">{{ $label }}</a>
+                   class="btn btn-{{ $code === $register ? 'primary' : 'outline' }} btn-sm">{{ __($label) }}</a>
             @endforeach
         </div>
         <div class="mt-2">
@@ -25,12 +25,12 @@
 </div>
 
 <div class="card">
-    <div class="card-head"><h3>{{ number_format($rows->count()) }} rows</h3></div>
+    <div class="card-head"><h3>{{ __(':count rows', ['count' => number_format($rows->count())]) }}</h3></div>
 
     @if ($rows->isEmpty())
         <div class="empty">
             @include('partials.icon', ['name' => 'empty'])
-            <p class="mb-0">Nothing to show in this register.</p>
+            <p class="mb-0">{{ __('Nothing to show in this register.') }}</p>
         </div>
     @else
         <div class="table-wrap" style="border:0;border-radius:0;max-height:70vh;overflow:auto">
@@ -38,7 +38,7 @@
                 <thead>
                 <tr>
                     @foreach (array_keys((array) $rows->first()) as $col)
-                        <th>{{ ucwords(str_replace('_', ' ', $col)) }}</th>
+                        <th>{{ __(ucwords(str_replace('_', ' ', $col))) }}</th>
                     @endforeach
                 </tr>
                 </thead>
@@ -51,6 +51,10 @@
                                     {{ number_format((float) $value, 2) }}
                                 @elseif (is_null($value) || $value === '')
                                     <span class="faint">&mdash;</span>
+                                @elseif ($col === 'district')
+                                    {{ __($value) }}
+                                @elseif (app()->getLocale() !== 'en' && is_string($value) && preg_match('/^[A-Z][A-Z0-9_]+$/', $value))
+                                    {{ __(\App\Services\WorkflowService::LABELS[$value] ?? ucfirst(strtolower(str_replace('_', ' ', $value)))) }}
                                 @else
                                     {{ $value }}
                                 @endif

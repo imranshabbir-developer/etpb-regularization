@@ -56,14 +56,15 @@ class AreaConversionService
                 continue;
             }
             if (! isset($factors[$unitCode])) {
-                throw new InvalidArgumentException(
-                    "Unit [{$unitCode}] is not defined in conversion profile [{$profileMeta->code}]."
-                );
+                throw new InvalidArgumentException(__(
+                    'Unit [:unit] is not defined in conversion profile [:profile].',
+                    ['unit' => $unitCode, 'profile' => $profileMeta->code]
+                ));
             }
 
             $qty = $this->normalise((string) $value);
             if (bccomp($qty, '0', self::SCALE) < 0) {
-                throw new InvalidArgumentException("Area component [{$unitCode}] cannot be negative.");
+                throw new InvalidArgumentException(__('Area component [:unit] cannot be negative.', ['unit' => $unitCode]));
             }
 
             $factor = $factors[$unitCode]->sqft_per_unit;
@@ -81,7 +82,7 @@ class AreaConversionService
         }
 
         if ($lines === []) {
-            throw new InvalidArgumentException('At least one area component must be greater than zero.');
+            throw new InvalidArgumentException(__('At least one area component must be greater than zero.'));
         }
 
         return [
@@ -106,7 +107,7 @@ class AreaConversionService
         $unitCode = strtoupper($unitCode);
 
         if (! isset($factors[$unitCode])) {
-            throw new InvalidArgumentException("Unit [{$unitCode}] is not defined in this profile.");
+            throw new InvalidArgumentException(__('Unit [:unit] is not defined in this profile.', ['unit' => $unitCode]));
         }
 
         return bcdiv($this->normalise($sqft), $factors[$unitCode]->sqft_per_unit, self::SCALE);
@@ -143,11 +144,11 @@ class AreaConversionService
         }
 
         $label = $parts === []
-            ? '0 ' . ($units->first()->unit_name ?? 'sqft')
-            : implode(' ', array_map(fn ($p) => "{$p['quantity']} {$p['unit_name']}", $parts));
+            ? '0 ' . __($units->first()->unit_name ?? 'sqft')
+            : implode(' ', array_map(fn ($p) => $p['quantity'] . ' ' . __($p['unit_name']), $parts));
 
         if (bccomp($remaining, '0', self::SCALE) > 0) {
-            $label .= ' ' . rtrim(rtrim($remaining, '0'), '.') . ' sqft';
+            $label .= ' ' . rtrim(rtrim($remaining, '0'), '.') . ' ' . __('sqft');
         }
 
         return [
@@ -186,7 +187,7 @@ class AreaConversionService
         $row = DB::table('unit_conversion_profiles')->where('is_default', true)->first();
 
         if (! $row) {
-            throw new \RuntimeException('No default area conversion profile is configured.');
+            throw new \RuntimeException(__('No default area conversion profile is configured.'));
         }
 
         return (int) $row->id;
@@ -246,7 +247,7 @@ class AreaConversionService
         });
 
         if (! $row) {
-            throw new InvalidArgumentException("Unknown area conversion profile [{$profile}].");
+            throw new InvalidArgumentException(__('Unknown area conversion profile [:profile].', ['profile' => $profile]));
         }
 
         return (object) $row;
@@ -258,7 +259,7 @@ class AreaConversionService
         $clean = str_replace([',', ' ', '_'], '', trim($value));
 
         if ($clean === '' || ! is_numeric($clean)) {
-            throw new InvalidArgumentException("Value [{$value}] is not a valid number.");
+            throw new InvalidArgumentException(__('Value [:value] is not a valid number.', ['value' => $value]));
         }
 
         return bcadd($clean, '0', self::SCALE);

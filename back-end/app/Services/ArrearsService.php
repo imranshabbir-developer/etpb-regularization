@@ -38,7 +38,7 @@ class ArrearsService
 
         if ($schedule->isEmpty()) {
             throw new RuntimeException(
-                'No rent schedule exists for this application. Fix the rent before generating arrears.'
+                __('No rent schedule exists for this application. Fix the rent before generating arrears.')
             );
         }
 
@@ -122,7 +122,7 @@ class ArrearsService
         array $extra = [],
     ): string {
         if (bccomp($amount, '0', self::MONEY_SCALE) <= 0) {
-            throw new InvalidArgumentException('A receipt amount must be greater than zero.');
+            throw new InvalidArgumentException(__('A receipt amount must be greater than zero.'));
         }
 
         return DB::transaction(function () use ($applicationId, $amount, $receiptDate, $mode, $userId, $extra) {
@@ -188,14 +188,15 @@ class ArrearsService
         $max = $this->settings->int('max_instalments', 24);
 
         if ($count < 1 || $count > $max) {
-            throw new InvalidArgumentException(
-                "Clause 13 of the Scheme 1977 allows not more than {$max} monthly instalments; {$count} requested."
-            );
+            throw new InvalidArgumentException(__(
+                'Clause 13 of the Scheme 1977 allows not more than :max monthly instalments; :count requested.',
+                ['max' => $max, 'count' => $count]
+            ));
         }
 
         $balance = $this->summary($applicationId)['balance'];
         if (bccomp($balance, '0', self::MONEY_SCALE) <= 0) {
-            throw new RuntimeException('There is no outstanding balance to spread over instalments.');
+            throw new RuntimeException(__('There is no outstanding balance to spread over instalments.'));
         }
 
         $per = $this->money(bcdiv($balance, (string) $count, 8));
@@ -254,7 +255,7 @@ class ArrearsService
         if (bccomp($balance, '0', self::MONEY_SCALE) <= 0) {
             return [
                 'satisfied' => true,
-                'reason'    => 'All assessed arrears have been cleared.',
+                'reason'    => __('All assessed arrears have been cleared.'),
                 'balance'   => $balance,
             ];
         }
@@ -268,10 +269,9 @@ class ArrearsService
         if ($plan) {
             return [
                 'satisfied' => true,
-                'reason'    => sprintf(
-                    'An instalment plan of %d instalments was approved under Clause 13.',
-                    $plan->instalment_count
-                ),
+                'reason'    => __('An instalment plan of :count instalments was approved under Clause 13.', [
+                    'count' => $plan->instalment_count,
+                ]),
                 'balance'   => $balance,
             ];
         }
@@ -285,19 +285,16 @@ class ArrearsService
         if ($remission) {
             return [
                 'satisfied' => true,
-                'reason'    => 'A remission was approved by the Chairman under Clause 12.',
+                'reason'    => __('A remission was approved by the Chairman under Clause 12.'),
                 'balance'   => $balance,
             ];
         }
 
         return [
             'satisfied' => false,
-            'reason'    => sprintf(
-                'Arrears of Rs. %s remain outstanding. Clause 3(ii)(b) requires the occupant to '
-                . 'clear all arrears, or an instalment plan (Clause 13) or remission (Clause 12) '
-                . 'must be approved, before regularization can be approved.',
-                number_format((float) $balance, 2)
-            ),
+            'reason'    => __('Arrears of Rs. :amount remain outstanding. Clause 3(ii)(b) requires the occupant to clear all arrears, or an instalment plan (Clause 13) or remission (Clause 12) must be approved, before regularization can be approved.', [
+                'amount' => number_format((float) $balance, 2),
+            ]),
             'balance'   => $balance,
         ];
     }

@@ -5,12 +5,12 @@
     Image fits browser height without stretching (object-fit: contain).
 --}}
 <div class="promo-modal" id="etpbPromoModal" role="dialog" aria-modal="true"
-     aria-label="Evacuee Trust Property Board — Property Regularization" hidden>
+     aria-label="{{ __('Evacuee Trust Property Board — Property Regularization') }}" hidden>
     <div class="promo-modal-backdrop" data-promo-close tabindex="-1"></div>
 
     <div class="promo-modal-dialog" role="document">
         <button type="button" class="promo-modal-close" data-promo-close
-                aria-label="Close announcement">
+                aria-label="{{ __('Close announcement') }}">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
                 <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/>
             </svg>
@@ -19,7 +19,7 @@
         <div class="promo-modal-frame">
             <img
                 src="{{ asset('assets/img/maryam_nawaz_2.jpg') }}"
-                alt="Government of Punjab — Evacuee Trust Property Board Property Regularization. Apply online now to regularize your possession."
+                alt="{{ __('Government of Punjab — Evacuee Trust Property Board Property Regularization. Apply online now to regularize your possession.') }}"
                 class="promo-modal-img"
                 width="900"
                 height="1200"

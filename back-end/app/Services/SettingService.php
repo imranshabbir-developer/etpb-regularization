@@ -136,12 +136,13 @@ class SettingService
                 ->first();
 
             if (! $current) {
-                throw new \RuntimeException("Unknown setting [{$key}].");
+                throw new \RuntimeException(__('Unknown setting [:key].', ['key' => $key]));
             }
             if (! $current->is_editable) {
-                throw new \RuntimeException(
-                    "Setting [{$key}] is fixed by statute and cannot be edited: {$current->legal_reference}"
-                );
+                throw new \RuntimeException(__(
+                    'Setting [:key] is fixed by statute and cannot be edited: :reference',
+                    ['key' => $key, 'reference' => $current->legal_reference ? __($current->legal_reference) : '']
+                ));
             }
 
             DB::table('settings')->where('id', $current->id)->update([

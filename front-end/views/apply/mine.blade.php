@@ -1,29 +1,29 @@
 @extends('layouts.app')
 
-@section('title', 'My applications')
-@section('heading', 'My applications')
+@section('title', __('My applications'))
+@section('heading', __('My applications'))
 
 @section('content')
 
 <div class="page-head">
-    <h1>My applications</h1>
-    <p class="lede">Everything you have filed, and where each one stands.</p>
+    <h1>{{ __('My applications') }}</h1>
+    <p class="lede">{{ __('Everything you have filed, and where each one stands.') }}</p>
 </div>
 
 @if ($applications->isEmpty())
     <div class="card">
         <div class="empty">
             @include('partials.icon', ['name' => 'empty'])
-            <p class="mb-0">You have not filed an application yet.</p>
+            <p class="mb-0">{{ __('You have not filed an application yet.') }}</p>
             <p class="mt-2">
-                <a href="{{ route('apply.start') }}" class="btn btn-primary">Start an application</a>
+                <a href="{{ route('apply.start') }}" class="btn btn-primary">{{ __('Start an application') }}</a>
             </p>
         </div>
     </div>
 @else
     <div class="btn-row mb-4">
         <a href="{{ route('apply.start') }}" class="btn btn-primary">
-            @include('partials.icon', ['name' => 'plus']) Start another application
+            @include('partials.icon', ['name' => 'plus']) {{ __('Start another application') }}
         </a>
     </div>
 
@@ -33,34 +33,34 @@
             <div class="card-head flex-wrap">
                 <h3>{{ $app->application_no }}</h3>
                 <span class="badge badge-{{ $app->payment_status === 'PAID' ? 'good' : 'warn' }}">
-                    Payment {{ $app->payment_status }}
+                    {{ __('Payment :status', ['status' => __($app->payment_status ?? '')]) }}
                 </span>
-                <span class="badge badge-{{ $app->statusTone() }}">{{ $app->statusLabel() }}</span>
+                <span class="badge badge-{{ $app->statusTone() }}">{{ __($app->statusLabel()) }}</span>
                 @if ($app->is_sub_judice)
-                    <span class="badge badge-danger">Court case pending</span>
+                    <span class="badge badge-danger">{{ __('Court case pending') }}</span>
                 @endif
             </div>
             <div class="card-body">
                 <dl class="kv">
-                    <dt>Property</dt>
+                    <dt>{{ __('Property') }}</dt>
                     <dd>
                         {{ $app->property?->property_no }}@if ($app->property?->sub_unit_no)/{{ $app->property->sub_unit_no }}@endif
-                        &middot; {{ $app->district?->name }}
+                        &middot; {{ __($app->district?->name ?? '') }}
                     </dd>
-                    <dt>Filed</dt>
-                    <dd>{{ $app->created_at->format('d F Y') }}</dd>
+                    <dt>{{ __('Filed') }}</dt>
+                    <dd>{{ $app->created_at->translatedFormat('d F Y') }}</dd>
                     @if ($app->possession)
-                        <dt>Possession since</dt>
-                        <dd>{{ \Illuminate\Support\Carbon::parse($app->possession->date_of_possession)->format('d F Y') }}</dd>
+                        <dt>{{ __('Possession since') }}</dt>
+                        <dd>{{ \Illuminate\Support\Carbon::parse($app->possession->date_of_possession)->translatedFormat('d F Y') }}</dd>
                     @endif
                     @if ($app->assessed_monthly_rent)
-                        <dt>Rent fixed</dt>
-                        <dd><strong>Rs. {{ number_format((float) $app->assessed_monthly_rent, 2) }}</strong> a month</dd>
+                        <dt>{{ __('Rent fixed') }}</dt>
+                        <dd><strong>Rs. {{ number_format((float) $app->assessed_monthly_rent, 2) }}</strong> {{ __('a month') }}</dd>
                     @endif
                     @if ((float) $app->total_arrears > 0)
-                        <dt>Arrears assessed</dt>
+                        <dt>{{ __('Arrears assessed') }}</dt>
                         <dd>Rs. {{ number_format((float) $app->total_arrears, 2) }}</dd>
-                        <dt>Still to pay</dt>
+                        <dt>{{ __('Still to pay') }}</dt>
                         <dd><strong>Rs. {{ number_format((float) $app->arrears_balance, 2) }}</strong></dd>
                     @endif
                 </dl>
@@ -70,8 +70,8 @@
                         @include('partials.icon', ['name' => 'alert'])
                         <div>
                             <p class="mb-0">
-                                This application has <strong>not been submitted yet</strong>.
-                                Finish it so the department can begin.
+                                {!! __('This application has <strong>not been submitted yet</strong>.') !!}
+                                {{ __('Finish it so the department can begin.') }}
                             </p>
                         </div>
                     </div>
@@ -80,8 +80,8 @@
                         @include('partials.icon', ['name' => 'alert'])
                         <div>
                             <p class="mb-0">
-                                Waiting for your <strong>Rs. 5,000 deposit</strong> to be confirmed.
-                                Nothing moves until then.
+                                {!! __('Waiting for your <strong>Rs. 5,000 deposit</strong> to be confirmed.') !!}
+                                {{ __('Nothing moves until then.') }}
                             </p>
                         </div>
                     </div>
@@ -90,7 +90,7 @@
                         @include('partials.icon', ['name' => 'alert'])
                         <div>
                             <p class="mb-0">
-                                <strong>The office needs something from you.</strong>
+                                <strong>{{ __('The office needs something from you.') }}</strong>
                                 {{ $app->status_remarks }}
                             </p>
                         </div>
@@ -100,15 +100,15 @@
                 <div class="btn-row mt-3">
                     @if ($draft)
                         <a href="{{ route('apply.evidence', $app) }}" class="btn btn-primary btn-sm">
-                            Continue this application @include('partials.icon', ['name' => 'arrow-right'])
+                            {{ __('Continue this application') }} @include('partials.icon', ['name' => 'arrow-right'])
                         </a>
                     @else
                         <a href="{{ route('applications.show', $app) }}" class="btn btn-outline btn-sm">
-                            View details
+                            {{ __('View details') }}
                         </a>
                     @endif
-                    <a href="{{ route('documents.index', $app) }}" class="btn btn-ghost btn-sm">Documents</a>
-                    <a href="{{ route('fee.index', $app) }}" class="btn btn-ghost btn-sm">Deposit</a>
+                    <a href="{{ route('documents.index', $app) }}" class="btn btn-ghost btn-sm">{{ __('Documents') }}</a>
+                    <a href="{{ route('fee.index', $app) }}" class="btn btn-ghost btn-sm">{{ __('Deposit') }}</a>
                 </div>
             </div>
         </div>

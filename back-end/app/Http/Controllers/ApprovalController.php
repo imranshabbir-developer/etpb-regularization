@@ -131,8 +131,8 @@ class ApprovalController extends Controller
             'conditions' => ['nullable', 'string', 'max:4000'],
             'order_reference' => ['nullable', 'string', 'max:120'],
         ], [
-            'reasons.required' => 'Clause 3(ii)(d) requires the Administrator to record reasons. This field cannot be left blank.',
-            'reasons.min'      => 'The reasons must be substantive — set out what was considered and why the decision follows.',
+            'reasons.required' => __('Clause 3(ii)(d) requires the Administrator to record reasons. This field cannot be left blank.'),
+            'reasons.min'      => __('The reasons must be substantive — set out what was considered and why the decision follows.'),
         ]);
 
         $user = $request->user();
@@ -183,10 +183,10 @@ class ApprovalController extends Controller
         return redirect()->route('approvals.show', $application)->with(
             'status',
             match ($data['action']) {
-                'APPROVE' => 'Regularization approved under Clause 3(ii)(d).'
-                             . ($late ? ' Recorded as decided beyond the one-month limit.' : ''),
-                'REJECT'  => 'Application rejected, with reasons recorded.',
-                'REMAND'  => 'Application remanded to the District Officer.',
+                'APPROVE' => __('Regularization approved under Clause 3(ii)(d).')
+                             . ($late ? ' ' . __('Recorded as decided beyond the one-month limit.') : ''),
+                'REJECT'  => __('Application rejected, with reasons recorded.'),
+                'REMAND'  => __('Application remanded to the District Officer.'),
             },
         );
     }
@@ -203,6 +203,6 @@ class ApprovalController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

@@ -145,11 +145,10 @@ class DueProcessController extends Controller
             ])->save();
         }
 
-        return back()->with('status', sprintf(
-            'Notice %s issued. Objections may be filed until %s.',
-            $notice->notice_no,
-            Carbon::parse($notice->objection_deadline)->format('d-m-Y'),
-        ));
+        return back()->with('status', __('Notice :notice issued. Objections may be filed until :date.', [
+            'notice' => $notice->notice_no,
+            'date'   => Carbon::parse($notice->objection_deadline)->format('d-m-Y'),
+        ]));
     }
 
     /**
@@ -172,8 +171,8 @@ class DueProcessController extends Controller
             'plea'                     => ['required', 'string', 'min:20', 'max:20000'],
             'filed_on'                 => ['required', 'date'],
         ], [
-            'plea.required' => 'The objection must record the plea taken, in the objector\'s own terms.',
-            'plea.min'      => 'Record the plea in full — it forms part of the case file and must be answerable.',
+            'plea.required' => __("The objection must record the plea taken, in the objector's own terms."),
+            'plea.min'      => __('Record the plea in full — it forms part of the case file and must be answerable.'),
         ]);
 
         // A nullable field that was not submitted is absent from the validated
@@ -196,8 +195,8 @@ class DueProcessController extends Controller
         ]);
 
         return back()->with('status', $withinTime
-            ? 'Objection recorded within time.'
-            : 'Objection recorded. It was filed after the 15-day window, which the District Officer must address when deciding it.');
+            ? __('Objection recorded within time.')
+            : __('Objection recorded. It was filed after the 15-day window, which the District Officer must address when deciding it.'));
     }
 
     /**
@@ -214,8 +213,8 @@ class DueProcessController extends Controller
             'rent_impact' => ['nullable', 'numeric'],
             'hearing_id'  => ['nullable', 'integer', 'exists:hearings,id'],
         ], [
-            'reasons.required' => 'An objection must be decided for reasons.',
-            'reasons.min'      => 'Set out why the plea succeeds or fails.',
+            'reasons.required' => __('An objection must be decided for reasons.'),
+            'reasons.min'      => __('Set out why the plea succeeds or fails.'),
         ]);
 
         DB::transaction(function () use ($objection, $data, $request) {
@@ -230,7 +229,7 @@ class DueProcessController extends Controller
             $objection->update(['status' => 'DECIDED']);
         });
 
-        return back()->with('status', 'Objection ' . $objection->objection_no . ' decided.');
+        return back()->with('status', __('Objection :objection decided.', ['objection' => $objection->objection_no]));
     }
 
     public function storeHearing(Request $request, Application $application): RedirectResponse
@@ -275,7 +274,7 @@ class DueProcessController extends Controller
             }
         }
 
-        return back()->with('status', 'Hearing scheduled.');
+        return back()->with('status', __('Hearing scheduled.'));
     }
 
     public function recordHearing(Request $request, Hearing $hearing): RedirectResponse
@@ -289,7 +288,7 @@ class DueProcessController extends Controller
             'adjourned_to'       => ['nullable', 'date', 'required_if:status,ADJOURNED'],
             'adjournment_reason' => ['nullable', 'string', 'max:2000'],
         ], [
-            'proceedings.required' => 'Record what happened at the hearing — it is the evidence that an opportunity of hearing was given.',
+            'proceedings.required' => __('Record what happened at the hearing — it is the evidence that an opportunity of hearing was given.'),
         ]);
 
         $hearing->update([
@@ -302,7 +301,7 @@ class DueProcessController extends Controller
             'adjournment_reason' => $data['adjournment_reason'] ?? null,
         ]);
 
-        return back()->with('status', 'Hearing proceedings recorded.');
+        return back()->with('status', __('Hearing proceedings recorded.'));
     }
 
     // ---- numbering -------------------------------------------------------
@@ -340,6 +339,6 @@ class DueProcessController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

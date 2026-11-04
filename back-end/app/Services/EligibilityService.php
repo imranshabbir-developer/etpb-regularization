@@ -69,6 +69,29 @@ class EligibilityService
     }
 
     /**
+     * The stored eligibility reason, worded in the current interface language.
+     *
+     * The reason is saved in English when the case is filed, so the record never
+     * changes with the reader's language. Its two dates are taken from that
+     * stored text rather than recomputed, so a later change to the cut-off
+     * setting cannot alter what the case file says was decided.
+     */
+    public function describe(?string $storedReason, bool $eligible): string
+    {
+        $storedReason = (string) $storedReason;
+
+        if (! preg_match_all('/\b(\d{2}-\d{2}-\d{4})\b/', $storedReason, $m) || count($m[1]) < 2) {
+            return $storedReason;
+        }
+
+        [$possession, $cutoff] = [$m[1][0], $m[1][1]];
+
+        return $eligible
+            ? __('Possession dated :possession is prior to :cutoff, so the occupant may be treated as a tenant under Clause 3(ii)(a) of the Scheme 1977.', ['possession' => $possession, 'cutoff' => $cutoff])
+            : __('Possession dated :possession is not prior to :cutoff. Clause 3(ii)(a) of the Scheme 1977 requires actual physical possession prior to that date, so the application is not eligible for regularization.', ['possession' => $possession, 'cutoff' => $cutoff]);
+    }
+
+    /**
      * The earliest of the three dates named in Clause 3(ii)(b).
      *
      * All three candidates are returned so the officer — and the case file —

@@ -82,7 +82,9 @@ class Application extends Model
 
     public function statusLabel(): string
     {
-        return WorkflowService::LABELS[$this->status] ?? $this->status;
+        $label = WorkflowService::LABELS[$this->status] ?? (string) $this->status;
+
+        return $label === '' ? '' : __($label);
     }
 
     public function statusTone(): string
@@ -112,7 +114,7 @@ class Application extends Model
 
         if (! $this->first_notice_date || ! $due || $this->rent_fixed_at) {
             return ['applies' => false, 'due' => null, 'days_left' => null,
-                    'pct' => 0, 'tone' => 'neutral', 'label' => 'Not started'];
+                    'pct' => 0, 'tone' => 'neutral', 'label' => __('Not started')];
         }
 
         return $this->clock($this->first_notice_date, $due, 'Assessment');
@@ -129,7 +131,7 @@ class Application extends Model
         if (! $this->admin_approval_due_date
             || $this->status !== WorkflowService::PENDING_ADMIN_APPROVAL) {
             return ['applies' => false, 'due' => null, 'days_left' => null,
-                    'pct' => 0, 'tone' => 'neutral', 'label' => 'Not applicable'];
+                    'pct' => 0, 'tone' => 'neutral', 'label' => __('Not applicable')];
         }
 
         $from = $this->rent_fixed_at ? Carbon::parse($this->rent_fixed_at) : Carbon::parse($this->updated_at);
@@ -153,9 +155,9 @@ class Application extends Model
         $daysLeft = (int) $today->diffInDays($end, false);
 
         [$tone, $label] = match (true) {
-            $daysLeft < 0  => ['danger', sprintf('%s overdue by %d day(s)', $what, abs($daysLeft))],
-            $daysLeft <= 7 => ['warn',   sprintf('%s due in %d day(s)', $what, $daysLeft)],
-            default        => ['good',   sprintf('%s due in %d day(s)', $what, $daysLeft)],
+            $daysLeft < 0  => ['danger', __(':what overdue by :days day(s)', ['what' => __($what), 'days' => abs($daysLeft)])],
+            $daysLeft <= 7 => ['warn',   __(':what due in :days day(s)', ['what' => __($what), 'days' => $daysLeft])],
+            default        => ['good',   __(':what due in :days day(s)', ['what' => __($what), 'days' => $daysLeft])],
         };
 
         return [

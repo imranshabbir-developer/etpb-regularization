@@ -111,7 +111,7 @@ class AssessmentController extends Controller
         ]);
 
         return redirect()->route('assessment.show', $application)
-            ->with('status', "Assessment round {$round->round_no} opened.");
+            ->with('status', __('Assessment round :round opened.', ['round' => $round->round_no]));
     }
 
     public function storeRateInput(Request $request, AssessmentRound $round): RedirectResponse
@@ -137,9 +137,9 @@ class AssessmentController extends Controller
         $source = RateSource::findOrFail($data['rate_source_id']);
 
         if ($source->requires_reference_no && blank($data['notification_no'] ?? null) && blank($data['report_no'] ?? null)) {
-            return back()->with('error', sprintf(
-                'A %s rate must carry its notification or report number, otherwise it cannot be relied on.',
-                $source->name
+            return back()->with('error', __(
+                'A :source rate must carry its notification or report number, otherwise it cannot be relied on.',
+                ['source' => __($source->name)]
             ))->withInput();
         }
 
@@ -148,7 +148,7 @@ class AssessmentController extends Controller
             'created_by'          => $request->user()->id,
         ]);
 
-        return back()->with('status', $source->name . ' recorded.');
+        return back()->with('status', __(':source recorded.', ['source' => __($source->name)]));
     }
 
     public function destroyRateInput(Request $request, AssessmentRateInput $input): RedirectResponse
@@ -159,7 +159,7 @@ class AssessmentController extends Controller
 
         $input->delete();
 
-        return back()->with('status', 'Rate input removed.');
+        return back()->with('status', __('Rate input removed.'));
     }
 
     /**
@@ -189,7 +189,7 @@ class AssessmentController extends Controller
             'created_by'          => $request->user()->id,
         ]);
 
-        return back()->with('status', 'Comparable property recorded.');
+        return back()->with('status', __('Comparable property recorded.'));
     }
 
     public function destroyComparable(Request $request, AssessmentComparable $comparable): RedirectResponse
@@ -200,7 +200,7 @@ class AssessmentController extends Controller
 
         $comparable->delete();
 
-        return back()->with('status', 'Comparable removed.');
+        return back()->with('status', __('Comparable removed.'));
     }
 
     /**
@@ -238,7 +238,7 @@ class AssessmentController extends Controller
             }
         }
 
-        return back()->with('status', 'Proposed assessment recorded. Issue the notice next.');
+        return back()->with('status', __('Proposed assessment recorded. Issue the notice next.'));
     }
 
     /**
@@ -259,8 +259,8 @@ class AssessmentController extends Controller
             'reasons'                 => ['required', 'string', 'min:40', 'max:8000'],
             'objections_considered'   => ['nullable', 'string', 'max:8000'],
         ], [
-            'reasons.required' => 'Clause 10(i)(d) requires the fixation of rent to be reasoned. Record the reasons.',
-            'reasons.min'      => 'The reasons must be substantive — set out what was considered and why this figure follows.',
+            'reasons.required' => __('Clause 10(i)(d) requires the fixation of rent to be reasoned. Record the reasons.'),
+            'reasons.min'      => __('The reasons must be substantive — set out what was considered and why this figure follows.'),
         ]);
 
         $application = $round->application;
@@ -331,12 +331,11 @@ class AssessmentController extends Controller
         $summary = $this->arrears->summary($application->id);
 
         return redirect()->route('assessment.show', $application)
-            ->with('status', sprintf(
-                'Rent fixed at Rs. %s per month. Arrears of Rs. %s assessed across %d year(s).',
-                number_format((float) $data['determined_monthly_rent'], 2),
-                number_format((float) $summary['total_due'], 2),
-                DB::table('arrears_ledger')->where('application_id', $application->id)->count(),
-            ))
+            ->with('status', __('Rent fixed at Rs. :rent per month. Arrears of Rs. :arrears assessed across :years year(s).', [
+                'rent'    => number_format((float) $data['determined_monthly_rent'], 2),
+                'arrears' => number_format((float) $summary['total_due'], 2),
+                'years'   => DB::table('arrears_ledger')->where('application_id', $application->id)->count(),
+            ]))
             ->with($messages ? 'warning' : 'ignore', $messages ? implode(' ', $messages) : null);
     }
 
@@ -356,7 +355,7 @@ class AssessmentController extends Controller
             ->first();
 
         if (! $possession) {
-            return response()->json(['ok' => false, 'message' => 'Possession details are missing.'], 422);
+            return response()->json(['ok' => false, 'message' => __('Possession details are missing.')], 422);
         }
 
         $anchorYear = $this->rent->rentYearOf(\Illuminate\Support\Carbon::parse($round->effective_from));
@@ -401,7 +400,7 @@ class AssessmentController extends Controller
     private function refuseIfDetermined(AssessmentRound $round): void
     {
         if ($round->status === 'DECIDED') {
-            abort(409, 'This round has already been decided. Open a revision instead of editing the record it rests on.');
+            abort(409, __('This round has already been decided. Open a revision instead of editing the record it rests on.'));
         }
     }
 
@@ -417,6 +416,6 @@ class AssessmentController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

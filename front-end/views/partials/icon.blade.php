@@ -3,7 +3,7 @@
     Usage: @include('partials.icon', ['name' => 'home'])
 --}}
 @php $n = $name ?? 'dot'; @endphp
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+<svg data-icon="{{ $n }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
     @switch($n)
         @case('home')

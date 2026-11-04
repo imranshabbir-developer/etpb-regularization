@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $application->application_no)
-@section('heading', 'Case file — ' . $application->application_no)
+@section('heading', __('Case file — :no', ['no' => $application->application_no]))
 
 @section('content')
 
@@ -10,61 +10,96 @@
         $p = $a->property;
         $area = $p?->currentArea;
         $poss = $a->possession;
+
+        $propertyNo = $p ? ($p->property_no ?: __('Unnumbered')) : null;
+        $propertyIdentity = $p
+            ? ($p->sub_unit_no
+                ? __('Property :no, Sub-unit :sub', ['no' => $propertyNo, 'sub' => $p->sub_unit_no])
+                : __('Property :no', ['no' => $propertyNo]))
+            : null;
+        $locationChain = $p
+            ? collect([
+                $p->mouza?->name ? __('Mouza :name', ['name' => $p->mouza->name]) : null,
+                $p->city,
+                $p->tehsil?->name ? __('Tehsil :name', ['name' => __($p->tehsil->name)]) : null,
+                $p->district?->name ? __('District :name', ['name' => __($p->district->name)]) : null,
+                $p->province?->name ? __($p->province->name) : null,
+            ])->filter()->implode(app()->getLocale() === 'ur' ? '، ' : ', ')
+            : null;
+
+        $slaLabel = function (array $sla, bool $isApproval): string {
+            if (! $sla['applies']) {
+                return __($sla['label']);
+            }
+            $days = (int) $sla['days_left'];
+            if ($isApproval) {
+                return $days < 0
+                    ? __('Approval overdue by :days day(s)', ['days' => abs($days)])
+                    : __('Approval due in :days day(s)', ['days' => $days]);
+            }
+
+            return $days < 0
+                ? __('Assessment overdue by :days day(s)', ['days' => abs($days)])
+                : __('Assessment due in :days day(s)', ['days' => $days]);
+        };
     @endphp
 
     <div class="page-head">
         <h1>{{ $a->application_no }}</h1>
         <p class="lede">
-            {{ $a->applicant?->nameWithParentage() }} &mdash; {{ $p?->identity() }},
-            {{ $p?->district?->name }}
+            @if ($a->applicant)
+                {{ $a->applicant->full_name }} {{ $a->applicant->parentage_type === 'HUSBAND' ? __('w/o') : __('s/o') }} {{ $a->applicant->parentage_name }}
+            @endif
+            &mdash; {{ $propertyIdentity }},
+            {{ __($p?->district?->name ?? '') }}
         </p>
         <div class="inline-list mt-1">
             <span class="badge badge-{{ $a->payment_status === 'PAID' ? 'good' : 'warn' }}">
-                Payment {{ $a->payment_status }}
+                {{ __('Payment :status', ['status' => __($a->payment_status ?? '')]) }}
             </span>
-            <span class="badge badge-{{ $a->statusTone() }}">{{ $a->statusLabel() }}</span>
+            <span class="badge badge-{{ $a->statusTone() }}">{{ __($a->statusLabel()) }}</span>
             @if ($a->is_sub_judice)
-                <span class="badge badge-warn">Sub judice</span>
+                <span class="badge badge-warn">{{ __('Sub judice') }}</span>
             @endif
             @if ($poss?->is_eligible)
-                <span class="badge badge-good">Eligible — Clause 3(ii)(a)</span>
+                <span class="badge badge-good">{{ __('Eligible — Clause 3(ii)(a)') }}</span>
             @elseif ($poss)
-                <span class="badge badge-danger">Ineligible — Clause 3(ii)(a)</span>
+                <span class="badge badge-danger">{{ __('Ineligible — Clause 3(ii)(a)') }}</span>
             @endif
         </div>
     </div>
 
     <div class="soft-panel">
-        <p><strong>This is the main case page.</strong> Use the quick links below to open documents, deposit, rent assessment, objections, litigation, arrears, completion, and reports for this application.</p>
+        <p><strong>{{ __('This is the main case page.') }}</strong> {{ __('Use the quick links below to open documents, deposit, rent assessment, objections, litigation, arrears, completion, and reports for this application.') }}</p>
     </div>
 
     {{-- ---------- Module navigation ---------- --}}
     <div class="card">
-        <div class="card-head"><h3>Open a section</h3></div>
+        <div class="card-head"><h3>{{ __('Open a section') }}</h3></div>
         <div class="card-body tight">
             <div class="btn-row">
                 @can('do', 'documents.view')
                     <a href="{{ route('documents.index', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'file']) Evidence
+                        @include('partials.icon', ['name' => 'file']) {{ __('Evidence') }}
                         <span class="badge badge-neutral">{{ $a->documents->count() }}</span>
                     </a>
                 @endcan
                 @if (auth()->user()->hasAnyPermission('fee.view', 'fee.record', 'fee.verify'))
                     <a href="{{ route('fee.index', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'cash']) Fee
+                        @include('partials.icon', ['name' => 'cash']) {{ __('Fee') }}
                         <span class="badge badge-{{ $a->payment_status === 'PAID' ? 'good' : 'warn' }}">
-                            {{ $a->payment_status }}
+                            {{ __($a->payment_status ?? '') }}
                         </span>
                     </a>
                 @endif
                 @can('do', 'assessment.view')
                     <a href="{{ route('assessment.show', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'scale']) Rent assessment
+                        @include('partials.icon', ['name' => 'scale']) {{ __('Rent assessment') }}
                     </a>
                 @endcan
                 @can('do', 'notices.view')
                     <a href="{{ route('due-process.index', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'inbox']) Notices &amp; objections
+                        @include('partials.icon', ['name' => 'inbox']) {{ __('Notices & objections') }}
                         @if ($a->objections->whereIn('status', ['FILED', 'UNDER_HEARING'])->count())
                             <span class="badge badge-warn">{{ $a->objections->whereIn('status', ['FILED', 'UNDER_HEARING'])->count() }}</span>
                         @endif
@@ -72,22 +107,22 @@
                 @endcan
                 @can('do', 'litigation.view')
                     <a href="{{ route('occupancy.index', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'gavel']) Occupants &amp; litigation
+                        @include('partials.icon', ['name' => 'gavel']) {{ __('Occupants & litigation') }}
                     </a>
                 @endcan
                 @if (auth()->user()->hasAnyPermission('nominees.manage', 'agreements.execute', 'orders.issue'))
                     <a href="{{ route('completion.index', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'check']) Completion
+                        @include('partials.icon', ['name' => 'check']) {{ __('Completion') }}
                     </a>
                 @endif
                 @can('do', 'reports.deep')
                     <a href="{{ route('reports.deep', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'chart']) Deep report
+                        @include('partials.icon', ['name' => 'chart']) {{ __('Deep report') }}
                     </a>
                 @endcan
                 @can('do', 'arrears.view')
                     <a href="{{ route('arrears.index', $a) }}" class="btn btn-outline btn-sm">
-                        @include('partials.icon', ['name' => 'cash']) Arrears
+                        @include('partials.icon', ['name' => 'cash']) {{ __('Arrears') }}
                         @if ((float) $a->arrears_balance > 0)
                             <span class="badge badge-danger">Rs. {{ number_format((float) $a->arrears_balance, 0) }}</span>
                         @endif
@@ -102,29 +137,29 @@
         <div class="tiles">
             @if ($assessmentSla['applies'])
                 <div class="tile {{ $assessmentSla['tone'] === 'danger' ? 'is-danger' : ($assessmentSla['tone'] === 'warn' ? 'is-warn' : '') }}">
-                    <div class="tile-label">Assessment deadline <span class="clause">Cl. 10(i)(e)</span></div>
-                    <div class="tile-value" style="font-size:1.1rem">{{ $assessmentSla['label'] }}</div>
+                    <div class="tile-label">{{ __('Assessment deadline') }} <span class="clause">{{ __('Cl. 10(i)(e)') }}</span></div>
+                    <div class="tile-value" style="font-size:1.1rem">{{ $slaLabel($assessmentSla, false) }}</div>
                     <div class="sla mt-1">
                         <div class="sla-bar">
                             <div class="sla-fill {{ $assessmentSla['tone'] === 'danger' ? 'is-danger' : ($assessmentSla['tone'] === 'warn' ? 'is-warn' : '') }}"
                                  style="width:{{ $assessmentSla['pct'] }}%"></div>
                         </div>
                     </div>
-                    <div class="tile-sub">Due {{ \Illuminate\Support\Carbon::parse($assessmentSla['due'])->format('d-m-Y') }}</div>
+                    <div class="tile-sub">{{ __('Due :date', ['date' => \Illuminate\Support\Carbon::parse($assessmentSla['due'])->translatedFormat('d-m-Y')]) }}</div>
                 </div>
             @endif
 
             @if ($approvalSla['applies'])
                 <div class="tile {{ $approvalSla['tone'] === 'danger' ? 'is-danger' : ($approvalSla['tone'] === 'warn' ? 'is-warn' : '') }}">
-                    <div class="tile-label">Administrator approval <span class="clause">Cl. 3(ii)(d)</span></div>
-                    <div class="tile-value" style="font-size:1.1rem">{{ $approvalSla['label'] }}</div>
+                    <div class="tile-label">{{ __('Administrator approval') }} <span class="clause">{{ __('Cl. 3(ii)(d)') }}</span></div>
+                    <div class="tile-value" style="font-size:1.1rem">{{ $slaLabel($approvalSla, true) }}</div>
                     <div class="sla mt-1">
                         <div class="sla-bar">
                             <div class="sla-fill {{ $approvalSla['tone'] === 'danger' ? 'is-danger' : ($approvalSla['tone'] === 'warn' ? 'is-warn' : '') }}"
                                  style="width:{{ $approvalSla['pct'] }}%"></div>
                         </div>
                     </div>
-                    <div class="tile-sub">Due {{ \Illuminate\Support\Carbon::parse($approvalSla['due'])->format('d-m-Y') }}</div>
+                    <div class="tile-sub">{{ __('Due :date', ['date' => \Illuminate\Support\Carbon::parse($approvalSla['due'])->translatedFormat('d-m-Y')]) }}</div>
                 </div>
             @endif
         </div>
@@ -134,64 +169,64 @@
         <div>
             {{-- ---------- Applicant ---------- --}}
             <div class="card">
-                <div class="card-head"><h3>Applicant</h3></div>
+                <div class="card-head"><h3>{{ __('Applicant') }}</h3></div>
                 <div class="card-body">
                     <dl class="kv">
-                        <dt>Name</dt><dd>{{ $a->applicant?->full_name }}</dd>
-                        <dt>{{ $a->applicant?->parentage_type === 'HUSBAND' ? 'Husband' : 'Father' }}</dt>
+                        <dt>{{ __('Name') }}</dt><dd>{{ $a->applicant?->full_name }}</dd>
+                        <dt>{{ $a->applicant?->parentage_type === 'HUSBAND' ? __('Husband') : __('Father') }}</dt>
                         <dd>{{ $a->applicant?->parentage_name }}</dd>
-                        <dt>CNIC</dt><dd class="num">{{ $a->applicant?->maskedCnic() }}</dd>
-                        <dt>Contact</dt><dd>{{ $a->applicant?->contact }}</dd>
-                        <dt>Address</dt><dd>{{ $a->applicant?->postal_address }}</dd>
+                        <dt>{{ __('CNIC') }}</dt><dd class="num">{{ $a->applicant?->maskedCnic() }}</dd>
+                        <dt>{{ __('Contact') }}</dt><dd>{{ $a->applicant?->contact }}</dd>
+                        <dt>{{ __('Address') }}</dt><dd>{{ $a->applicant?->postal_address }}</dd>
                     </dl>
                 </div>
             </div>
 
             {{-- ---------- Property and area ---------- --}}
             <div class="card">
-                <div class="card-head"><h3>Property</h3></div>
+                <div class="card-head"><h3>{{ __('Property') }}</h3></div>
                 <div class="card-body">
                     <dl class="kv">
-                        <dt>Property no.</dt><dd>{{ $p?->property_no }}</dd>
+                        <dt>{{ __('Property no.') }}</dt><dd>{{ $p?->property_no }}</dd>
                         @if ($p?->sub_unit_no)
-                            <dt>Sub-unit no.</dt><dd>{{ $p->sub_unit_no }}</dd>
+                            <dt>{{ __('Sub-unit no.') }}</dt><dd>{{ $p->sub_unit_no }}</dd>
                         @endif
-                        <dt>Type / usage</dt><dd>{{ $p?->typeLabel() }} &mdash; {{ $p?->usageLabel() }}</dd>
-                        <dt>Address</dt><dd>{{ $p?->address }}</dd>
-                        <dt>Location</dt><dd>{{ $p?->locationChain() }}</dd>
+                        <dt>{{ __('Type / usage') }}</dt><dd>{{ __($p?->typeLabel() ?? '') }} &mdash; {{ __($p?->usageLabel() ?? '') }}</dd>
+                        <dt>{{ __('Address') }}</dt><dd>{{ $p?->address }}</dd>
+                        <dt>{{ __('Location') }}</dt><dd>{{ $locationChain }}</dd>
                         @if ($p?->khasra_no)
-                            <dt>Khasra / Survey No.</dt><dd>{{ $p->khasra_no }}</dd>
+                            <dt>{{ __('Khasra / Survey No.') }}</dt><dd>{{ $p->khasra_no }}</dd>
                         @endif
                         @if ($p?->survey_no)
-                            <dt>Survey No.</dt><dd>{{ $p->survey_no }}</dd>
+                            <dt>{{ __('Survey No.') }}</dt><dd>{{ $p->survey_no }}</dd>
                         @endif
                         @if ($p?->number_of_floors)
-                            <dt>Number of floors</dt><dd>{{ $p->number_of_floors }}</dd>
+                            <dt>{{ __('Number of floors') }}</dt><dd>{{ $p->number_of_floors }}</dd>
                         @endif
                         @if (! empty($p?->floor_wise_covered_area))
-                            <dt>Floor-wise covered</dt>
-                            <dd class="num">{{ collect($p->floor_wise_covered_area)->filter()->implode(' / ') }} sqft</dd>
+                            <dt>{{ __('Floor-wise covered') }}</dt>
+                            <dd class="num">{{ collect($p->floor_wise_covered_area)->filter()->implode(' / ') }} {{ __('sqft') }}</dd>
                         @endif
                         @if ($p?->primaryGeoTag)
-                            <dt>Geo coordinates</dt>
+                            <dt>{{ __('Geo coordinates') }}</dt>
                             <dd class="num">{{ $p->primaryGeoTag->latitude }}, {{ $p->primaryGeoTag->longitude }}</dd>
                         @endif
                     </dl>
 
                     @if ($area)
                         <hr class="divider">
-                        <h4>Area of the Property / Land</h4>
+                        <h4>{{ __('Area of the Property / Land') }}</h4>
                         <dl class="kv">
-                            <dt>Total area</dt>
-                            <dd><strong>{{ number_format((float) $area->area_sqft, 2) }} sqft</strong></dd>
+                            <dt>{{ __('Total area') }}</dt>
+                            <dd><strong>{{ number_format((float) $area->area_sqft, 2) }} {{ __('sqft') }}</strong></dd>
                             @if ($area->covered_area_sqft !== null)
-                                <dt>Covered area</dt><dd>{{ number_format((float) $area->covered_area_sqft, 2) }} sqft</dd>
+                                <dt>{{ __('Covered area') }}</dt><dd>{{ number_format((float) $area->covered_area_sqft, 2) }} {{ __('sqft') }}</dd>
                             @endif
                             @if ($area->open_area_sqft !== null)
-                                <dt>Open area</dt><dd>{{ number_format((float) $area->open_area_sqft, 2) }} sqft</dd>
+                                <dt>{{ __('Open area') }}</dt><dd>{{ number_format((float) $area->open_area_sqft, 2) }} {{ __('sqft') }}</dd>
                             @endif
-                            <dt>Standard applied</dt>
-                            <dd>{{ $a->unitProfile?->name }}</dd>
+                            <dt>{{ __('Standard applied') }}</dt>
+                            <dd>{{ __($a->unitProfile?->name ?? '') }}</dd>
                         </dl>
 
                         @php $trace = is_array($area->conversion_trace) ? $area->conversion_trace : json_decode((string) $area->conversion_trace, true); @endphp
@@ -199,12 +234,12 @@
                             <div class="table-wrap mt-1">
                                 <table class="data">
                                     <thead>
-                                    <tr><th>Entered</th><th class="num">Factor (sqft)</th><th class="num">Subtotal (sqft)</th></tr>
+                                    <tr><th>{{ __('Entered') }}</th><th class="num">{{ __('Factor (sqft)') }}</th><th class="num">{{ __('Subtotal (sqft)') }}</th></tr>
                                     </thead>
                                     <tbody>
                                     @foreach ($trace['components'] as $c)
                                         <tr>
-                                            <td>{{ rtrim(rtrim($c['quantity'], '0'), '.') }} {{ $c['unit_name'] }}</td>
+                                            <td>{{ rtrim(rtrim($c['quantity'], '0'), '.') }} {{ __($c['unit_name'] ?? '') }}</td>
                                             <td class="num">{{ rtrim(rtrim($c['sqft_per_unit'], '0'), '.') }}</td>
                                             <td class="num">{{ number_format((float) $c['subtotal_sqft'], 2) }}</td>
                                         </tr>
@@ -213,8 +248,7 @@
                                 </table>
                             </div>
                             <p class="hint mt-1">
-                                The factors above are frozen against this application, so a later change to
-                                the conversion table cannot restate an assessment already made.
+                                {{ __('The factors above are frozen against this application, so a later change to the conversion table cannot restate an assessment already made.') }}
                             </p>
                         @endif
                     @endif
@@ -225,40 +259,40 @@
             @if ($poss)
                 <div class="card">
                     <div class="card-head">
-                        <h3>Possession</h3>
-                        <div class="card-actions"><span class="clause">Clause 3(ii)(a)&ndash;(b)</span></div>
+                        <h3>{{ __('Possession') }}</h3>
+                        <div class="card-actions"><span class="clause">{{ __('Clause 3(ii)(a)–(b)') }}</span></div>
                     </div>
                     <div class="card-body">
                         <dl class="kv">
-                            <dt>Date of possession</dt>
-                            <dd>{{ \Illuminate\Support\Carbon::parse($poss->date_of_possession)->format('d-m-Y') }}</dd>
-                            <dt>Cut-off applied</dt>
-                            <dd>{{ \Illuminate\Support\Carbon::parse($poss->cutoff_applied)->format('d-m-Y') }}</dd>
-                            <dt>Arrears run from</dt>
+                            <dt>{{ __('Date of possession') }}</dt>
+                            <dd>{{ \Illuminate\Support\Carbon::parse($poss->date_of_possession)->translatedFormat('d-m-Y') }}</dd>
+                            <dt>{{ __('Cut-off applied') }}</dt>
+                            <dd>{{ \Illuminate\Support\Carbon::parse($poss->cutoff_applied)->translatedFormat('d-m-Y') }}</dd>
+                            <dt>{{ __('Arrears run from') }}</dt>
                             <dd>
-                                <strong>{{ \Illuminate\Support\Carbon::parse($poss->arrears_from)->format('d-m-Y') }}</strong>
-                                <span class="badge badge-neutral">{{ str_replace('_', ' ', $poss->arrears_from_basis) }}</span>
+                                <strong>{{ \Illuminate\Support\Carbon::parse($poss->arrears_from)->translatedFormat('d-m-Y') }}</strong>
+                                <span class="badge badge-neutral">{{ __(str_replace('_', ' ', (string) $poss->arrears_from_basis)) }}</span>
                             </dd>
                             @if ($poss->date_of_judicial_verdict)
-                                <dt>Judicial verdict</dt>
-                                <dd>{{ \Illuminate\Support\Carbon::parse($poss->date_of_judicial_verdict)->format('d-m-Y') }}</dd>
+                                <dt>{{ __('Judicial verdict') }}</dt>
+                                <dd>{{ \Illuminate\Support\Carbon::parse($poss->date_of_judicial_verdict)->translatedFormat('d-m-Y') }}</dd>
                             @endif
                             @if ($poss->court_name)
-                                <dt>Name of Court</dt>
+                                <dt>{{ __('Name of Court') }}</dt>
                                 <dd>{{ $poss->court_name }}</dd>
                             @endif
                             @if ($poss->judicial_reference)
-                                <dt>Case reference</dt>
+                                <dt>{{ __('Case reference') }}</dt>
                                 <dd>{{ $poss->judicial_reference }}</dd>
                             @endif
                             @if ($poss->judgment_gist)
-                                <dt>Gist of Decision</dt>
+                                <dt>{{ __('Gist of Decision') }}</dt>
                                 <dd>{{ $poss->judgment_gist }}</dd>
                             @endif
                         </dl>
                         <div class="alert {{ $poss->is_eligible ? 'alert-good' : 'alert-danger' }} mt-2">
                             @include('partials.icon', ['name' => $poss->is_eligible ? 'check' : 'alert'])
-                            <div><p class="mb-0">{{ $poss->eligibility_reason }}</p></div>
+                            <div><p class="mb-0">{{ app(\App\Services\EligibilityService::class)->describe($poss->eligibility_reason, (bool) $poss->is_eligible) }}</p></div>
                         </div>
                     </div>
                 </div>
@@ -267,19 +301,19 @@
             {{-- ---------- Rent milestone grid ---------- --}}
             <div class="card">
                 <div class="card-head">
-                    <h3>Rent assessment</h3>
+                    <h3>{{ __('Rent assessment') }}</h3>
                     <div class="card-actions">
-                        <span class="clause">Clause 10</span>
-                        <span class="clause">Clause 11(ii) &mdash; 8% p.a.</span>
+                        <span class="clause">{{ __('Clause 10') }}</span>
+                        <span class="clause">{{ __('Clause 11(ii) — 8% p.a.') }}</span>
                     </div>
                 </div>
 
                 @if (collect($milestones)->every(fn ($m) => ! $m['in_scope']))
                     <div class="empty">
                         @include('partials.icon', ['name' => 'scale'])
-                        <p class="mb-0">Rent has not been assessed yet.</p>
+                        <p class="mb-0">{{ __('Rent has not been assessed yet.') }}</p>
                         <p class="hint">
-                            The District Officer fixes the rent after the objection window and hearing.
+                            {{ __('The District Officer fixes the rent after the objection window and hearing.') }}
                         </p>
                     </div>
                 @else
@@ -287,17 +321,17 @@
                         <table class="data">
                             <thead>
                             <tr>
-                                <th>Rent year</th>
-                                <th>Period</th>
-                                <th class="num">Monthly rent</th>
-                                <th class="num">Annual rent</th>
+                                <th>{{ __('Rent year') }}</th>
+                                <th>{{ __('Period') }}</th>
+                                <th class="num">{{ __('Monthly rent') }}</th>
+                                <th class="num">{{ __('Annual rent') }}</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach ($milestones as $m)
                                 <tr class="{{ $m['in_scope'] ? 'is-milestone' : 'row-muted' }}">
                                     <td><strong>{{ $m['year'] }}</strong></td>
-                                    <td class="nowrap">{{ $m['period'] }}</td>
+                                    <td class="nowrap">{{ str_replace(' to ', ' ' . __('to') . ' ', (string) $m['period']) }}</td>
                                     <td class="num">
                                         {{ $m['monthly_rent'] ? 'Rs. ' . number_format((float) $m['monthly_rent'], 2) : '—' }}
                                     </td>
@@ -311,8 +345,7 @@
                     </div>
                     <div class="card-foot">
                         <p class="mb-0 faint" style="font-size:.8rem">
-                            The milestone years above are a presentation grid over the year-by-year ledger.
-                            The six-year re-assessment cycle of Clause 11(i) governs the underlying computation.
+                            {{ __('The milestone years above are a presentation grid over the year-by-year ledger. The six-year re-assessment cycle of Clause 11(i) governs the underlying computation.') }}
                         </p>
                     </div>
                 @endif
@@ -322,10 +355,10 @@
         <div>
             {{-- ---------- Actions ---------- --}}
             <div class="card">
-                <div class="card-head"><h3>What can happen next</h3></div>
+                <div class="card-head"><h3>{{ __('What can happen next') }}</h3></div>
                 <div class="card-body">
                     <p class="hint mt-0">
-                        Available actions are enabled below. If an action is blocked, the system explains why.
+                        {{ __('Available actions are enabled below. If an action is blocked, the system explains why.') }}
                     </p>
                     @forelse ($nextStates as $state)
                         <form method="POST" action="{{ route('applications.transition', $a) }}" class="mb-0">
@@ -334,17 +367,17 @@
 
                             @if ($state['check']['allowed'])
                                 <div class="field">
-                                    <label for="remarks_{{ $state['to'] }}">Remarks (optional unless office policy requires them)</label>
+                                    <label for="remarks_{{ $state['to'] }}">{{ __('Remarks (optional unless office policy requires them)') }}</label>
                                     <textarea id="remarks_{{ $state['to'] }}" name="remarks" class="textarea"
                                               style="min-height:64px" maxlength="2000"></textarea>
                                 </div>
                                 <button class="btn btn-primary" type="submit" style="width:100%">
                                     @include('partials.icon', ['name' => 'check'])
-                                    Move to {{ $state['label'] }}
+                                    {{ __('Move to :stage', ['stage' => __($state['label'])]) }}
                                 </button>
                             @else
                                 <button class="btn btn-outline" type="button" aria-disabled="true" style="width:100%">
-                                    Move to {{ $state['label'] }}
+                                    {{ __('Move to :stage', ['stage' => __($state['label'])]) }}
                                 </button>
                                 <div class="alert alert-warn mt-1" style="margin-bottom:0">
                                     @include('partials.icon', ['name' => 'alert'])
@@ -361,7 +394,7 @@
                         @if (! $loop->last)<hr class="divider">@endif
                     @empty
                         <p class="muted mb-0">
-                            This application is closed. No further transitions are available.
+                            {{ __('This application is closed. No further transitions are available.') }}
                         </p>
                     @endforelse
                 </div>
@@ -370,15 +403,15 @@
             {{-- ---------- Arrears ---------- --}}
             <div class="card">
                 <div class="card-head">
-                    <h3>Arrears summary</h3>
-                    <div class="card-actions"><span class="clause">Clause 3(ii)(b)</span></div>
+                    <h3>{{ __('Arrears summary') }}</h3>
+                    <div class="card-actions"><span class="clause">{{ __('Clause 3(ii)(b)') }}</span></div>
                 </div>
                 <div class="card-body">
                     <dl class="kv">
-                        <dt>Assessed</dt><dd class="num">Rs. {{ number_format((float) $arrears['total_due'], 2) }}</dd>
-                        <dt>Paid</dt><dd class="num">Rs. {{ number_format((float) $arrears['total_paid'], 2) }}</dd>
-                        <dt>Remitted</dt><dd class="num">Rs. {{ number_format((float) $arrears['total_remitted'], 2) }}</dd>
-                        <dt>Balance</dt>
+                        <dt>{{ __('Assessed') }}</dt><dd class="num">Rs. {{ number_format((float) $arrears['total_due'], 2) }}</dd>
+                        <dt>{{ __('Paid') }}</dt><dd class="num">Rs. {{ number_format((float) $arrears['total_paid'], 2) }}</dd>
+                        <dt>{{ __('Remitted') }}</dt><dd class="num">Rs. {{ number_format((float) $arrears['total_remitted'], 2) }}</dd>
+                        <dt>{{ __('Balance') }}</dt>
                         <dd class="num"><strong>Rs. {{ number_format((float) $arrears['balance'], 2) }}</strong></dd>
                     </dl>
                     <div class="alert {{ $clearance['satisfied'] ? 'alert-good' : 'alert-warn' }}" style="margin:.9rem 0 0">
@@ -391,7 +424,7 @@
             {{-- ---------- Evidence ---------- --}}
             <div class="card">
                     <div class="card-head">
-                        <h3>Evidence checklist</h3>
+                        <h3>{{ __('Evidence checklist') }}</h3>
                     <span class="badge badge-neutral">{{ $a->documents->count() }}</span>
                 </div>
                 <div class="card-body tight">
@@ -404,23 +437,23 @@
                             @php $doc = $uploaded->get($dt->id); @endphp
                             <tr>
                                 <td>
-                                    {{ $dt->name }}
-                                    @if ($dt->is_mandatory)<span class="req" title="Mandatory">*</span>@endif
+                                    {{ __($dt->name) }}
+                                    @if ($dt->is_mandatory)<span class="req" title="{{ __('Mandatory') }}">*</span>@endif
                                     @if ($dt->is_certified_copy_required)
-                                        <div class="faint" style="font-size:.72rem">Certified copy required</div>
+                                        <div class="faint" style="font-size:.72rem">{{ __('Certified copy required') }}</div>
                                     @endif
                                 </td>
                                 <td class="text-end nowrap">
                                     @if (! $doc)
-                                        <span class="badge badge-neutral">Not uploaded</span>
+                                        <span class="badge badge-neutral">{{ __('Not uploaded') }}</span>
                                     @elseif ($doc->status === 'VERIFIED')
-                                        <span class="badge badge-good">Verified</span>
+                                        <span class="badge badge-good">{{ __('Verified') }}</span>
                                     @elseif ($doc->status === 'DEFICIENT')
-                                        <span class="badge badge-danger">Deficient</span>
+                                        <span class="badge badge-danger">{{ __('Deficient') }}</span>
                                     @elseif ($doc->status === 'WAIVED')
-                                        <span class="badge badge-gold">Waived</span>
+                                        <span class="badge badge-gold">{{ __('Waived') }}</span>
                                     @else
-                                        <span class="badge badge-info">Pending</span>
+                                        <span class="badge badge-info">{{ __('Pending') }}</span>
                                     @endif
                                 </td>
                             </tr>
@@ -433,17 +466,17 @@
             {{-- ---------- Litigation ---------- --}}
             @if ($a->litigations->isNotEmpty())
                 <div class="card">
-                    <div class="card-head"><h3>Litigation</h3></div>
+                    <div class="card-head"><h3>{{ __('Litigation') }}</h3></div>
                     <div class="card-body">
                         @foreach ($a->litigations as $l)
                             <dl class="kv">
-                                <dt>Court</dt><dd>{{ $l->court_name }}</dd>
-                                <dt>Case no.</dt><dd>{{ $l->case_no }}</dd>
-                                <dt>Status</dt>
+                                <dt>{{ __('Court') }}</dt><dd>{{ $l->court_name }}</dd>
+                                <dt>{{ __('Case no.') }}</dt><dd>{{ $l->case_no }}</dd>
+                                <dt>{{ __('Status') }}</dt>
                                 <dd>
-                                    @if ($l->is_pending)<span class="badge badge-warn">Pending</span>@endif
-                                    @if ($l->has_restraining_order)<span class="badge badge-danger">Restraining order</span>@endif
-                                    @if ($l->is_direction_case)<span class="badge badge-info">Direction case</span>@endif
+                                    @if ($l->is_pending)<span class="badge badge-warn">{{ __('Pending') }}</span>@endif
+                                    @if ($l->has_restraining_order)<span class="badge badge-danger">{{ __('Restraining order') }}</span>@endif
+                                    @if ($l->is_direction_case)<span class="badge badge-info">{{ __('Direction case') }}</span>@endif
                                 </dd>
                             </dl>
                             @if (! $loop->last)<hr class="divider">@endif
@@ -454,17 +487,17 @@
 
             {{-- ---------- History ---------- --}}
             <div class="card">
-                    <div class="card-head"><h3>Case timeline</h3></div>
+                    <div class="card-head"><h3>{{ __('Case timeline') }}</h3></div>
                 <div class="card-body">
                     <ul class="timeline">
                         @foreach ($a->history as $h)
                             <li class="{{ $loop->first ? 'is-current' : 'is-done' }}">
                                 <div class="t-title">
-                                    {{ \App\Services\WorkflowService::LABELS[$h->to_status] ?? $h->to_status }}
+                                    {{ __(\App\Services\WorkflowService::LABELS[$h->to_status] ?? $h->to_status) }}
                                 </div>
                                 <div class="t-meta">
-                                    {{ \Illuminate\Support\Carbon::parse($h->occurred_at)->format('d-m-Y H:i') }}
-                                    @if ($h->actor_role) &middot; {{ str_replace('_', ' ', $h->actor_role) }} @endif
+                                    {{ \Illuminate\Support\Carbon::parse($h->occurred_at)->translatedFormat('d-m-Y H:i') }}
+                                    @if ($h->actor_role) &middot; {{ __(str_replace('_', ' ', $h->actor_role)) }} @endif
                                 </div>
                                 @if ($h->remarks)
                                     <div class="t-meta">{{ $h->remarks }}</div>

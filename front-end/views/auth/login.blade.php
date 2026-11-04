@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ur' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>Sign in — Regularization of Possession | ETPB</title>
+    <title>{{ __('Sign in') }} — {{ __('Regularization of Possession') }} | {{ __('ETPB') }}</title>
     <link rel="icon" href="{{ asset('assets/img/favicon.svg') }}" type="image/svg+xml">
     <script>
         (function () {
@@ -17,21 +17,23 @@
             document.documentElement.style.colorScheme = theme;
         })();
     </script>
+    @include('partials.i18n-script')
     @vite(['resources/css/app.css'])
 </head>
 <body>
+@include('partials.lang-switch', ['class' => 'is-auth'])
 @php
     $demoPassword = 'Etpb@2026#Change';
     $roleRail = [
-        ['label' => 'Admin',     'email' => 'admin@etpb.gov.pk',       'short' => 'SA'],
-        ['label' => 'Chairman',  'email' => 'chairman@etpb.gov.pk',    'short' => 'CH'],
-        ['label' => 'Secretary', 'email' => 'secretary@etpb.gov.pk',   'short' => 'SE'],
-        ['label' => 'Admin LHR', 'email' => 'admin.lhr@etpb.gov.pk',   'short' => 'AD'],
-        ['label' => 'DO / DA',   'email' => 'do.lhr@etpb.gov.pk',      'short' => 'DO'],
-        ['label' => 'Dealing',   'email' => 'da.lhr@etpb.gov.pk',      'short' => 'DA'],
-        ['label' => 'Accounts',  'email' => 'accounts.lhr@etpb.gov.pk','short' => 'AC'],
-        ['label' => 'Legal',     'email' => 'legal.lhr@etpb.gov.pk',   'short' => 'LG'],
-        ['label' => 'Auditor',   'email' => 'audit@etpb.gov.pk',       'short' => 'AU'],
+        ['label' => __('Admin'),     'email' => 'admin@etpb.gov.pk',       'short' => 'SA'],
+        ['label' => __('Chairman'),  'email' => 'chairman@etpb.gov.pk',    'short' => 'CH'],
+        ['label' => __('Secretary'), 'email' => 'secretary@etpb.gov.pk',   'short' => 'SE'],
+        ['label' => __('Admin LHR'), 'email' => 'admin.lhr@etpb.gov.pk',   'short' => 'AD'],
+        ['label' => __('DO / DA'),   'email' => 'do.lhr@etpb.gov.pk',      'short' => 'DO'],
+        ['label' => __('Dealing'),   'email' => 'da.lhr@etpb.gov.pk',      'short' => 'DA'],
+        ['label' => __('Accounts'),  'email' => 'accounts.lhr@etpb.gov.pk','short' => 'AC'],
+        ['label' => __('Legal'),     'email' => 'legal.lhr@etpb.gov.pk',   'short' => 'LG'],
+        ['label' => __('Auditor'),   'email' => 'audit@etpb.gov.pk',       'short' => 'AU'],
     ];
 @endphp
 
@@ -44,14 +46,14 @@
         <div class="login-wow-brand">
             <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>
             <div>
-                <strong>Evacuee Trust Property Board</strong>
-                <span>Regularization of Possession</span>
+                <strong>{{ __('Evacuee Trust Property Board') }}</strong>
+                <span>{{ __('Regularization of Possession') }}</span>
             </div>
         </div>
 
         <div class="auth-card auth-card-login login-wow-card">
-            <h1>Sign in</h1>
-            <p class="lede">Use the credentials issued by your district office.</p>
+            <h1>{{ __('Sign in') }}</h1>
+            <p class="lede">{{ __('Use the credentials issued by your district office.') }}</p>
 
             @if (session('status'))
                 <div class="alert alert-good" role="status">
@@ -75,7 +77,7 @@
                 @csrf
 
                 <div class="field">
-                    <label for="email">Official email <span class="req" aria-hidden="true">*</span></label>
+                    <label for="email">{{ __('Official email') }} <span class="req" aria-hidden="true">*</span></label>
                     <input type="email" id="email" name="email" class="input @error('email') is-invalid @enderror"
                            value="{{ old('email') }}" required autocomplete="username" autofocus
                            placeholder="name@etpb.gov.pk">
@@ -83,7 +85,7 @@
                 </div>
 
                 <div class="field">
-                    <label for="password">Password <span class="req" aria-hidden="true">*</span></label>
+                    <label for="password">{{ __('Password') }} <span class="req" aria-hidden="true">*</span></label>
                     <input type="password" id="password" name="password"
                            class="input @error('password') is-invalid @enderror"
                            required autocomplete="current-password">
@@ -92,40 +94,40 @@
 
                 <div class="field" style="display:flex;align-items:center;gap:.45rem">
                     <input type="checkbox" id="remember" name="remember" value="1" style="margin:0">
-                    <label for="remember" style="margin:0;font-weight:500">Keep me signed in on this device</label>
+                    <label for="remember" style="margin:0;font-weight:500">{{ __('Keep me signed in on this device') }}</label>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg" style="width:100%">
-                    @include('partials.icon', ['name' => 'lock']) Sign in
+                    @include('partials.icon', ['name' => 'lock']) {{ __('Sign in') }}
                 </button>
             </form>
 
             <hr class="divider">
 
             <p style="font-size:.88rem;margin:0 0 .75rem">
-                Applying for the first time?
-                <a href="{{ route('register') }}"><strong>Create an applicant account</strong></a>
+                {{ __('Applying for the first time?') }}
+                <a href="{{ route('register') }}"><strong>{{ __('Create an applicant account') }}</strong></a>
             </p>
 
             <p class="faint" style="font-size:.8rem;margin:0">
-                Access is logged. Sign-in attempts and record views are audited.
+                {{ __('Access is logged. Sign-in attempts and record views are audited.') }}
             </p>
         </div>
     </div>
 
-    <aside class="login-role-rail" aria-label="Demo role autofill">
-        <p class="login-role-rail-title">Roles</p>
+    <aside class="login-role-rail" aria-label="{{ __('Demo role autofill') }}">
+        <p class="login-role-rail-title">{{ __('Roles') }}</p>
         @foreach ($roleRail as $role)
             <button type="button"
                     class="login-role-chip"
-                    title="{{ $role['label'] }} — click to fill email &amp; password"
+                    title="{{ $role['label'] }} — {{ __('click to fill email & password') }}"
                     data-email="{{ $role['email'] }}"
                     data-password="{{ $demoPassword }}">
                 <span class="login-role-short">{{ $role['short'] }}</span>
                 <span class="login-role-label">{{ $role['label'] }}</span>
             </button>
         @endforeach
-        <p class="login-role-rail-hint">Click a role to autofill. Then press Sign in.</p>
+        <p class="login-role-rail-hint">{{ __('Click a role to autofill. Then press Sign in.') }}</p>
     </aside>
 </div>
 

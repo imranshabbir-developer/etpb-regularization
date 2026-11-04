@@ -115,11 +115,11 @@ class RentAssessmentService
     {
         $round = DB::table('assessment_rounds')->where('id', $roundId)->first();
         if (! $round) {
-            throw new RuntimeException("Assessment round [{$roundId}] not found.");
+            throw new RuntimeException(__('Assessment round [:id] not found.', ['id' => $roundId]));
         }
         if ($round->determined_monthly_rent === null) {
             throw new RuntimeException(
-                'The District Officer must determine the rent before a schedule can be generated.'
+                __('The District Officer must determine the rent before a schedule can be generated.')
             );
         }
 
@@ -128,7 +128,7 @@ class RentAssessmentService
             ->whereNull('deleted_at')
             ->first();
         if (! $possession) {
-            throw new RuntimeException('Possession details are missing for this application.');
+            throw new RuntimeException(__('Possession details are missing for this application.'));
         }
 
         $arrearsFrom = Carbon::parse($possession->arrears_from);
@@ -221,7 +221,7 @@ class RentAssessmentService
             $r = $byYear->get($year);
             $out[] = [
                 'year'         => $year,
-                'period'       => sprintf('01-07-%d to 30-06-%d', $year, $year + 1),
+                'period'       => __(':from to :to', ['from' => '01-07-' . $year, 'to' => '30-06-' . ($year + 1)]),
                 'monthly_rent' => $r?->monthly_rent,
                 'annual_rent'  => $r?->annual_rent,
                 'in_scope'     => $r !== null,

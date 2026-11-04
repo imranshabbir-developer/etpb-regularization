@@ -14,17 +14,17 @@
     };
 @endphp
 
-<div class="btn-row no-print" role="group" aria-label="Download this report">
+<div class="btn-row no-print" role="group" aria-label="{{ __('Download this report') }}">
     <a href="{{ $link('pdf') }}" class="btn btn-outline btn-sm">
-        @include('partials.icon', ['name' => 'file']) PDF
+        @include('partials.icon', ['name' => 'file']) {{ __('PDF') }}
     </a>
     <a href="{{ $link('docx') }}" class="btn btn-outline btn-sm">
-        @include('partials.icon', ['name' => 'file']) MS Word
+        @include('partials.icon', ['name' => 'file']) {{ __('MS Word') }}
     </a>
     <a href="{{ $link('xlsx') }}" class="btn btn-outline btn-sm">
-        @include('partials.icon', ['name' => 'chart']) Excel
+        @include('partials.icon', ['name' => 'chart']) {{ __('Excel') }}
     </a>
     <button type="button" class="btn btn-ghost btn-sm" onclick="window.print()">
-        @include('partials.icon', ['name' => 'file']) Print
+        @include('partials.icon', ['name' => 'file']) {{ __('Print') }}
     </button>
 </div>

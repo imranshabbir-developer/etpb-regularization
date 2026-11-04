@@ -1,4 +1,5 @@
 import Chart from 'chart.js/auto';
+import { isRtl, months, t } from './i18n.js';
 
 /**
  * Modern Chart.js visuals for ETPB dashboards — soft gradients, rounded bars,
@@ -29,9 +30,26 @@ function surfaceBorder() {
     return isDark() ? '#141C2B' : '#FFFFFF';
 }
 
+const LATIN_FONT = '"Segoe UI", system-ui, -apple-system, "Noto Sans", sans-serif';
+const URDU_FONT = '"ETPB Latin", "Noto Nastaliq Urdu", "Segoe UI", sans-serif';
+
+function chartFont() {
+    return isRtl() ? URDU_FONT : LATIN_FONT;
+}
+
 function applyChartDefaults() {
-    Chart.defaults.font.family = '"Segoe UI", system-ui, -apple-system, "Noto Sans", sans-serif';
-    Chart.defaults.font.size = 11.5;
+    const rtl = isRtl();
+    Chart.defaults.font.family = chartFont();
+    Chart.defaults.font.size = rtl ? 12.5 : 11.5;
+    // Nastaliq rises and falls far beyond Latin text; give each line room.
+    Chart.defaults.font.lineHeight = rtl ? 2 : 1.2;
+    Chart.defaults.plugins.legend.rtl = rtl;
+    Chart.defaults.plugins.legend.textDirection = rtl ? 'rtl' : 'ltr';
+    Chart.defaults.plugins.tooltip.rtl = rtl;
+    Chart.defaults.plugins.tooltip.textDirection = rtl ? 'rtl' : 'ltr';
+    // Fills are canvas gradients, which Chart.js cannot tween between; a resize
+    // mid-animation (e.g. when the Urdu web font lands) would otherwise throw.
+    Chart.defaults.animations.colors = false;
     Chart.defaults.color = tickColor();
     Chart.defaults.plugins.legend.labels.boxWidth = 10;
     Chart.defaults.plugins.legend.labels.boxHeight = 10;
@@ -69,17 +87,17 @@ function readPayload(el) {
 
 function money(n) {
     const v = Number(n) || 0;
-    if (v >= 10000000) return 'Rs. ' + (v / 10000000).toFixed(2) + ' cr';
-    if (v >= 100000) return 'Rs. ' + (v / 100000).toFixed(1) + ' lac';
-    return 'Rs. ' + Math.round(v).toLocaleString('en-PK');
+    const rs = t('Rs.') + ' ';
+    if (v >= 10000000) return rs + (v / 10000000).toFixed(2) + ' ' + t('cr');
+    if (v >= 100000) return rs + (v / 100000).toFixed(1) + ' ' + t('lac');
+    return rs + Math.round(v).toLocaleString('en-PK');
 }
 
 function shortMonth(ym) {
     if (! ym || typeof ym !== 'string') return ym;
     const parts = ym.split('-');
     if (parts.length < 2) return ym;
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[Number(parts[1]) - 1] || ym;
+    return months()[Number(parts[1]) - 1] || ym;
 }
 
 function verticalGradient(ctx, top, bottom) {
@@ -132,11 +150,11 @@ const doughnutCenter = {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = isDark() ? '#E8EEF6' : '#122B4F';
-        ctx.font = '700 1.35rem "Segoe UI", system-ui, sans-serif';
+        ctx.font = '700 1.35rem ' + LATIN_FONT;
         ctx.fillText(String(opts.value ?? ''), x, y - 8);
         ctx.fillStyle = isDark() ? '#A7B4C8' : '#5B7399';
-        ctx.font = '600 .68rem "Segoe UI", system-ui, sans-serif';
-        ctx.fillText(String(opts.label ?? ''), x, y + 14);
+        ctx.font = isRtl() ? '400 .85rem ' + URDU_FONT : '600 .68rem ' + LATIN_FONT;
+        ctx.fillText(String(opts.label ?? ''), x, y + (isRtl() ? 18 : 14));
         ctx.restore();
     },
 };
@@ -151,7 +169,7 @@ function mountLineDual(canvas, data) {
             labels,
             datasets: [
                 {
-                    label: data.intakeLabel || 'Submitted',
+                    label: data.intakeLabel || t('Submitted'),
                     data: data.intake,
                     borderColor: '#0284C7',
                     backgroundColor: (ctx) => verticalGradient(ctx, 'rgba(14, 165, 233, .28)', 'rgba(14, 165, 233, 0)'),
@@ -164,7 +182,7 @@ function mountLineDual(canvas, data) {
                     borderWidth: 2.75,
                 },
                 {
-                    label: data.disposalLabel || 'Regularized',
+                    label: data.disposalLabel || t('Regularized'),
                     data: data.disposal,
                     borderColor: '#C4680A',
                     backgroundColor: (ctx) => verticalGradient(ctx, 'rgba(232, 137, 26, .22)', 'rgba(232, 137, 26, 0)'),
@@ -182,17 +200,20 @@ function mountLineDual(canvas, data) {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
+            layout: { padding: isRtl() ? { left: 14 } : 0 },
             plugins: {
                 legend: { position: 'bottom' },
                 tooltip: { callbacks: { title: (items) => items[0]?.label || '' } },
             },
             scales: {
                 x: {
+                    reverse: isRtl(),
                     grid: { display: false },
                     ticks: { maxRotation: 0, color: tickColor(), font: { weight: '600', size: 11 } },
                     border: { display: false },
                 },
                 y: {
+                    position: isRtl() ? 'right' : 'left',
                     beginAtZero: true,
                     ticks: { precision: 0, color: tickColor() },
                     grid: { color: gridColor(), drawTicks: false },
@@ -228,10 +249,12 @@ function mountDoughnut(canvas, data) {
             plugins: {
                 etpbCenter: {
                     value: data.centerValue != null ? data.centerValue : total,
-                    label: data.centerLabel || 'Total',
+                    label: data.centerLabel || t('Total'),
                 },
                 legend: {
-                    position: window.matchMedia('(max-width: 640px)').matches ? 'bottom' : 'right',
+                    position: window.matchMedia('(max-width: 640px)').matches
+                        ? 'bottom'
+                        : (isRtl() ? 'left' : 'right'),
                     labels: { color: tickColor(), padding: 12 },
                 },
                 tooltip: {
@@ -255,12 +278,16 @@ function mountBar(canvas, data, horizontal = false) {
         data: {
             labels: labels.map((l) => (typeof l === 'string' && /^\d{4}-\d{2}$/.test(l) ? shortMonth(l) : l)),
             datasets: [{
-                label: data.label || 'Value',
+                label: data.label || t('Value'),
                 data: data.values,
                 backgroundColor: (ctx) => horizontal
-                    ? horizontalGradient(ctx, '#38BDF8', '#244F8C')
+                    ? (isRtl()
+                        ? horizontalGradient(ctx, '#244F8C', '#38BDF8')
+                        : horizontalGradient(ctx, '#38BDF8', '#244F8C'))
                     : verticalGradient(ctx, '#38BDF8', '#1A3A6B'),
-                borderRadius: horizontal ? { topRight: 8, bottomRight: 8 } : { topLeft: 8, topRight: 8 },
+                borderRadius: horizontal
+                    ? (isRtl() ? { topLeft: 8, bottomLeft: 8 } : { topRight: 8, bottomRight: 8 })
+                    : { topLeft: 8, topRight: 8 },
                 maxBarThickness: horizontal ? 22 : 34,
             }],
         },
@@ -280,6 +307,7 @@ function mountBar(canvas, data, horizontal = false) {
             },
             scales: {
                 x: {
+                    reverse: isRtl(),
                     beginAtZero: true,
                     grid: {
                         color: horizontal ? gridColor() : 'transparent',
@@ -292,6 +320,7 @@ function mountBar(canvas, data, horizontal = false) {
                         : { precision: 0, color: tickColor() },
                 },
                 y: {
+                    position: isRtl() ? 'right' : 'left',
                     beginAtZero: true,
                     grid: {
                         color: horizontal ? 'transparent' : gridColor(),
@@ -334,9 +363,22 @@ function remountAll() {
     document.querySelectorAll('canvas[data-etpb-chart]').forEach(mount);
 }
 
+// A canvas draws with whatever font is ready at that moment, so Urdu charts
+// wait for the Nastaliq face instead of drawing in a fallback and redrawing.
+function start() {
+    if (! isRtl() || ! document.fonts || typeof document.fonts.load !== 'function') {
+        remountAll();
+        return;
+    }
+    Promise.all([
+        document.fonts.load('400 16px "Noto Nastaliq Urdu"', 'اردو'),
+        document.fonts.ready,
+    ]).catch(() => {}).finally(remountAll);
+}
+
 document.addEventListener('etpb:themechange', remountAll);
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', remountAll);
+    document.addEventListener('DOMContentLoaded', start);
 } else {
-    remountAll();
+    start();
 }

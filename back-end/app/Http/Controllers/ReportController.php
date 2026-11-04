@@ -43,6 +43,7 @@ class ReportController extends Controller
      */
     public function glimpse(Request $request): View|StreamedResponse
     {
+        $this->useExportLocale($request);
         $user = $request->user();
         $districtId = $request->integer('district') ?: null;
 
@@ -92,6 +93,7 @@ class ReportController extends Controller
      */
     public function executive(Request $request): View|StreamedResponse
     {
+        $this->useExportLocale($request);
         $user = $request->user();
         $districtId = $request->integer('district') ?: null;
 
@@ -109,7 +111,7 @@ class ReportController extends Controller
             'districts'    => District::orderBy('name')->get(['id', 'name']),
             'districtId'   => $districtId,
             'districtName' => $districtId ? District::find($districtId)?->name : null,
-            'labels'       => WorkflowService::LABELS,
+            'labels'       => array_map(static fn ($label) => __($label), WorkflowService::LABELS),
             'generatedAt'  => now(),
             'generatedBy'  => $user,
             'reportCode'   => 'CONS',
@@ -146,6 +148,7 @@ class ReportController extends Controller
      */
     public function deep(Request $request, Application $application): View|StreamedResponse
     {
+        $this->useExportLocale($request);
         $this->authoriseView($request, $application);
 
         $application->load([
@@ -222,11 +225,12 @@ class ReportController extends Controller
      */
     public function register(Request $request, ?string $register = null): View|StreamedResponse
     {
+        $this->useExportLocale($request);
         $user = $request->user();
         $allowed = $this->registers();
         $register = $register ?: 'applications';
 
-        abort_unless(isset($allowed[$register]), 404, 'Unknown register.');
+        abort_unless(isset($allowed[$register]), 404, __('Unknown register.'));
 
         $rows = $this->registerRows($register, $user);
 
@@ -271,16 +275,16 @@ class ReportController extends Controller
     private function registers(): array
     {
         return [
-            'applications' => 'Application register',
-            'fee'          => 'Fee register',
-            'arrears'      => 'Arrears outstanding statement',
-            'objections'   => 'Objection register',
-            'litigation'   => 'Sub judice register',
-            'regularized'  => 'Regularization register',
-            'assessment'   => 'Rent assessment register',
-            'notices'      => 'Notice & service register',
-            'hearings'     => 'Hearing cause list',
-            'agreements'   => 'Tenancy agreement register',
+            'applications' => __('Application register'),
+            'fee'          => __('Fee register'),
+            'arrears'      => __('Arrears outstanding statement'),
+            'objections'   => __('Objection register'),
+            'litigation'   => __('Sub judice register'),
+            'regularized'  => __('Regularization register'),
+            'assessment'   => __('Rent assessment register'),
+            'notices'      => __('Notice & service register'),
+            'hearings'     => __('Hearing cause list'),
+            'agreements'   => __('Tenancy agreement register'),
         ];
     }
 
@@ -588,6 +592,14 @@ class ReportController extends Controller
         return in_array($format, ['pdf', 'docx', 'xlsx'], true) ? $format : null;
     }
 
+    /** Exports stay English: Dompdf cannot shape Urdu script. */
+    private function useExportLocale(Request $request): void
+    {
+        if ($this->requestedFormat($request)) {
+            app()->setLocale('en');
+        }
+    }
+
     private function authoriseView(Request $request, Application $application): void
     {
         $user = $request->user();
@@ -603,6 +615,6 @@ class ReportController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

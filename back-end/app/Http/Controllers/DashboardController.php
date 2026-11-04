@@ -68,36 +68,38 @@ class DashboardController extends Controller
                 $actions[] = [
                     'app'   => $app,
                     'tone'  => 'warn',
-                    'title' => 'Finish this application',
-                    'body'  => 'It has not been submitted yet, so the department has not seen it.',
-                    'cta'   => 'Continue',
+                    'title' => __('Finish this application'),
+                    'body'  => __('It has not been submitted yet, so the department has not seen it.'),
+                    'cta'   => __('Continue'),
                     'route' => route('apply.evidence', $app),
                 ];
             } elseif ($app->status === WorkflowService::RETURNED_DEFICIENT) {
                 $actions[] = [
                     'app'   => $app,
                     'tone'  => 'danger',
-                    'title' => 'The office needs something from you',
-                    'body'  => $app->status_remarks ?: 'A document is missing or unclear.',
-                    'cta'   => 'Open',
+                    'title' => __('The office needs something from you'),
+                    'body'  => $app->status_remarks ?: __('A document is missing or unclear.'),
+                    'cta'   => __('Open'),
                     'route' => route('documents.index', $app),
                 ];
             } elseif ($app->payment_status === 'PENDING') {
                 $actions[] = [
                     'app'   => $app,
                     'tone'  => 'warn',
-                    'title' => 'Your Rs. ' . number_format((float) $this->settings->decimal('processing_fee', '5000.00'), 0) . ' deposit is not confirmed',
-                    'body'  => 'Nothing moves until Accounts confirms it with the bank.',
-                    'cta'   => 'Deposit',
+                    'title' => __('Your Rs. :amount deposit is not confirmed', [
+                        'amount' => number_format((float) $this->settings->decimal('processing_fee', '5000.00'), 0),
+                    ]),
+                    'body'  => __('Nothing moves until Accounts confirms it with the bank.'),
+                    'cta'   => __('Deposit'),
                     'route' => route('fee.index', $app),
                 ];
             } elseif ((float) $app->arrears_balance > 0) {
                 $actions[] = [
                     'app'   => $app,
                     'tone'  => 'warn',
-                    'title' => 'Rs. ' . number_format((float) $app->arrears_balance, 0) . ' is outstanding',
-                    'body'  => 'Arrears must be cleared, or spread over instalments, before approval.',
-                    'cta'   => 'See the ledger',
+                    'title' => __('Rs. :amount is outstanding', ['amount' => number_format((float) $app->arrears_balance, 0)]),
+                    'body'  => __('Arrears must be cleared, or spread over instalments, before approval.'),
+                    'cta'   => __('See the ledger'),
                     'route' => route('arrears.index', $app),
                 ];
             }
@@ -125,10 +127,10 @@ class DashboardController extends Controller
 
         if ($user->hasPermission('fee.verify')) {
             $work[] = [
-                'label' => 'Deposits to confirm',
+                'label' => __('Deposits to confirm'),
                 'value' => $scope()->where('payment_status', 'PENDING')
                              ->whereHas('feePayments', fn ($q) => $q->where('status', 'PENDING'))->count(),
-                'sub'   => 'nothing proceeds until confirmed',
+                'sub'   => __('nothing proceeds until confirmed'),
                 'tone'  => 'is-warn',
                 'route' => route('queue.scrutiny'),
             ];
@@ -136,11 +138,11 @@ class DashboardController extends Controller
 
         if ($user->hasPermission('applications.scrutinise')) {
             $work[] = [
-                'label' => 'Waiting for scrutiny',
+                'label' => __('Waiting for scrutiny'),
                 'value' => $scope()->where('payment_status', 'PAID')
                              ->whereIn('status', [WorkflowService::FEE_VERIFICATION, WorkflowService::SCRUTINY])
                              ->count(),
-                'sub'   => 'paid, and ready to examine',
+                'sub'   => __('paid, and ready to examine'),
                 'tone'  => '',
                 'route' => route('queue.scrutiny'),
             ];
@@ -153,12 +155,14 @@ class DashboardController extends Controller
                 ->count();
 
             $work[] = [
-                'label' => 'Assessments in hand',
+                'label' => __('Assessments in hand'),
                 'value' => $scope()->open()->whereIn('status', [
                     WorkflowService::ASSESSMENT_PROPOSED, WorkflowService::NOTICE_ISSUED,
                     WorkflowService::OBJECTION_WINDOW, WorkflowService::HEARING,
                 ])->count(),
-                'sub'   => $overdue > 0 ? $overdue . ' past the 60-day limit' : 'all within the 60-day limit',
+                'sub'   => $overdue > 0
+                    ? __(':count past the 60-day limit', ['count' => $overdue])
+                    : __('all within the 60-day limit'),
                 'tone'  => $overdue > 0 ? 'is-danger' : '',
                 'route' => route('queue.assessment'),
             ];
@@ -174,9 +178,9 @@ class DashboardController extends Controller
                 ->count();
 
             $work[] = [
-                'label' => 'Objections to decide',
+                'label' => __('Objections to decide'),
                 'value' => $open,
-                'sub'   => 'rent cannot be fixed until decided',
+                'sub'   => __('rent cannot be fixed until decided'),
                 'tone'  => $open > 0 ? 'is-warn' : '',
                 'route' => route('queue.objections'),
             ];
@@ -187,9 +191,11 @@ class DashboardController extends Controller
                 ->whereDate('admin_approval_due_date', '<', $today)->count();
 
             $work[] = [
-                'label' => 'Awaiting your approval',
+                'label' => __('Awaiting your approval'),
                 'value' => $scope()->where('status', WorkflowService::PENDING_ADMIN_APPROVAL)->count(),
-                'sub'   => $overdue > 0 ? $overdue . ' past the one-month limit' : 'within the one-month limit',
+                'sub'   => $overdue > 0
+                    ? __(':count past the one-month limit', ['count' => $overdue])
+                    : __('within the one-month limit'),
                 'tone'  => $overdue > 0 ? 'is-danger' : '',
                 'route' => route('queue.approvals'),
             ];
@@ -197,9 +203,9 @@ class DashboardController extends Controller
 
         if ($user->hasPermission('arrears.view')) {
             $work[] = [
-                'label' => 'Arrears outstanding',
+                'label' => __('Arrears outstanding'),
                 'value' => 'Rs. ' . number_format((float) ($scope()->sum('arrears_balance') ?: 0), 0),
-                'sub'   => 'across all open cases',
+                'sub'   => __('across all open cases'),
                 'tone'  => 'is-gold',
                 'route' => route('queue.arrears'),
             ];
@@ -214,7 +220,7 @@ class DashboardController extends Controller
             'recent'   => $recent,
             'byStatus' => $scope()->select('status', DB::raw('COUNT(*) as total'))
                             ->groupBy('status')->pluck('total', 'status'),
-            'labels'   => WorkflowService::LABELS,
+            'labels'   => array_map(static fn ($label) => __($label), WorkflowService::LABELS),
             'monthly'  => $this->data->monthlyIntake($user),
             'disposal' => $this->data->monthlyDisposal($user),
         ]);

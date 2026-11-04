@@ -11,46 +11,46 @@
      */
     $groups = $isApplicant
         ? [
-            'My application' => [
-                ['dashboard',    'Home',              'home',  null],
-                ['apply.start',  'Apply',             'plus',  'applications.create'],
-                ['apply.mine',   'My applications',   'file',  'applications.view_own'],
+            __('My application') => [
+                ['dashboard',    __('Home'),              'home',  null],
+                ['apply.start',  __('Apply'),             'plus',  'applications.create'],
+                ['apply.mine',   __('My applications'),   'file',  'applications.view_own'],
             ],
         ]
         : [
-            'Case work' => [
-                ['dashboard',          'Dashboard',       'home',       null],
-                ['applications.index', 'All applications','file',       'applications.view_district|applications.view_all'],
-                ['apply.start',        'File for a walk-in','plus',     'applications.create'],
+            __('Case work') => [
+                ['dashboard',          __('Dashboard'),       'home',       null],
+                ['applications.index', __('All applications'),'file',       'applications.view_district|applications.view_all'],
+                ['apply.start',        __('File for a walk-in'),'plus',     'applications.create'],
             ],
-            'My queues' => [
+            __('My queues') => [
                 // Accounts and the District Officer share this screen but come to
                 // it for different reasons, so it is named for whoever is looking.
                 ['queue.scrutiny',
-                    $u && $u->hasPermission('applications.scrutinise') ? 'Scrutiny' : 'Deposits to confirm',
+                    $u && $u->hasPermission('applications.scrutinise') ? __('Scrutiny') : __('Deposits to confirm'),
                     $u && $u->hasPermission('applications.scrutinise') ? 'doc-search' : 'cash',
                     'applications.scrutinise|fee.verify'],
-                ['queue.assessment', 'Rent assessment', 'scale',      'assessment.propose'],
-                ['queue.objections', 'Objections',      'inbox',      'objections.decide'],
-                ['queue.arrears',    'Arrears',         'cash',       'arrears.view'],
-                ['queue.litigation', 'Litigation',      'gavel',      'litigation.view'],
-                ['queue.approvals',  'Pending approval','check',      'approvals.administrator'],
+                ['queue.assessment', __('Rent assessment'), 'scale',      'assessment.propose'],
+                ['queue.objections', __('Objections'),      'inbox',      'objections.decide'],
+                ['queue.arrears',    __('Arrears'),         'cash',       'arrears.view'],
+                ['queue.litigation', __('Litigation'),      'gavel',      'litigation.view'],
+                ['queue.approvals',  __('Pending approval'),'check',      'approvals.administrator'],
             ],
-            'Reports' => [
-                ['reports.glimpse',   'At a glance',       'chart', 'reports.executive'],
-                ['reports.executive', 'Consolidated report','list',  'reports.executive'],
-                ['reports.registers', 'Registers',         'file',  'reports.registers'],
+            __('Reports') => [
+                ['reports.glimpse',   __('At a glance'),       'chart', 'reports.executive'],
+                ['reports.executive', __('Consolidated report'),'list',  'reports.executive'],
+                ['reports.registers', __('Registers'),         'file',  'reports.registers'],
             ],
-            'Administration' => [
-                ['admin.users',    'Users & roles',      'users',  'users.manage'],
-                ['admin.masters',  'Reference data',     'map',    'masters.manage'],
-                ['admin.settings', 'Statutory settings', 'cog',    'settings.manage'],
-                ['admin.audit',    'Audit log',          'shield', 'audit.view'],
+            __('Administration') => [
+                ['admin.users',    __('Users & roles'),      'users',  'users.manage'],
+                ['admin.masters',  __('Reference data'),     'map',    'masters.manage'],
+                ['admin.settings', __('Statutory settings'), 'cog',    'settings.manage'],
+                ['admin.audit',    __('Audit log'),          'shield', 'audit.view'],
             ],
         ];
 @endphp
 
-<nav class="sidebar" id="sidebar" aria-label="Main navigation">
+<nav class="sidebar" id="sidebar" aria-label="{{ __('Main navigation') }}">
     <div class="sidebar-glow" aria-hidden="true">
         <span class="sidebar-glow-orb sidebar-glow-orb-a"></span>
         <span class="sidebar-glow-orb sidebar-glow-orb-b"></span>
@@ -60,8 +60,8 @@
     <div class="sidebar-mobile-head">
         <span class="brand-mark">@include('partials.icon', ['name' => 'shield'])</span>
         <span class="brand-text">
-            <strong>Regularization</strong>
-            <span>ETPB</span>
+            <strong>{{ __('Regularization') }}</strong>
+            <span>{{ __('ETPB') }}</span>
         </span>
     </div>
 
@@ -99,11 +99,10 @@
 
     @if ($isApplicant)
         <div class="sidebar-group">
-            <h6>Help</h6>
+            <h6>{{ __('Help') }}</h6>
             <div class="px-3 pb-2">
                 <p class="text-[.78rem] text-pk-200 leading-snug mb-2">
-                    Not sure about something? Use <strong>Ask about the scheme</strong> at the
-                    bottom of the screen.
+                    {!! __('Not sure about something? Use <strong>Ask about the scheme</strong> at the bottom of the screen.') !!}
                 </p>
             </div>
         </div>

@@ -10,18 +10,18 @@
 --}}
 
 <button type="button" class="help-launcher no-print" id="helpLauncher"
-        aria-label="Ask about the scheme" aria-expanded="false" aria-controls="helpPanel">
+        aria-label="{{ __('Ask about the scheme') }}" aria-expanded="false" aria-controls="helpPanel">
     <span class="help-launcher-icon">@include('partials.icon', ['name' => 'chat'])</span>
-    <span class="help-launcher-label">Ask about the scheme</span>
+    <span class="help-launcher-label">{{ __('Ask about the scheme') }}</span>
 </button>
 
-<section class="help-panel no-print" id="helpPanel" hidden aria-label="Scheme help">
+<section class="help-panel no-print" id="helpPanel" hidden aria-label="{{ __('Scheme help') }}">
     <header class="help-head">
         <div>
-            <strong>Scheme help</strong>
-            <span>Regularization of Possession</span>
+            <strong>{{ __('Scheme help') }}</strong>
+            <span>{{ __('Regularization of Possession') }}</span>
         </div>
-        <button type="button" class="help-close" id="helpClose" aria-label="Close help">
+        <button type="button" class="help-close" id="helpClose" aria-label="{{ __('Close help') }}">
             @include('partials.icon', ['name' => 'close'])
         </button>
     </header>
@@ -31,16 +31,16 @@
     <div class="help-chips" id="helpChips"></div>
 
     <form class="help-form" id="helpForm">
-        <label class="sr-only" for="helpInput">Your question</label>
+        <label class="sr-only" for="helpInput">{{ __('Your question') }}</label>
         <input type="text" id="helpInput" class="help-input" autocomplete="off"
-               placeholder="Type your question…" maxlength="500">
-        <button type="submit" class="help-send" aria-label="Send">
+               placeholder="{{ __('Type your question…') }}" maxlength="500">
+        <button type="submit" class="help-send" aria-label="{{ __('Send') }}">
             @include('partials.icon', ['name' => 'send'])
         </button>
     </form>
 
     <p class="help-foot">
-        General guidance only. For your own case, contact your ETPB district office.
+        {{ __('General guidance only. For your own case, contact your ETPB district office.') }}
     </p>
 </section>
 
@@ -59,6 +59,11 @@
     var askUrl  = @json(route('assistant.ask'));
     var topUrl  = @json(route('assistant.topics'));
     var started = false;
+    var msg = {
+        thinking:    @json(__('Looking that up…')),
+        unreachable: {{ Js::from(__('Sorry, I could not reach the help service. Please try again.')) }},
+        offline:     {{ Js::from(__('Ask me about eligibility, the fee, documents, rent or arrears.')) }}
+    };
 
     function esc(s) {
         return String(s).replace(/[&<>"']/g, function (c) {
@@ -112,7 +117,7 @@
         input.value = '';
         setChips([]);
 
-        var thinking = bubble('bot', '<p class="help-thinking">Looking that up…</p>');
+        var thinking = bubble('bot', '<p class="help-thinking">' + esc(msg.thinking) + '</p>');
 
         fetch(askUrl, {
             method: 'POST',
@@ -131,7 +136,7 @@
         })
         .catch(function () {
             thinking.remove();
-            bubble('bot', '<p>Sorry, I could not reach the help service. Please try again.</p>');
+            bubble('bot', '<p>' + esc(msg.unreachable) + '</p>');
         });
     }
 
@@ -149,7 +154,7 @@
                     setChips(d.topics);
                 })
                 .catch(function () {
-                    bubble('bot', '<p>Ask me about eligibility, the fee, documents, rent or arrears.</p>');
+                    bubble('bot', '<p>' + esc(msg.offline) + '</p>');
                 });
         }
         setTimeout(function () { input.focus(); }, 60);

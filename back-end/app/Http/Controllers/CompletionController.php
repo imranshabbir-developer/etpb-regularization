@@ -110,7 +110,7 @@ class CompletionController extends Controller
         });
 
         return back()->with('status',
-            'Nomination form recorded. The tenancy agreement may now be executed.');
+            __('Nomination form recorded. The tenancy agreement may now be executed.'));
     }
 
     /**
@@ -122,7 +122,7 @@ class CompletionController extends Controller
         $this->authoriseView($request, $application);
 
         if ($application->agreement) {
-            return back()->with('error', 'A tenancy agreement has already been executed for this application.');
+            return back()->with('error', __('A tenancy agreement has already been executed for this application.'));
         }
 
         $data = $request->validate([
@@ -160,7 +160,7 @@ class CompletionController extends Controller
             return back()->with('error', $e->getMessage())->withInput();
         }
 
-        return back()->with('status', 'Tenancy agreement executed.');
+        return back()->with('status', __('Tenancy agreement executed.'));
     }
 
     /**
@@ -171,15 +171,15 @@ class CompletionController extends Controller
         $this->authoriseView($request, $application);
 
         if ($application->order) {
-            return back()->with('error', 'A regularization order has already been issued.');
+            return back()->with('error', __('A regularization order has already been issued.'));
         }
 
         $data = $request->validate([
             'order_date' => ['required', 'date', 'before_or_equal:today'],
             'order_text' => ['required', 'string', 'min:60', 'max:20000'],
         ], [
-            'order_text.required' => 'The order must set out what is being regularized and on what terms.',
-            'order_text.min'      => 'The order text is too short to stand as a reasoned order.',
+            'order_text.required' => __('The order must set out what is being regularized and on what terms.'),
+            'order_text.min'      => __('The order text is too short to stand as a reasoned order.'),
         ]);
 
         $user = $request->user();
@@ -209,7 +209,7 @@ class CompletionController extends Controller
         }
 
         return redirect()->route('completion.index', $application)
-            ->with('status', 'Regularization order issued. The possession is now regularized.');
+            ->with('status', __('Regularization order issued. The possession is now regularized.'));
     }
 
     private function authoriseView(Request $request, Application $application): void
@@ -227,6 +227,6 @@ class CompletionController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Performance at a glance')
-@section('heading', 'Performance at a glance')
+@section('title', __('Performance at a glance'))
+@section('heading', __('Performance at a glance'))
 
 @section('content')
 
@@ -11,17 +11,17 @@
     $rs = fn ($n) => 'Rs. ' . number_format((float) $n, 0);
     $short = function ($n) {
         $n = (float) $n;
-        if ($n >= 10000000) return 'Rs. ' . number_format($n / 10000000, 2) . ' cr';
-        if ($n >= 100000)   return 'Rs. ' . number_format($n / 100000, 2) . ' lac';
+        if ($n >= 10000000) return 'Rs. ' . number_format($n / 10000000, 2) . ' ' . __('cr');
+        if ($n >= 100000)   return 'Rs. ' . number_format($n / 100000, 2) . ' ' . __('lac');
         return 'Rs. ' . number_format($n, 0);
     };
 @endphp
 
 <div class="page-head">
-    <h1>Performance at a glance</h1>
+    <h1>{{ __('Performance at a glance') }}</h1>
     <p class="lede">
-        {{ $districtName ? 'District ' . $districtName : 'All districts' }} &middot;
-        as at {{ $generatedAt->format('d F Y') }}
+        {{ $districtName ? __('District :name', ['name' => __($districtName)]) : __('All districts') }} &middot;
+        {{ __('as at :date', ['date' => $generatedAt->translatedFormat('d F Y')]) }}
     </p>
 </div>
 
@@ -30,15 +30,15 @@
         <form method="GET" action="{{ route('reports.glimpse') }}"
               class="flex flex-wrap items-end gap-3">
             <div class="field mb-0 min-w-[200px]">
-                <label for="district">District</label>
+                <label for="district">{{ __('District') }}</label>
                 <select id="district" name="district" class="select" onchange="this.form.submit()">
-                    <option value="">All districts</option>
+                    <option value="">{{ __('All districts') }}</option>
                     @foreach ($districts as $d)
-                        <option value="{{ $d->id }}" @selected($districtId === $d->id)>{{ $d->name }}</option>
+                        <option value="{{ $d->id }}" @selected($districtId === $d->id)>{{ __($d->name) }}</option>
                     @endforeach
                 </select>
             </div>
-            <noscript><button class="btn btn-primary btn-sm" type="submit">Apply</button></noscript>
+            <noscript><button class="btn btn-primary btn-sm" type="submit">{{ __('Apply') }}</button></noscript>
         </form>
         <div class="mt-2">
             @include('partials.report-formats', [
@@ -52,44 +52,44 @@
 {{-- ---------- The four numbers that matter ---------- --}}
 <div class="tiles">
     <div class="tile">
-        <div class="tile-label">Applications</div>
+        <div class="tile-label">{{ __('Applications') }}</div>
         <div class="tile-value">{{ number_format($h['all']) }}</div>
-        <div class="tile-sub">{{ number_format($h['open']) }} open &middot; {{ $h['disposal_rate'] }}% disposed</div>
+        <div class="tile-sub">{{ __(':open open · :rate% disposed', ['open' => number_format($h['open']), 'rate' => $h['disposal_rate']]) }}</div>
     </div>
     <div class="tile">
-        <div class="tile-label">Regularized</div>
+        <div class="tile-label">{{ __('Regularized') }}</div>
         <div class="tile-value">{{ number_format($h['regularized']) }}</div>
         <div class="tile-sub">
-            {{ number_format((float) $h['area_sqft'] / 5445, 1) }} Kanal brought on record
+            {{ __(':kanal Kanal brought on record', ['kanal' => number_format((float) $h['area_sqft'] / 5445, 1)]) }}
         </div>
     </div>
     <div class="tile is-gold">
-        <div class="tile-label">Rent secured</div>
+        <div class="tile-label">{{ __('Rent secured') }}</div>
         <div class="tile-value">{{ $short((float) $h['monthly_rent'] * 12) }}</div>
-        <div class="tile-sub">a year &middot; {{ $rs($h['monthly_rent']) }} a month</div>
+        <div class="tile-sub">{{ __('a year · :amount a month', ['amount' => $rs($h['monthly_rent'])]) }}</div>
     </div>
     <div class="tile {{ $h['recovery_rate'] < 50 ? 'is-warn' : '' }}">
-        <div class="tile-label">Arrears recovered</div>
+        <div class="tile-label">{{ __('Arrears recovered') }}</div>
         <div class="tile-value">{{ $h['recovery_rate'] }}%</div>
-        <div class="tile-sub">{{ $short($h['outstanding']) }} still outstanding</div>
+        <div class="tile-sub">{{ __(':amount still outstanding', ['amount' => $short($h['outstanding'])]) }}</div>
     </div>
 </div>
 
 {{-- ---------- Deadline performance ---------- --}}
 <div class="card">
     <div class="card-head">
-        <h3>Are the statutory deadlines being met?</h3>
+        <h3>{{ __('Are the statutory deadlines being met?') }}</h3>
         @if ($p['assessment_overdue'] + $p['approval_overdue'] > 0)
-            <span class="badge badge-danger">{{ $p['assessment_overdue'] + $p['approval_overdue'] }} overdue</span>
+            <span class="badge badge-danger">{{ __(':count overdue', ['count' => $p['assessment_overdue'] + $p['approval_overdue']]) }}</span>
         @else
-            <span class="badge badge-good">All on time</span>
+            <span class="badge badge-good">{{ __('All on time') }}</span>
         @endif
     </div>
     <div class="card-body">
         <div class="grid-2 gap-y-4">
             @foreach ([
-                ['Assessment within 60 days', $p['assessment_ontime'], $p['assessment_live'], $p['assessment_overdue'], 'Clause 10(i)(e)'],
-                ['Approval within one month', $p['approval_ontime'], $p['approval_live'], $p['approval_overdue'], 'Clause 3(ii)(d)'],
+                [__('Assessment within 60 days'), $p['assessment_ontime'], $p['assessment_live'], $p['assessment_overdue'], __('Clause 10(i)(e)')],
+                [__('Approval within one month'), $p['approval_ontime'], $p['approval_live'], $p['approval_overdue'], __('Clause 3(ii)(d)')],
             ] as [$label, $pct, $live, $over, $clause])
                 <div>
                     <div class="flex items-baseline justify-between gap-2">
@@ -107,8 +107,8 @@
                         </div>
                     </div>
                     <div class="tile-sub">
-                        {{ number_format($live) }} in hand
-                        @if ($over > 0) &middot; <strong class="text-danger-600">{{ number_format($over) }} overdue</strong> @endif
+                        {{ __(':count in hand', ['count' => number_format($live)]) }}
+                        @if ($over > 0) &middot; <strong class="text-danger-600">{{ __(':count overdue', ['count' => number_format($over)]) }}</strong> @endif
                     </div>
                 </div>
             @endforeach
@@ -117,10 +117,10 @@
         @if ($p['avg_days'] !== null)
             <hr class="divider">
             <p class="mb-0 muted text-[.88rem]">
-                A case takes on average <strong>{{ number_format($p['avg_days']) }} days</strong>
-                from submission to regularization.
-                Of {{ number_format($p['approvals_total']) }} approvals decided so far,
-                <strong>{{ $p['approvals_pct'] }}%</strong> were within the month.
+                {{ __('A case takes on average') }} <strong>{{ __(':count days', ['count' => number_format($p['avg_days'])]) }}</strong>
+                {{ __('from submission to regularization.') }}
+                {{ __('Of :total approvals decided so far,', ['total' => number_format($p['approvals_total'])]) }}
+                <strong>{{ $p['approvals_pct'] }}%</strong> {{ __('were within the month.') }}
             </p>
         @endif
     </div>
@@ -129,17 +129,17 @@
 <div class="grid-2 items-start gap-[1.15rem]">
     {{-- ---------- Where the work is ---------- --}}
     <div class="card">
-        <div class="card-head"><h3>Busiest districts</h3></div>
+        <div class="card-head"><h3>{{ __('Busiest districts') }}</h3></div>
         <div class="table-wrap border-0 rounded-none">
             <table class="data">
                 <thead>
-                <tr><th>District</th><th class="num">Cases</th><th class="num">Done</th><th class="num">Recovery</th></tr>
+                <tr><th>{{ __('District') }}</th><th class="num">{{ __('Cases') }}</th><th class="num">{{ __('Done') }}</th><th class="num">{{ __('Recovery') }}</th></tr>
                 </thead>
                 <tbody>
                 @forelse ($byDistrict->take(8) as $d)
                     @php $rec = (float) $d->assessed > 0 ? round((float) $d->recovered / (float) $d->assessed * 100) : 0; @endphp
                     <tr>
-                        <td>{{ $d->district?->name ?? 'Not recorded' }}</td>
+                        <td>{{ __($d->district?->name ?? 'Not recorded') }}</td>
                         <td class="num">{{ number_format($d->total) }}</td>
                         <td class="num">{{ number_format($d->regularized) }}</td>
                         <td class="num">
@@ -149,7 +149,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="row-muted">No applications yet.</td></tr>
+                    <tr><td colspan="4" class="row-muted">{{ __('No applications yet.') }}</td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -158,43 +158,43 @@
 
     {{-- ---------- Attention ---------- --}}
     <div class="card">
-        <div class="card-head"><h3>Needs attention</h3></div>
+        <div class="card-head"><h3>{{ __('Needs attention') }}</h3></div>
         <div class="card-body">
             <dl class="kv">
-                <dt>Awaiting the Rs. 5,000 deposit</dt>
+                <dt>{{ __('Awaiting the Rs. 5,000 deposit') }}</dt>
                 <dd>
                     <span class="badge badge-{{ $h['pending_pay'] > 0 ? 'warn' : 'good' }}">
                         {{ number_format($h['pending_pay']) }}
                     </span>
-                    <span class="faint text-[.8rem]">not processed until paid</span>
+                    <span class="faint text-[.8rem]">{{ __('not processed until paid') }}</span>
                 </dd>
 
-                <dt>Sub judice</dt>
+                <dt>{{ __('Sub judice') }}</dt>
                 <dd>
                     <span class="badge badge-{{ $h['sub_judice'] > 0 ? 'warn' : 'good' }}">
                         {{ number_format($h['sub_judice']) }}
                     </span>
-                    <span class="faint text-[.8rem]">before a court, or stayed</span>
+                    <span class="faint text-[.8rem]">{{ __('before a court, or stayed') }}</span>
                 </dd>
 
-                <dt>Objections still open</dt>
+                <dt>{{ __('Objections still open') }}</dt>
                 <dd>
                     <span class="badge badge-{{ $objections['open'] > 0 ? 'warn' : 'good' }}">
                         {{ number_format($objections['open']) }}
                     </span>
-                    <span class="faint text-[.8rem]">rent cannot be fixed until decided</span>
+                    <span class="faint text-[.8rem]">{{ __('rent cannot be fixed until decided') }}</span>
                 </dd>
 
-                <dt>Fee collected</dt>
+                <dt>{{ __('Fee collected') }}</dt>
                 <dd>{{ $rs($h['fee_total']) }}
-                    <span class="faint text-[.8rem]">({{ number_format($h['fee_count']) }} instruments)</span></dd>
+                    <span class="faint text-[.8rem]">({{ __(':count instruments', ['count' => number_format($h['fee_count'])]) }})</span></dd>
             </dl>
 
             @can('do', 'reports.executive')
                 <hr class="divider">
                 <a href="{{ route('reports.executive', array_filter(['district' => $districtId])) }}"
                    class="btn btn-primary btn-sm">
-                    Full consolidated report &rarr;
+                    {{ __('Full consolidated report') }} &rarr;
                 </a>
             @endcan
         </div>
@@ -207,34 +207,34 @@
         'labels' => $monthly->keys()->values(),
         'intake' => $monthly->values()->values(),
         'disposal' => ($disposal ?? collect())->values()->values(),
-        'intakeLabel' => 'Submitted',
-        'disposalLabel' => 'Regularized',
+        'intakeLabel' => __('Submitted'),
+        'disposalLabel' => __('Regularized'),
     ];
     $ageChart = [
-        'labels' => collect($ageing ?? [])->pluck('label')->values(),
+        'labels' => collect($ageing ?? [])->pluck('label')->map(fn ($l) => __($l))->values(),
         'values' => collect($ageing ?? [])->map(fn ($b) => (float) $b['amount'])->values(),
-        'label' => 'Outstanding',
+        'label' => __('Outstanding'),
         'money' => true,
     ];
 @endphp
 
 <div class="grid-2 items-start gap-[1.15rem]">
     <div class="card">
-        <div class="card-head"><h3>Intake vs regularized (12 months)</h3></div>
+        <div class="card-head"><h3>{{ __('Intake vs regularized (12 months)') }}</h3></div>
         <div class="card-body chart-card-body">
             <div class="chart-frame">
                 <canvas data-etpb-chart="line-dual" data-etpb-source="glimpse-trend-data"
-                        aria-label="Monthly intake and regularization"></canvas>
+                        aria-label="{{ __('Monthly intake and regularization') }}"></canvas>
             </div>
             <script type="application/json" id="glimpse-trend-data">@json($trend)</script>
         </div>
     </div>
     <div class="card">
-        <div class="card-head"><h3>Arrears ageing</h3></div>
+        <div class="card-head"><h3>{{ __('Arrears ageing') }}</h3></div>
         <div class="card-body chart-card-body">
             <div class="chart-frame is-md">
                 <canvas data-etpb-chart="bar" data-etpb-source="glimpse-age-data"
-                        aria-label="Outstanding arrears by age"></canvas>
+                        aria-label="{{ __('Outstanding arrears by age') }}"></canvas>
             </div>
             <script type="application/json" id="glimpse-age-data">@json($ageChart)</script>
         </div>

@@ -25,17 +25,17 @@ class PasswordController extends Controller
                 Password::min(12)->letters()->mixedCase()->numbers()->symbols()->uncompromised(),
             ],
         ], [
-            'password.confirmed' => 'The new password and its confirmation do not match.',
+            'password.confirmed' => __('The new password and its confirmation do not match.'),
         ]);
 
         $user = $request->user();
 
         if (! Hash::check($data['current_password'], $user->password)) {
-            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+            return back()->withErrors(['current_password' => __('The current password is incorrect.')]);
         }
 
         if (Hash::check($data['password'], $user->password)) {
-            return back()->withErrors(['password' => 'The new password must differ from the current one.']);
+            return back()->withErrors(['password' => __('The new password must differ from the current one.')]);
         }
 
         $user->forceFill([
@@ -44,6 +44,6 @@ class PasswordController extends Controller
             'password_changed_at'   => now(),
         ])->save();
 
-        return redirect()->route('dashboard')->with('status', 'Your password has been changed.');
+        return redirect()->route('dashboard')->with('status', __('Your password has been changed.'));
     }
 }

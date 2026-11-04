@@ -121,6 +121,17 @@ class User extends Authenticatable
         return $this->roles()->orderBy('hierarchy_level')->first();
     }
 
+    /**
+     * First name for the dashboard greeting. Office accounts named after a post
+     * ("District Officer Lahore") have a translation and are greeted in full.
+     */
+    public function greetingName(): string
+    {
+        $translated = __($this->name);
+
+        return $translated !== $this->name ? $translated : explode(' ', trim($this->name))[0];
+    }
+
     public function isLocked(): bool
     {
         return $this->status === 'LOCKED'

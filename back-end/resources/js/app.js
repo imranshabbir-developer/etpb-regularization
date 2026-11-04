@@ -1,4 +1,5 @@
 import './charts.js';
+import { t } from './i18n.js';
 
 /**
  * Styled file dropzones — show the chosen filename so the control reads as
@@ -25,7 +26,7 @@ function bindFileDrops(root = document) {
             if (file && nameEl) {
                 nameEl.hidden = false;
                 nameEl.textContent = file.name;
-                if (titleEl) titleEl.textContent = 'File ready to upload';
+                if (titleEl) titleEl.textContent = t('File ready to upload');
                 if (subEl) {
                     const kb = Math.max(1, Math.round(file.size / 1024));
                     subEl.textContent = kb >= 1024

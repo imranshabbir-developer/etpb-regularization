@@ -43,8 +43,16 @@ class Property extends Model
     }
 
     /** "Property 14-B, Sub-unit 2" or just "Property 14-B". */
-    public function identity(): string
+    public function identity(bool $localized = false): string
     {
+        if ($localized) {
+            $no = $this->property_no ?: __('Unnumbered');
+
+            return $this->sub_unit_no
+                ? __('Property :no, Sub-unit :sub', ['no' => $no, 'sub' => $this->sub_unit_no])
+                : __('Property :no', ['no' => $no]);
+        }
+
         $no = $this->property_no ?: 'Unnumbered';
 
         return $this->sub_unit_no
@@ -56,33 +64,33 @@ class Property extends Model
     public function locationChain(): string
     {
         return collect([
-            $this->mouza?->name ? 'Mouza ' . $this->mouza->name : null,
+            $this->mouza?->name ? __('Mouza :name', ['name' => $this->mouza->name]) : null,
             $this->city,
-            $this->tehsil?->name ? 'Tehsil ' . $this->tehsil->name : null,
-            $this->district?->name ? 'District ' . $this->district->name : null,
-            $this->province?->name,
+            $this->tehsil?->name ? __('Tehsil :name', ['name' => __($this->tehsil->name)]) : null,
+            $this->district?->name ? __('District :name', ['name' => __($this->district->name)]) : null,
+            $this->province?->name ? __($this->province->name) : null,
         ])->filter()->implode(', ');
     }
 
     public function usageLabel(): string
     {
         return match ($this->usage_type) {
-            'OPEN_PLOT'                  => 'Open Plot',
-            'RESIDENTIAL'                => 'Residential',
-            'COMMERCIAL'                 => 'Commercial',
-            'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-commercial',
-            default                      => 'Others',
+            'OPEN_PLOT'                  => __('Open Plot'),
+            'RESIDENTIAL'                => __('Residential'),
+            'COMMERCIAL'                 => __('Commercial'),
+            'RESIDENTIAL_CUM_COMMERCIAL' => __('Residential-cum-commercial'),
+            default                      => __('Others'),
         };
     }
 
     public function typeLabel(): string
     {
         return match ($this->property_type) {
-            'OPEN_PLOT'                  => 'Open Plot',
-            'RESIDENTIAL'                => 'Residential',
-            'COMMERCIAL'                 => 'Commercial',
-            'RESIDENTIAL_CUM_COMMERCIAL' => 'Residential-cum-commercial',
-            default                      => 'Others',
+            'OPEN_PLOT'                  => __('Open Plot'),
+            'RESIDENTIAL'                => __('Residential'),
+            'COMMERCIAL'                 => __('Commercial'),
+            'RESIDENTIAL_CUM_COMMERCIAL' => __('Residential-cum-commercial'),
+            default                      => __('Others'),
         };
     }
 }

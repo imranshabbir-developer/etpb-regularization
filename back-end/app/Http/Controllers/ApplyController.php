@@ -107,7 +107,7 @@ class ApplyController extends Controller
             'postal_address'      => ['required', 'string', 'max:500'],
             'address_district_id' => ['nullable', 'integer', 'exists:districts,id'],
         ], [
-            'cnic.digits' => 'Your CNIC must be exactly 13 digits, without dashes.',
+            'cnic.digits' => __('Your CNIC must be exactly 13 digits, without dashes.'),
         ]);
 
         $this->mergeDraft($request, ['applicant' => $data]);
@@ -168,8 +168,8 @@ class ApplyController extends Controller
             'floor_wise_covered_area'  => ['nullable', 'array'],
             'floor_wise_covered_area.*'=> ['nullable', 'numeric', 'min:0'],
         ], [
-            'latitude.required'  => 'Geo coordinates are mandatory. Use your phone location or type latitude and longitude.',
-            'longitude.required' => 'Geo coordinates are mandatory. Use your phone location or type latitude and longitude.',
+            'latitude.required'  => __('Geo coordinates are mandatory. Use your phone location or type latitude and longitude.'),
+            'longitude.required' => __('Geo coordinates are mandatory. Use your phone location or type latitude and longitude.'),
         ]);
 
         $data['property_type'] = $data['property_type'] ?? 'RESIDENTIAL';
@@ -235,26 +235,24 @@ class ApplyController extends Controller
             'judgment_gist'            => ['nullable', 'string', 'max:700'],
             'declaration'              => ['accepted'],
         ], [
-            'declaration.accepted' => 'You must confirm that the information you have given is true.',
-            'judgment_gist.max'    => 'Gist of Decision / Judgement must stay within about 100 words.',
+            'declaration.accepted' => __('You must confirm that the information you have given is true.'),
+            'judgment_gist.max'    => __('Gist of Decision / Judgement must stay within about 100 words.'),
         ]);
 
         if (! empty($data['judgment_gist'])) {
             $words = preg_split('/\s+/u', trim($data['judgment_gist']), -1, PREG_SPLIT_NO_EMPTY) ?: [];
             if (count($words) > 100) {
                 throw ValidationException::withMessages([
-                    'judgment_gist' => 'Gist of Decision / Judgement may contain at most 100 words.',
+                    'judgment_gist' => __('Gist of Decision / Judgement may contain at most 100 words.'),
                 ]);
             }
         }
 
         if (! $this->eligibility->isWithinCutoff($data['date_of_possession'])) {
             throw ValidationException::withMessages([
-                'date_of_possession' => sprintf(
-                    'The scheme is only open to occupants in actual physical possession '
-                    . 'prior to %s. Clause 3(ii)(a) of the Scheme 1977 does not allow a '
-                    . 'later date.',
-                    $this->eligibility->cutoffStatedAs()->format('j F Y'),
+                'date_of_possession' => __(
+                    'The scheme is only open to occupants in actual physical possession prior to :date. Clause 3(ii)(a) of the Scheme 1977 does not allow a later date.',
+                    ['date' => $this->eligibility->cutoffStatedAs()->translatedFormat('j F Y')]
                 ),
             ]);
         }
@@ -265,8 +263,9 @@ class ApplyController extends Controller
 
         return redirect()->route('apply.evidence', $application)->with(
             'status',
-            'Application ' . $application->application_no . ' saved. '
-            . 'Now attach your evidence of possession.',
+            __('Application :number saved. Now attach your evidence of possession.', [
+                'number' => $application->application_no,
+            ]),
         );
     }
 
@@ -319,9 +318,9 @@ class ApplyController extends Controller
             'is_direction_case'     => ['nullable', 'boolean'],
             'case_remarks'          => ['nullable', 'string', 'max:2000'],
         ], [
-            'occupant_name.required_if' => 'Give the name of the other occupant, or answer No.',
-            'court_name.required_if'    => 'Give the name of the court, or answer No.',
-            'case_no.required_if'       => 'Give the case number, or answer No.',
+            'occupant_name.required_if' => __('Give the name of the other occupant, or answer No.'),
+            'court_name.required_if'    => __('Give the name of the court, or answer No.'),
+            'case_no.required_if'       => __('Give the case number, or answer No.'),
         ]);
 
         DB::transaction(function () use ($application, $data, $request) {
@@ -378,7 +377,7 @@ class ApplyController extends Controller
             'readiness'   => $this->workflow->check($application->id, WorkflowService::SUBMITTED),
             'missingDocs' => $this->workflow->missingMandatoryDocumentNames($application->id),
             'hasBiometric'=> filled($application->applicant?->thumb_impression_path),
-            'paymentApiNote' => 'Online payment of Rs. 5,000 via the ETPB payment API will be integrated when credentials are provided. Until then, record the instrument below and attach a payment receipt under Evidence if you have one.',
+            'paymentApiNote' => __('Online payment of Rs. 5,000 via the ETPB payment API will be integrated when credentials are provided. Until then, record the instrument below and attach a payment receipt under Evidence if you have one.'),
         ]));
     }
 
@@ -392,7 +391,7 @@ class ApplyController extends Controller
         // Biometric / thumb impression is mandatory before final submit.
         if (empty($application->applicant?->thumb_impression_path)) {
             return back()->with('error',
-                'Biometric verification is mandatory. Capture your thumb impression before submitting.');
+                __('Biometric verification is mandatory. Capture your thumb impression before submitting.'));
         }
 
         try {
@@ -416,7 +415,7 @@ class ApplyController extends Controller
         $data = $request->validate([
             'thumb' => ['required', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
         ], [
-            'thumb.required' => 'Capture or upload your thumb impression to continue.',
+            'thumb.required' => __('Capture or upload your thumb impression to continue.'),
         ]);
 
         $path = $data['thumb']->store("biometrics/{$application->id}", 'local');
@@ -425,7 +424,7 @@ class ApplyController extends Controller
             'thumb_impression_path' => $path,
         ]);
 
-        return back()->with('status', 'Biometric / thumb impression saved. You may now submit.');
+        return back()->with('status', __('Biometric / thumb impression saved. You may now submit.'));
     }
 
     public function done(Request $request, Application $application): View
@@ -641,7 +640,7 @@ class ApplyController extends Controller
     private function requireStep(array $draft, string $key, string $route): void
     {
         if (! isset($draft[$key])) {
-            abort(redirect()->route($route)->with('warning', 'Please complete the earlier step first.'));
+            abort(redirect()->route($route)->with('warning', __('Please complete the earlier step first.')));
         }
     }
 
@@ -668,6 +667,6 @@ class ApplyController extends Controller
             return;
         }
 
-        abort(403, 'This application is not yours.');
+        abort(403, __('This application is not yours.'));
     }
 }

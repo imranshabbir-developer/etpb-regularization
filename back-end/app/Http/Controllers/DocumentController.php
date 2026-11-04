@@ -78,7 +78,7 @@ class DocumentController extends Controller
         $mime = $file->getMimeType();
         if (! isset(self::ALLOWED[$mime])) {
             return back()->withInput()->with('error',
-                'Only PDF, JPEG, PNG and TIFF files are accepted. This file appears to be ' . $mime . '.');
+                __('Only PDF, JPEG, PNG and TIFF files are accepted. This file appears to be :type.', ['type' => $mime]));
         }
 
         $type = DocumentType::findOrFail($data['document_type_id']);
@@ -90,9 +90,9 @@ class DocumentController extends Controller
             || $request->user()->hasPermission('applications.view_district');
 
         if ($type->is_certified_copy_required && ! $request->boolean('is_certified_copy') && ! $isStaffUpload) {
-            return back()->withInput()->with('error', sprintf(
-                'A %s must be filed as a certified copy. Confirm the copy is certified, or upload the certified one.',
-                $type->name,
+            return back()->withInput()->with('error', __(
+                'A :document must be filed as a certified copy. Confirm the copy is certified, or upload the certified one.',
+                ['document' => __($type->name)],
             ));
         }
 
@@ -106,7 +106,7 @@ class DocumentController extends Controller
             ->exists();
 
         if ($duplicate) {
-            return back()->with('warning', 'That exact file is already on record against this head.');
+            return back()->with('warning', __('That exact file is already on record against this head.'));
         }
 
         $name = sprintf('%s_%s.%s', $type->code, Str::random(24), self::ALLOWED[$mime]);
@@ -130,7 +130,7 @@ class DocumentController extends Controller
             'uploaded_by'       => $request->user()->id,
         ]);
 
-        return back()->with('status', $type->name . ' uploaded and awaiting verification.');
+        return back()->with('status', __(':document uploaded and awaiting verification.', ['document' => __($type->name)]));
     }
 
     /**
@@ -142,7 +142,7 @@ class DocumentController extends Controller
     {
         $this->authoriseView($request, $document->application);
 
-        abort_unless(Storage::disk('local')->exists($document->file_path), 404, 'The stored file is missing.');
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404, __('The stored file is missing.'));
 
         DB::table('audit_logs')->insert([
             'auditable_type' => ApplicationDocument::class,
@@ -176,18 +176,17 @@ class DocumentController extends Controller
             'action'  => ['required', Rule::in(['VERIFIED', 'DEFICIENT', 'REJECTED', 'WAIVED'])],
             'remarks' => ['required', 'string', 'min:5', 'max:2000'],
         ], [
-            'remarks.required' => 'Record what was checked, or what is wrong with it.',
+            'remarks.required' => __('Record what was checked, or what is wrong with it.'),
         ]);
 
         if ($data['action'] === 'WAIVED') {
             if (! $document->documentType?->is_waivable) {
-                return back()->with('error', sprintf(
-                    '%s cannot be waived. It is required in every case.',
-                    $document->documentType?->name,
-                ));
+                return back()->with('error', __(':document cannot be waived. It is required in every case.', [
+                    'document' => __($document->documentType?->name ?? 'Document'),
+                ]));
             }
             if (! $request->user()->hasPermission('documents.waive')) {
-                return back()->with('error', 'You do not hold the permission to waive a document.');
+                return back()->with('error', __('You do not hold the permission to waive a document.'));
             }
         }
 
@@ -209,11 +208,10 @@ class DocumentController extends Controller
             ]);
         });
 
-        return back()->with('status', sprintf(
-            '%s marked %s.',
-            $document->documentType?->name ?? 'Document',
-            strtolower($data['action']),
-        ));
+        return back()->with('status', __(':document marked :status.', [
+            'document' => __($document->documentType?->name ?? 'Document'),
+            'status'   => __(strtolower($data['action'])),
+        ]));
     }
 
     public function destroy(Request $request, ApplicationDocument $document): RedirectResponse
@@ -222,12 +220,12 @@ class DocumentController extends Controller
 
         if ($document->status === 'VERIFIED') {
             return back()->with('error',
-                'A verified document is part of the record and cannot be removed. Upload a corrected copy instead.');
+                __('A verified document is part of the record and cannot be removed. Upload a corrected copy instead.'));
         }
 
         $document->delete();   // soft delete — the file itself is retained
 
-        return back()->with('status', 'Document withdrawn.');
+        return back()->with('status', __('Document withdrawn.'));
     }
 
     private function authoriseView(Request $request, Application $application): void
@@ -245,6 +243,6 @@ class DocumentController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

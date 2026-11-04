@@ -63,7 +63,7 @@ class OccupancyController extends Controller
             'created_by'     => $request->user()->id,
         ]);
 
-        return back()->with('status', 'Offer recorded.');
+        return back()->with('status', __('Offer recorded.'));
     }
 
     public function decideOffer(Request $request, OccupantOffer $offer): RedirectResponse
@@ -74,12 +74,14 @@ class OccupancyController extends Controller
             'status'  => ['required', Rule::in(['UNDER_CONSIDERATION', 'ACCEPTED', 'REJECTED', 'WITHDRAWN'])],
             'remarks' => ['required', 'string', 'min:10', 'max:2000'],
         ], [
-            'remarks.required' => 'Record why the offer is accepted or rejected — a competing occupant is entitled to know.',
+            'remarks.required' => __('Record why the offer is accepted or rejected — a competing occupant is entitled to know.'),
         ]);
 
         $offer->update($data);
 
-        return back()->with('status', 'Offer marked ' . strtolower(str_replace('_', ' ', $data['status'])) . '.');
+        return back()->with('status', __('Offer marked :status.', [
+            'status' => __(strtolower(str_replace('_', ' ', $data['status']))),
+        ]));
     }
 
     /**
@@ -126,8 +128,8 @@ class OccupancyController extends Controller
         $this->syncSubJudice($application, $request);
 
         return back()->with('status', $litigation->is_pending || $litigation->has_restraining_order
-            ? 'Litigation recorded. The application is now parked as sub judice and cannot proceed.'
-            : 'Litigation recorded.');
+            ? __('Litigation recorded. The application is now parked as sub judice and cannot proceed.')
+            : __('Litigation recorded.'));
     }
 
     /**
@@ -161,8 +163,8 @@ class OccupancyController extends Controller
         $application->refresh();
 
         return back()->with('status', $application->is_sub_judice
-            ? 'Case updated. The application remains sub judice.'
-            : 'Case updated. No case is now pending and no stay subsists, so the application may proceed.');
+            ? __('Case updated. The application remains sub judice.')
+            : __('Case updated. No case is now pending and no stay subsists, so the application may proceed.'));
     }
 
     /**
@@ -212,6 +214,6 @@ class OccupancyController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

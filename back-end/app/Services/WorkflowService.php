@@ -141,11 +141,10 @@ class WorkflowService
         if (! in_array($to, $this->allowedFrom($app->status), true)) {
             return [
                 'allowed' => false,
-                'reasons' => [sprintf(
-                    'An application in state "%s" cannot move to "%s".',
-                    self::LABELS[$app->status] ?? $app->status,
-                    self::LABELS[$to] ?? $to
-                )],
+                'reasons' => [__('An application in state ":from" cannot move to ":to".', [
+                    'from' => __(self::LABELS[$app->status] ?? $app->status),
+                    'to'   => __(self::LABELS[$to] ?? $to),
+                ])],
             ];
         }
 
@@ -301,10 +300,9 @@ class WorkflowService
             if (! $fee) {
                 $amount = $this->settings->decimal('processing_fee', '5000.00');
 
-                return sprintf(
-                    'The processing fee instrument of Rs. %s in favour of Chairman ETPB has not been recorded.',
-                    number_format((float) $amount, 0)
-                );
+                return __('The processing fee instrument of Rs. :amount in favour of Chairman ETPB has not been recorded.', [
+                    'amount' => number_format((float) $amount, 0),
+                ]);
             }
 
             return null;
@@ -324,11 +322,9 @@ class WorkflowService
 
             $fee = $this->settings->decimal('processing_fee', '5000.00');
 
-            return sprintf(
-                'Payment is still PENDING. The application cannot be processed until the '
-                . 'deposit of Rs. %s in favour of Chairman ETPB is confirmed by Accounts.',
-                number_format((float) $fee, 0)
-            );
+            return __('Payment is still PENDING. The application cannot be processed until the deposit of Rs. :amount in favour of Chairman ETPB is confirmed by Accounts.', [
+                'amount' => number_format((float) $fee, 0),
+            ]);
         };
     }
 
@@ -366,7 +362,9 @@ class WorkflowService
 
             return $missing === []
                 ? null
-                : 'Mandatory evidence is missing: ' . implode(', ', $missing) . '.';
+                : __('Mandatory evidence is missing: :documents.', [
+                    'documents' => implode(', ', array_map(static fn ($name) => __($name), $missing)),
+                ]);
         };
     }
 
@@ -379,12 +377,12 @@ class WorkflowService
                 ->first();
 
             if (! $p) {
-                return 'Possession details have not been recorded.';
+                return __('Possession details have not been recorded.');
             }
 
             return $p->is_eligible
                 ? null
-                : 'The application is ineligible under Clause 3(ii)(a): ' . $p->eligibility_reason;
+                : __('The application is ineligible under Clause 3(ii)(a): :reason', ['reason' => $p->eligibility_reason]);
         };
     }
 
@@ -400,8 +398,7 @@ class WorkflowService
                 ->exists();
 
             return $blocked
-                ? 'The property is sub judice — a case is pending or a restraining order is in force. '
-                  . 'The application cannot proceed until the stay is vacated or the case is disposed of.'
+                ? __('The property is sub judice — a case is pending or a restraining order is in force. The application cannot proceed until the stay is vacated or the case is disposed of.')
                 : null;
         };
     }
@@ -416,8 +413,7 @@ class WorkflowService
                 ->first();
 
             if (! $notice) {
-                return 'No notice has been issued. Clause 10(i)(b) and (c) require the proposed '
-                     . 'assessment to be published and 15 days allowed for objections.';
+                return __('No notice has been issued. Clause 10(i)(b) and (c) require the proposed assessment to be published and 15 days allowed for objections.');
             }
 
             $undecided = DB::table('objections')
@@ -427,18 +423,15 @@ class WorkflowService
                 ->count();
 
             if ($undecided > 0) {
-                return sprintf(
-                    '%d objection(s) are still undecided. Clause 10(i)(d) requires the rent to be '
-                    . 'fixed only after an opportunity of hearing to the tenant and objectors.',
-                    $undecided
-                );
+                return __(':count objection(s) are still undecided. Clause 10(i)(d) requires the rent to be fixed only after an opportunity of hearing to the tenant and objectors.', [
+                    'count' => $undecided,
+                ]);
             }
 
             if (Carbon::parse($notice->objection_deadline)->isFuture()) {
-                return sprintf(
-                    'The 15-day objection window is still open until %s (Clause 10(i)(c)).',
-                    Carbon::parse($notice->objection_deadline)->format('d-m-Y')
-                );
+                return __('The 15-day objection window is still open until :date (Clause 10(i)(c)).', [
+                    'date' => Carbon::parse($notice->objection_deadline)->format('d-m-Y'),
+                ]);
             }
 
             return null;
@@ -457,12 +450,11 @@ class WorkflowService
                 ->first();
 
             if (! $decision) {
-                return 'The District Officer has not recorded a determination of rent.';
+                return __('The District Officer has not recorded a determination of rent.');
             }
 
             if (trim((string) $decision->reasons) === '') {
-                return 'Clause 10(i)(d) requires the fixation of rent to be reasoned. '
-                     . 'No reasons have been recorded.';
+                return __('Clause 10(i)(d) requires the fixation of rent to be reasoned. No reasons have been recorded.');
             }
 
             return null;
@@ -474,7 +466,7 @@ class WorkflowService
         return static function (object $app): ?string {
             $exists = DB::table('rent_schedules')->where('application_id', $app->id)->exists();
 
-            return $exists ? null : 'No rent schedule has been generated for this application.';
+            return $exists ? null : __('No rent schedule has been generated for this application.');
         };
     }
 
@@ -499,11 +491,11 @@ class WorkflowService
                 ->first();
 
             if (! $approval) {
-                return 'The Administrator has not recorded an approval.';
+                return __('The Administrator has not recorded an approval.');
             }
 
             if (trim((string) $approval->reasons) === '') {
-                return 'Clause 3(ii)(d) requires the Administrator to record reasons for the approval.';
+                return __('Clause 3(ii)(d) requires the Administrator to record reasons for the approval.');
             }
 
             return null;
@@ -520,8 +512,7 @@ class WorkflowService
 
             return $exists
                 ? null
-                : 'The nomination form has not been obtained. Under the proviso to Scheme para 3(iii)(B) '
-                  . 'the District Officer shall not regularize the possession until it is on record.';
+                : __('The nomination form has not been obtained. Under the proviso to Scheme para 3(iii)(B) the District Officer shall not regularize the possession until it is on record.');
         };
     }
 
@@ -530,7 +521,7 @@ class WorkflowService
         $app = DB::table('applications')->where('id', $id)->whereNull('deleted_at')->first();
 
         if (! $app) {
-            throw new RuntimeException("Application [{$id}] not found.");
+            throw new RuntimeException(__('Application [:id] not found.', ['id' => $id]));
         }
 
         return $app;

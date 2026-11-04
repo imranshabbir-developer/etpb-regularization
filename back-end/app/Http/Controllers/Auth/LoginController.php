@@ -41,7 +41,7 @@ class LoginController extends Controller
             'email'    => ['required', 'email', 'max:191'],
             'password' => ['required', 'string'],
         ], [], [
-            'email' => 'official email',
+            'email' => __('official email'),
         ]);
 
         $throttleKey = mb_strtolower($data['email']) . '|' . $request->ip();
@@ -51,10 +51,9 @@ class LoginController extends Controller
             $this->record($request, $data['email'], false, 'throttled');
 
             throw ValidationException::withMessages([
-                'email' => sprintf(
-                    'Too many sign-in attempts. Please try again in %d minute(s).',
-                    max(1, (int) ceil($seconds / 60))
-                ),
+                'email' => __('Too many sign-in attempts. Please try again in :minutes minute(s).', [
+                    'minutes' => max(1, (int) ceil($seconds / 60)),
+                ]),
             ]);
         }
 
@@ -64,7 +63,7 @@ class LoginController extends Controller
             $this->record($request, $data['email'], false, 'account_locked');
 
             throw ValidationException::withMessages([
-                'email' => 'This account is locked. Please contact the system administrator.',
+                'email' => __('This account is locked. Please contact the system administrator.'),
             ]);
         }
 
@@ -72,7 +71,7 @@ class LoginController extends Controller
             $this->record($request, $data['email'], false, 'account_' . mb_strtolower($user->status));
 
             throw ValidationException::withMessages([
-                'email' => 'This account is not active. Please contact the system administrator.',
+                'email' => __('This account is not active. Please contact the system administrator.'),
             ]);
         }
 
@@ -85,7 +84,7 @@ class LoginController extends Controller
             $this->registerFailure($user);
 
             throw ValidationException::withMessages([
-                'email' => 'Those credentials do not match our records.',
+                'email' => __('Those credentials do not match our records.'),
             ]);
         }
 
@@ -105,11 +104,11 @@ class LoginController extends Controller
 
         if ($user->force_password_change) {
             return redirect()->route('password.change')
-                ->with('warning', 'Your password must be changed before you can continue.');
+                ->with('warning', __('Your password must be changed before you can continue.'));
         }
 
         return redirect()->intended(route('dashboard'))
-            ->with('status', 'Signed in as ' . $user->name . '.');
+            ->with('status', __('Signed in as :name.', ['name' => $user->name]));
     }
 
     public function logout(Request $request): RedirectResponse
@@ -117,11 +116,18 @@ class LoginController extends Controller
         $user = Auth::user();
         $user?->flushAuthorisationCache();
 
+        // The language choice belongs to the visitor, not the signed-in session.
+        $locale = $request->session()->get('locale');
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', 'You have been signed out.');
+        if ($locale) {
+            $request->session()->put('locale', $locale);
+        }
+
+        return redirect()->route('login')->with('status', __('You have been signed out.'));
     }
 
     private function registerFailure(?User $user): void

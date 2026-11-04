@@ -82,11 +82,10 @@ class ArrearsController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', sprintf(
-            'Ledger rebuilt: %d year(s), Rs. %s assessed.',
-            $result['rows'],
-            number_format((float) $result['total_due'], 2),
-        ));
+        return back()->with('status', __('Ledger rebuilt: :years year(s), Rs. :amount assessed.', [
+            'years'  => $result['rows'],
+            'amount' => number_format((float) $result['total_due'], 2),
+        ]));
     }
 
     public function storeReceipt(Request $request, Application $application): RedirectResponse
@@ -120,12 +119,11 @@ class ArrearsController extends Controller
 
         $balance = $this->arrears->summary($application->id)['balance'];
 
-        return back()->with('status', sprintf(
-            'Receipt %s posted for Rs. %s. Balance now Rs. %s.',
-            $receiptNo,
-            number_format((float) $data['amount'], 2),
-            number_format((float) $balance, 2),
-        ));
+        return back()->with('status', __('Receipt :receipt posted for Rs. :amount. Balance now Rs. :balance.', [
+            'receipt' => $receiptNo,
+            'amount'  => number_format((float) $data['amount'], 2),
+            'balance' => number_format((float) $balance, 2),
+        ]));
     }
 
     public function proposeInstalments(Request $request, Application $application): RedirectResponse
@@ -139,8 +137,8 @@ class ArrearsController extends Controller
             'start_date'       => ['required', 'date'],
             'justification'    => ['required', 'string', 'min:20', 'max:4000'],
         ], [
-            'instalment_count.max' => "Clause 13 of the Scheme 1977 allows not more than {$max} monthly instalments.",
-            'justification.required' => 'Clause 13 applies in deserving cases. Record what makes this one deserving.',
+            'instalment_count.max' => __('Clause 13 of the Scheme 1977 allows not more than :max monthly instalments.', ['max' => $max]),
+            'justification.required' => __('Clause 13 applies in deserving cases. Record what makes this one deserving.'),
         ]);
 
         try {
@@ -155,10 +153,9 @@ class ArrearsController extends Controller
             return back()->with('error', $e->getMessage())->withInput();
         }
 
-        return back()->with('status', sprintf(
-            'Instalment plan of %d instalments proposed.',
-            $data['instalment_count'],
-        ));
+        return back()->with('status', __('Instalment plan of :count instalments proposed.', [
+            'count' => $data['instalment_count'],
+        ]));
     }
 
     public function approveInstalments(Request $request, InstalmentPlan $plan): RedirectResponse
@@ -169,7 +166,7 @@ class ArrearsController extends Controller
         $data = $request->validate([
             'approval_reasons' => ['required', 'string', 'min:20', 'max:4000'],
         ], [
-            'approval_reasons.required' => 'Record the reasons for allowing recovery by instalments.',
+            'approval_reasons.required' => __('Record the reasons for allowing recovery by instalments.'),
         ]);
 
         $plan->update([
@@ -179,7 +176,7 @@ class ArrearsController extends Controller
             'approval_reasons' => $data['approval_reasons'],
         ]);
 
-        return back()->with('status', 'Instalment plan approved under Clause 13.');
+        return back()->with('status', __('Instalment plan approved under Clause 13.'));
     }
 
     /**
@@ -199,7 +196,7 @@ class ArrearsController extends Controller
             'grounds_detail'        => ['required', 'string', 'min:30', 'max:4000'],
             'supporting_evidence'   => ['nullable', 'string', 'max:4000'],
         ], [
-            'grounds_detail.required' => 'Clause 12 turns on the applicant\'s circumstances. Set them out.',
+            'grounds_detail.required' => __("Clause 12 turns on the applicant's circumstances. Set them out."),
         ]);
 
         Remission::create($data + [
@@ -209,7 +206,7 @@ class ArrearsController extends Controller
         ]);
 
         return back()->with('status',
-            'Remission proposed under Clause 12. Only the Chairman is competent to grant it.');
+            __('Remission proposed under Clause 12. Only the Chairman is competent to grant it.'));
     }
 
     public function approveRemission(Request $request, Remission $remission): RedirectResponse
@@ -221,7 +218,7 @@ class ArrearsController extends Controller
             'order_reference'  => ['nullable', 'string', 'max:120'],
             'decision'         => ['required', Rule::in(['APPROVED', 'REJECTED'])],
         ], [
-            'approval_reasons.required' => 'Record the reasons for the decision on remission.',
+            'approval_reasons.required' => __('Record the reasons for the decision on remission.'),
         ]);
 
         DB::transaction(function () use ($remission, $data, $request, $application) {
@@ -267,8 +264,8 @@ class ArrearsController extends Controller
         $this->arrears->generate($application->id);
 
         return back()->with('status', $data['decision'] === 'APPROVED'
-            ? 'Remission approved under Clause 12 and applied to the ledger.'
-            : 'Remission rejected.');
+            ? __('Remission approved under Clause 12 and applied to the ledger.')
+            : __('Remission rejected.'));
     }
 
     /** How much of the outstanding balance a remission actually wipes. */
@@ -304,6 +301,6 @@ class ArrearsController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

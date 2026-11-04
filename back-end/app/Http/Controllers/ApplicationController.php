@@ -70,7 +70,7 @@ class ApplicationController extends Controller
 
         return view('applications.index', [
             'applications' => $applications,
-            'statuses'     => WorkflowService::LABELS,
+            'statuses'     => array_map(static fn ($label) => __($label), WorkflowService::LABELS),
             'districts'    => District::orderBy('name')->get(['id', 'name']),
             'filters'      => $request->only('q', 'status', 'district'),
             'stats'        => $stats,
@@ -100,11 +100,12 @@ class ApplicationController extends Controller
         // that can only ever be rejected.
         if (! $this->eligibility->isWithinCutoff($data['date_of_possession'])) {
             throw ValidationException::withMessages([
-                'date_of_possession' => sprintf(
-                    'Clause 3(ii)(a) of the Scheme 1977 requires actual physical possession '
-                    . 'prior to %s. The last acceptable date of possession is therefore %s.',
-                    $this->eligibility->cutoffStatedAs()->format('d-m-Y'),
-                    $this->eligibility->cutoffDate()->format('d-m-Y')
+                'date_of_possession' => __(
+                    'Clause 3(ii)(a) of the Scheme 1977 requires actual physical possession prior to :cutoff. The last acceptable date of possession is therefore :last.',
+                    [
+                        'cutoff' => $this->eligibility->cutoffStatedAs()->format('d-m-Y'),
+                        'last'   => $this->eligibility->cutoffDate()->format('d-m-Y'),
+                    ]
                 ),
             ]);
         }
@@ -228,8 +229,10 @@ class ApplicationController extends Controller
 
         return redirect()
             ->route('applications.show', $application)
-            ->with('status', "Application {$application->application_no} created. "
-                . 'Upload the evidence of possession and record the processing fee to submit it.');
+            ->with('status', __(
+                'Application :number created. Upload the evidence of possession and record the processing fee to submit it.',
+                ['number' => $application->application_no]
+            ));
     }
 
     public function show(Request $request, Application $application): View
@@ -247,7 +250,7 @@ class ApplicationController extends Controller
         $nextStates = collect($this->workflow->allowedFrom($application->status))
             ->map(fn ($to) => [
                 'to'    => $to,
-                'label' => WorkflowService::LABELS[$to] ?? $to,
+                'label' => __(WorkflowService::LABELS[$to] ?? $to),
                 'check' => $this->workflow->check($application->id, $to),
             ])
             ->all();
@@ -288,10 +291,9 @@ class ApplicationController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', sprintf(
-            'Application moved to "%s".',
-            WorkflowService::LABELS[$data['to']] ?? $data['to']
-        ));
+        return back()->with('status', __('Application moved to ":stage".', [
+            'stage' => __(WorkflowService::LABELS[$data['to']] ?? $data['to']),
+        ]));
     }
 
     /**
@@ -319,7 +321,7 @@ class ApplicationController extends Controller
             'sqft_human' => number_format((float) $result['sqft'], 2),
             'compound'   => $compound['label'],
             'trace'      => $result['trace']['components'],
-            'profile'    => $result['trace']['profile_name'],
+            'profile'    => __($result['trace']['profile_name']),
         ]);
     }
 
@@ -380,7 +382,7 @@ class ApplicationController extends Controller
             'judicial_reference'       => ['nullable', 'string', 'max:150'],
             'judgment_gist'            => ['nullable', 'string', 'max:700'],
         ], [
-            'cnic.digits' => 'The CNIC must be exactly 13 digits, without dashes.',
+            'cnic.digits' => __('The CNIC must be exactly 13 digits, without dashes.'),
         ]);
     }
 
@@ -418,6 +420,6 @@ class ApplicationController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

@@ -1,21 +1,23 @@
 @if ($paginator->hasPages() || $paginator->total() > 0)
-    <nav class="pager pager-etpb" role="navigation" aria-label="Pagination">
+    <nav class="pager pager-etpb" role="navigation" aria-label="{{ __('Pagination') }}">
         <p class="pager-summary">
             @if ($paginator->firstItem())
-                Showing
-                <strong>{{ $paginator->firstItem() }}</strong>–<strong>{{ $paginator->lastItem() }}</strong>
-                of <strong>{{ number_format($paginator->total()) }}</strong>
+                {!! __('Showing :first–:last of :total', [
+                    'first' => '<strong>'.e($paginator->firstItem()).'</strong>',
+                    'last'  => '<strong>'.e($paginator->lastItem()).'</strong>',
+                    'total' => '<strong>'.e(number_format($paginator->total())).'</strong>',
+                ]) !!}
             @else
-                No records
+                {{ __('No records') }}
             @endif
         </p>
 
         @if ($paginator->hasPages())
             <div class="pager-links">
                 @if ($paginator->onFirstPage())
-                    <span class="pager-link is-disabled" aria-disabled="true">Prev</span>
+                    <span class="pager-link is-disabled" aria-disabled="true">{{ __('Prev') }}</span>
                 @else
-                    <a class="pager-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">Prev</a>
+                    <a class="pager-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">{{ __('Prev') }}</a>
                 @endif
 
                 @foreach ($elements as $element)
@@ -35,9 +37,9 @@
                 @endforeach
 
                 @if ($paginator->hasMorePages())
-                    <a class="pager-link" href="{{ $paginator->nextPageUrl() }}" rel="next">Next</a>
+                    <a class="pager-link" href="{{ $paginator->nextPageUrl() }}" rel="next">{{ __('Next') }}</a>
                 @else
-                    <span class="pager-link is-disabled" aria-disabled="true">Next</span>
+                    <span class="pager-link is-disabled" aria-disabled="true">{{ __('Next') }}</span>
                 @endif
             </div>
         @endif

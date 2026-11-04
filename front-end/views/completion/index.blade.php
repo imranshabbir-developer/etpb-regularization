@@ -1,27 +1,26 @@
 @extends('layouts.app')
 
-@section('title', 'Completion')
-@section('heading', 'Completion — ' . $application->application_no)
+@section('title', __('Completion'))
+@section('heading', __('Completion — :no', ['no' => $application->application_no]))
 
 @section('content')
 
 @php
     $a = $application;
-    $fmt = fn ($d, $f = 'd-m-Y') => $d ? \Illuminate\Support\Carbon::parse($d)->format($f) : '—';
+    $fmt = fn ($d, $f = 'd-m-Y') => $d ? \Illuminate\Support\Carbon::parse($d)->translatedFormat($f) : '—';
     $rs  = fn ($n) => 'Rs. ' . number_format((float) $n, 2);
 @endphp
 
 <div class="page-head">
-    <h1>Completion</h1>
+    <h1>{{ __('Completion') }}</h1>
     <p class="lede">
-        The nomination form, the tenancy agreement, and the regularization order &mdash;
-        the three acts that turn an approved application into a recorded tenancy.
+        {{ __('The nomination form, the tenancy agreement, and the regularization order — the three acts that turn an approved application into a recorded tenancy.') }}
     </p>
     <div class="inline-list mt-1">
-        <a href="{{ route('applications.show', $a) }}" class="badge badge-neutral">&larr; Case file</a>
-        <span class="badge badge-{{ $a->statusTone() }}">{{ $a->statusLabel() }}</span>
-        <span class="clause">Clause 3(ii)(b)</span>
-        <span class="clause">Para 3(iii)(B)</span>
+        <a href="{{ route('applications.show', $a) }}" class="badge badge-neutral">&larr; {{ __('Case file') }}</a>
+        <span class="badge badge-{{ $a->statusTone() }}">{{ __($a->statusLabel()) }}</span>
+        <span class="clause">{{ __('Clause 3(ii)(b)') }}</span>
+        <span class="clause">{{ __('Para 3(iii)(B)') }}</span>
     </div>
 </div>
 
@@ -29,22 +28,22 @@
     <div class="card-body">
         <ul class="timeline">
             <li class="{{ $a->approvals->where('level','ADMINISTRATOR')->where('action','APPROVE')->isNotEmpty() ? 'is-done' : '' }}">
-                <div class="t-title">Approved by the Administrator</div>
-                <div class="t-meta">Clause 3(ii)(d)</div>
+                <div class="t-title">{{ __('Approved by the Administrator') }}</div>
+                <div class="t-meta">{{ __('Clause 3(ii)(d)') }}</div>
             </li>
             <li class="{{ $nominee ? 'is-done' : 'is-current' }}">
-                <div class="t-title">Nomination form obtained</div>
+                <div class="t-title">{{ __('Nomination form obtained') }}</div>
                 <div class="t-meta">
-                    Para 3(iii)(B) &mdash; the possession cannot be regularized without it
+                    {{ __('Para 3(iii)(B) — the possession cannot be regularized without it') }}
                 </div>
             </li>
             <li class="{{ $agreement ? 'is-done' : ($nominee ? 'is-current' : '') }}">
-                <div class="t-title">Tenancy agreement executed</div>
-                <div class="t-meta">Clause 3(ii)(b)</div>
+                <div class="t-title">{{ __('Tenancy agreement executed') }}</div>
+                <div class="t-meta">{{ __('Clause 3(ii)(b)') }}</div>
             </li>
             <li class="{{ $order ? 'is-done' : ($agreement ? 'is-current' : '') }}">
-                <div class="t-title">Regularization order issued</div>
-                <div class="t-meta">Case closed</div>
+                <div class="t-title">{{ __('Regularization order issued') }}</div>
+                <div class="t-meta">{{ __('Case closed') }}</div>
             </li>
         </ul>
     </div>
@@ -55,27 +54,27 @@
         {{-- ---------- Nominee ---------- --}}
         <div class="card">
             <div class="card-head">
-                <h3>Nomination form</h3>
-                <div class="card-actions"><span class="clause">Para 3(iii)(B)</span></div>
+                <h3>{{ __('Nomination form') }}</h3>
+                <div class="card-actions"><span class="clause">{{ __('Para 3(iii)(B)') }}</span></div>
             </div>
             <div class="card-body">
                 @if ($nominee)
                     <dl class="kv">
-                        <dt>Nominee</dt><dd>{{ $nominee->nominee_name }}</dd>
+                        <dt>{{ __('Nominee') }}</dt><dd>{{ $nominee->nominee_name }}</dd>
                         @if ($nominee->nominee_parentage)
-                            <dt>Parentage</dt><dd>{{ $nominee->nominee_parentage }}</dd>
+                            <dt>{{ __('Parentage') }}</dt><dd>{{ $nominee->nominee_parentage }}</dd>
                         @endif
-                        <dt>Relationship</dt><dd>{{ $nominee->relationship }}</dd>
-                        <dt>CNIC</dt><dd class="num">{{ $nominee->nominee_cnic ?: '—' }}</dd>
-                        <dt>Contact</dt><dd>{{ $nominee->nominee_contact ?: '—' }}</dd>
-                        <dt>Form received</dt><dd>{{ $fmt($nominee->form_received_on) }}</dd>
+                        <dt>{{ __('Relationship') }}</dt><dd>{{ $nominee->relationship }}</dd>
+                        <dt>{{ __('CNIC') }}</dt><dd class="num">{{ $nominee->nominee_cnic ?: '—' }}</dd>
+                        <dt>{{ __('Contact') }}</dt><dd>{{ $nominee->nominee_contact ?: '—' }}</dd>
+                        <dt>{{ __('Form received') }}</dt><dd>{{ $fmt($nominee->form_received_on) }}</dd>
                     </dl>
 
                     @if ($nominee->heirs->isNotEmpty())
-                        <h4 class="mt-2">Legal heirs</h4>
+                        <h4 class="mt-2">{{ __('Legal heirs') }}</h4>
                         <div class="table-wrap">
                             <table class="data">
-                                <thead><tr><th>#</th><th>Name</th><th>Relationship</th><th>CNIC</th></tr></thead>
+                                <thead><tr><th>#</th><th>{{ __('Name') }}</th><th>{{ __('Relationship') }}</th><th>{{ __('CNIC') }}</th></tr></thead>
                                 <tbody>
                                 @foreach ($nominee->heirs as $h)
                                     <tr>
@@ -94,9 +93,7 @@
                         @include('partials.icon', ['name' => 'alert'])
                         <div>
                             <p class="mb-0">
-                                Not yet obtained. Under the proviso to Scheme para 3(iii)(B) the District
-                                Officer <strong>shall not</strong> regularize the possession until this
-                                form is on record.
+                                {!! __('Not yet obtained. Under the proviso to Scheme para 3(iii)(B) the District Officer <strong>shall not</strong> regularize the possession until this form is on record.') !!}
                             </p>
                         </div>
                     </div>
@@ -106,48 +103,48 @@
                             @csrf
                             <div class="grid-2">
                                 <div class="field">
-                                    <label for="nominee_name">Nominee <span class="req">*</span></label>
+                                    <label for="nominee_name">{{ __('Nominee') }} <span class="req">*</span></label>
                                     <input type="text" id="nominee_name" name="nominee_name" class="input" required>
                                 </div>
                                 <div class="field">
-                                    <label for="relationship">Relationship <span class="req">*</span></label>
+                                    <label for="relationship">{{ __('Relationship') }} <span class="req">*</span></label>
                                     <input type="text" id="relationship" name="relationship" class="input"
-                                           required placeholder="Son, daughter, wife, brother">
+                                           required placeholder="{{ __('Son, daughter, wife, brother') }}">
                                 </div>
                                 <div class="field">
-                                    <label for="nominee_parentage">Parentage</label>
+                                    <label for="nominee_parentage">{{ __('Parentage') }}</label>
                                     <input type="text" id="nominee_parentage" name="nominee_parentage" class="input">
                                 </div>
                                 <div class="field">
-                                    <label for="nominee_cnic">CNIC</label>
+                                    <label for="nominee_cnic">{{ __('CNIC') }}</label>
                                     <input type="text" id="nominee_cnic" name="nominee_cnic" class="input"
                                            inputmode="numeric" maxlength="13" pattern="[0-9]{13}">
                                 </div>
                                 <div class="field">
-                                    <label for="nominee_contact">Contact</label>
+                                    <label for="nominee_contact">{{ __('Contact') }}</label>
                                     <input type="text" id="nominee_contact" name="nominee_contact" class="input">
                                 </div>
                                 <div class="field">
-                                    <label for="form_received_on">Form received on <span class="req">*</span></label>
+                                    <label for="form_received_on">{{ __('Form received on') }} <span class="req">*</span></label>
                                     <input type="date" id="form_received_on" name="form_received_on" class="input"
                                            value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required>
                                 </div>
                             </div>
 
                             <fieldset class="group">
-                                <legend>Legal heirs</legend>
+                                <legend>{{ __('Legal heirs') }}</legend>
                                 @for ($i = 0; $i < 5; $i++)
                                     <div class="grid-3">
                                         <div class="field">
-                                            <label for="h{{ $i }}n">Name</label>
+                                            <label for="h{{ $i }}n">{{ __('Name') }}</label>
                                             <input type="text" id="h{{ $i }}n" name="heirs[{{ $i }}][heir_name]" class="input">
                                         </div>
                                         <div class="field">
-                                            <label for="h{{ $i }}r">Relationship</label>
+                                            <label for="h{{ $i }}r">{{ __('Relationship') }}</label>
                                             <input type="text" id="h{{ $i }}r" name="heirs[{{ $i }}][relationship]" class="input">
                                         </div>
                                         <div class="field">
-                                            <label for="h{{ $i }}c">CNIC</label>
+                                            <label for="h{{ $i }}c">{{ __('CNIC') }}</label>
                                             <input type="text" id="h{{ $i }}c" name="heirs[{{ $i }}][cnic]" class="input"
                                                    inputmode="numeric" maxlength="13" pattern="[0-9]{13}">
                                         </div>
@@ -155,7 +152,7 @@
                                 @endfor
                             </fieldset>
 
-                            <button class="btn btn-primary" type="submit">Record nomination form</button>
+                            <button class="btn btn-primary" type="submit">{{ __('Record nomination form') }}</button>
                         </form>
                     @endcan
                 @endif
@@ -167,29 +164,29 @@
         {{-- ---------- Tenancy agreement ---------- --}}
         <div class="card">
             <div class="card-head">
-                <h3>Tenancy agreement</h3>
-                <div class="card-actions"><span class="clause">Clause 3(ii)(b)</span></div>
+                <h3>{{ __('Tenancy agreement') }}</h3>
+                <div class="card-actions"><span class="clause">{{ __('Clause 3(ii)(b)') }}</span></div>
             </div>
             <div class="card-body">
                 @if ($agreement)
                     <dl class="kv">
-                        <dt>Agreement no.</dt><dd>{{ $agreement->agreement_no }}</dd>
-                        <dt>Executed on</dt><dd>{{ $fmt($agreement->executed_on) }}</dd>
-                        <dt>Monthly rent</dt><dd><strong>{{ $rs($agreement->monthly_rent) }}</strong></dd>
-                        <dt>Security</dt><dd>{{ $agreement->security_amount ? $rs($agreement->security_amount) : '—' }}</dd>
-                        <dt>Effective from</dt><dd>{{ $fmt($agreement->effective_from) }}</dd>
-                        <dt>Status</dt>
-                        <dd><span class="badge badge-good">{{ ucfirst(strtolower($agreement->status)) }}</span></dd>
+                        <dt>{{ __('Agreement no.') }}</dt><dd>{{ $agreement->agreement_no }}</dd>
+                        <dt>{{ __('Executed on') }}</dt><dd>{{ $fmt($agreement->executed_on) }}</dd>
+                        <dt>{{ __('Monthly rent') }}</dt><dd><strong>{{ $rs($agreement->monthly_rent) }}</strong></dd>
+                        <dt>{{ __('Security') }}</dt><dd>{{ $agreement->security_amount ? $rs($agreement->security_amount) : '—' }}</dd>
+                        <dt>{{ __('Effective from') }}</dt><dd>{{ $fmt($agreement->effective_from) }}</dd>
+                        <dt>{{ __('Status') }}</dt>
+                        <dd><span class="badge badge-good">{{ __(ucfirst(strtolower($agreement->status))) }}</span></dd>
                     </dl>
                 @elseif (! $nominee)
-                    <p class="muted mb-0">The nomination form must be obtained first.</p>
+                    <p class="muted mb-0">{{ __('The nomination form must be obtained first.') }}</p>
                 @else
                     @unless ($canExecute['allowed'])
                         <div class="alert alert-warn">
                             @include('partials.icon', ['name' => 'alert'])
                             <div>
                                 <ul style="margin:0;padding-inline-start:1.05rem">
-                                    @foreach ($canExecute['reasons'] as $r)<li>{{ $r }}</li>@endforeach
+                                    @foreach ($canExecute['reasons'] as $r)<li>{{ __($r) }}</li>@endforeach
                                 </ul>
                             </div>
                         </div>
@@ -200,42 +197,42 @@
                             @csrf
                             <div class="grid-2">
                                 <div class="field">
-                                    <label for="executed_on">Executed on <span class="req">*</span></label>
+                                    <label for="executed_on">{{ __('Executed on') }} <span class="req">*</span></label>
                                     <input type="date" id="executed_on" name="executed_on" class="input"
                                            value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required>
                                 </div>
                                 <div class="field">
-                                    <label for="monthly_rent">Monthly rent (Rs.) <span class="req">*</span></label>
+                                    <label for="monthly_rent">{{ __('Monthly rent (Rs.)') }} <span class="req">*</span></label>
                                     <input type="text" id="monthly_rent" name="monthly_rent" class="input"
                                            inputmode="decimal" required
                                            value="{{ $a->assessed_monthly_rent }}">
                                 </div>
                                 <div class="field">
-                                    <label for="security_amount">Security (Rs.)</label>
+                                    <label for="security_amount">{{ __('Security (Rs.)') }}</label>
                                     <input type="text" id="security_amount" name="security_amount" class="input"
                                            inputmode="decimal">
                                 </div>
                                 <div class="field">
-                                    <label for="effective_from">Effective from <span class="req">*</span></label>
+                                    <label for="effective_from">{{ __('Effective from') }} <span class="req">*</span></label>
                                     <input type="date" id="effective_from" name="effective_from" class="input"
                                            value="{{ now()->toDateString() }}" required>
                                 </div>
                                 <div class="field">
-                                    <label for="stamp_paper_no">Stamp paper no.</label>
+                                    <label for="stamp_paper_no">{{ __('Stamp paper no.') }}</label>
                                     <input type="text" id="stamp_paper_no" name="stamp_paper_no" class="input">
                                 </div>
                                 <div class="field">
-                                    <label for="stamp_paper_value">Stamp paper value (Rs.)</label>
+                                    <label for="stamp_paper_value">{{ __('Stamp paper value (Rs.)') }}</label>
                                     <input type="text" id="stamp_paper_value" name="stamp_paper_value" class="input"
                                            inputmode="decimal">
                                 </div>
                             </div>
                             <div class="field">
-                                <label for="terms">Terms</label>
+                                <label for="terms">{{ __('Terms') }}</label>
                                 <textarea id="terms" name="terms" class="textarea" style="min-height:90px"></textarea>
                             </div>
                             <button class="btn btn-primary" type="submit" style="width:100%">
-                                Execute agreement
+                                {{ __('Execute agreement') }}
                             </button>
                         </form>
                     @endcan
@@ -245,34 +242,34 @@
 
         {{-- ---------- Regularization order ---------- --}}
         <div class="card">
-            <div class="card-head"><h3>Regularization order</h3></div>
+            <div class="card-head"><h3>{{ __('Regularization order') }}</h3></div>
             <div class="card-body">
                 @if ($order)
                     <dl class="kv">
-                        <dt>Order no.</dt><dd>{{ $order->order_no }}</dd>
-                        <dt>Dated</dt><dd>{{ $fmt($order->order_date) }}</dd>
-                        <dt>Area regularized</dt>
-                        <dd>{{ $order->regularized_area_sqft ? number_format((float) $order->regularized_area_sqft, 2) . ' sqft' : '—' }}</dd>
-                        <dt>Rent fixed</dt><dd>{{ $rs($order->monthly_rent_fixed) }}</dd>
+                        <dt>{{ __('Order no.') }}</dt><dd>{{ $order->order_no }}</dd>
+                        <dt>{{ __('Dated') }}</dt><dd>{{ $fmt($order->order_date) }}</dd>
+                        <dt>{{ __('Area regularized') }}</dt>
+                        <dd>{{ $order->regularized_area_sqft ? __(':area sqft', ['area' => number_format((float) $order->regularized_area_sqft, 2)]) : '—' }}</dd>
+                        <dt>{{ __('Rent fixed') }}</dt><dd>{{ $rs($order->monthly_rent_fixed) }}</dd>
                     </dl>
                     <hr class="divider">
                     <p class="muted" style="white-space:pre-wrap;font-size:.87rem">{{ $order->order_text }}</p>
                     <div class="btn-row mt-2">
-                        <a href="{{ route('reports.deep', $a) }}" class="btn btn-outline btn-sm">Deep report</a>
+                        <a href="{{ route('reports.deep', $a) }}" class="btn btn-outline btn-sm">{{ __('Deep report') }}</a>
                     </div>
                 @elseif (! $agreement)
-                    <p class="muted mb-0">The tenancy agreement must be executed first.</p>
+                    <p class="muted mb-0">{{ __('The tenancy agreement must be executed first.') }}</p>
                 @else
                     @can('do', 'orders.issue')
                         <form method="POST" action="{{ route('completion.order.store', $a) }}">
                             @csrf
                             <div class="field">
-                                <label for="order_date">Order date <span class="req">*</span></label>
+                                <label for="order_date">{{ __('Order date') }} <span class="req">*</span></label>
                                 <input type="date" id="order_date" name="order_date" class="input"
                                        value="{{ now()->toDateString() }}" max="{{ now()->toDateString() }}" required>
                             </div>
                             <div class="field">
-                                <label for="order_text">Order <span class="req">*</span></label>
+                                <label for="order_text">{{ __('Order') }} <span class="req">*</span></label>
                                 <textarea id="order_text" name="order_text" class="textarea"
                                           style="min-height:160px" required minlength="60">{{ old('order_text', trim("
 The possession of " . $a->applicant?->nameWithParentage() . " over " . $a->property?->identity() .
@@ -282,7 +279,7 @@ The possession of " . $a->applicant?->nameWithParentage() . " over " . $a->prope
 ")) }}</textarea>
                             </div>
                             <button class="btn btn-primary btn-lg" type="submit" style="width:100%">
-                                @include('partials.icon', ['name' => 'check']) Issue order and close the case
+                                @include('partials.icon', ['name' => 'check']) {{ __('Issue order and close the case') }}
                             </button>
                         </form>
                     @endcan

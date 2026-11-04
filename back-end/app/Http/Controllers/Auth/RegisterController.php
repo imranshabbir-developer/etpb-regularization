@@ -44,10 +44,10 @@ class RegisterController extends Controller
             'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()],
             'declaration' => ['accepted'],
         ], [
-            'cnic.digits'      => 'The CNIC must be exactly 13 digits, without dashes.',
-            'cnic.unique'      => 'An account already exists for this CNIC. Sign in instead, or contact your district office.',
-            'email.unique'     => 'An account already exists for this email address.',
-            'declaration.accepted' => 'You must confirm that the information you give will be true.',
+            'cnic.digits'      => __('The CNIC must be exactly 13 digits, without dashes.'),
+            'cnic.unique'      => __('An account already exists for this CNIC. Sign in instead, or contact your district office.'),
+            'email.unique'     => __('An account already exists for this email address.'),
+            'declaration.accepted' => __('You must confirm that the information you give will be true.'),
         ]);
 
         $role = Role::where('code', 'APPLICANT')->firstOrFail();
@@ -83,8 +83,7 @@ class RegisterController extends Controller
 
         return redirect()->route('applications.create')->with(
             'status',
-            'Welcome. Fill in the six sections, then record your Rs. 5,000 deposit — '
-            . 'the department begins processing once the deposit is confirmed.',
+            __('Welcome. Fill in the six sections, then record your Rs. 5,000 deposit — the department begins processing once the deposit is confirmed.'),
         );
     }
 }

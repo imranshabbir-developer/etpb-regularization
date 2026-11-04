@@ -43,7 +43,7 @@ class FeeController extends Controller
             'application' => $application->load(['applicant', 'property', 'district']),
             'payments'    => $application->feePayments()->orderByDesc('id')->get(),
             'feeAmount'   => $this->settings->decimal('processing_fee', '5000.00'),
-            'payee'       => 'Chairman ETPB',
+            'payee'       => __('Chairman ETPB'),
             'districts'   => DB::table('districts')->orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -73,17 +73,16 @@ class FeeController extends Controller
             'depositor_contact' => ['required', 'string', 'max:20'],
             'submission_date'   => ['required', 'date', 'before_or_equal:today'],
         ], [
-            'depositor_cnic.digits' => 'The depositor CNIC must be exactly 13 digits, without dashes.',
+            'depositor_cnic.digits' => __('The depositor CNIC must be exactly 13 digits, without dashes.'),
         ]);
 
         // A short deposit does not satisfy the condition, so it is refused at
         // entry rather than left for Accounts to discover.
         if (bccomp((string) $data['amount'], $expected, 2) < 0) {
-            return back()->withInput()->with('error', sprintf(
-                'The deposit must be at least Rs. %s. Rs. %s was entered.',
-                number_format((float) $expected, 2),
-                number_format((float) $data['amount'], 2),
-            ));
+            return back()->withInput()->with('error', __('The deposit must be at least Rs. :expected. Rs. :entered was entered.', [
+                'expected' => number_format((float) $expected, 2),
+                'entered'  => number_format((float) $data['amount'], 2),
+            ]));
         }
 
         FeePayment::create($data + [
@@ -94,7 +93,7 @@ class FeeController extends Controller
         ]);
 
         return back()->with('status',
-            'Deposit recorded. The application stays PENDING until Accounts confirms the instrument with the bank.');
+            __('Deposit recorded. The application stays PENDING until Accounts confirms the instrument with the bank.'));
     }
 
     /**
@@ -111,7 +110,7 @@ class FeeController extends Controller
             'bank_confirmation_ref' => ['nullable', 'string', 'max:100'],
             'verification_remarks'  => ['required', 'string', 'min:10', 'max:2000'],
         ], [
-            'verification_remarks.required' => 'Record how the instrument was confirmed, or why it was refused.',
+            'verification_remarks.required' => __('Record how the instrument was confirmed, or why it was refused.'),
         ]);
 
         DB::transaction(function () use ($payment, $application, $data, $request) {
@@ -158,8 +157,10 @@ class FeeController extends Controller
         $application->refresh();
 
         return back()->with('status', $application->payment_status === 'PAID'
-            ? 'Payment confirmed. The application is now marked PAID and may be processed.'
-            : 'Instrument marked ' . strtolower($data['decision']) . '. The application remains PENDING.');
+            ? __('Payment confirmed. The application is now marked PAID and may be processed.')
+            : __('Instrument marked :status. The application remains PENDING.', [
+                'status' => __(strtolower($data['decision'])),
+            ]));
     }
 
     private function authoriseView(Request $request, Application $application): void
@@ -177,6 +178,6 @@ class FeeController extends Controller
             return;
         }
 
-        abort(403, 'This application is outside your jurisdiction.');
+        abort(403, __('This application is outside your jurisdiction.'));
     }
 }

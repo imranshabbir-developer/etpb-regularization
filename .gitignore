@@ -50,6 +50,7 @@ back-end/.phpunit.cache/
 # outside the web root for the same reason.
 back-end/storage/app/private/
 back-end/storage/app/public/
+back-end/storage/app/i18n-qa/
 !back-end/storage/app/**/.gitignore
 
 # ---- test artefacts ----------------------------------------------------------

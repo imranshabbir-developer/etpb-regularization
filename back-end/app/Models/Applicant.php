@@ -26,9 +26,10 @@ class Applicant extends Model
     public function applications(): HasMany       { return $this->hasMany(Application::class); }
 
     /** Displayed as "Name s/o Father" or "w/o Husband", per the parentage type. */
-    public function nameWithParentage(): string
+    public function nameWithParentage(bool $localized = false): string
     {
         $rel = $this->parentage_type === 'HUSBAND' ? 'w/o' : 's/o';
+        $rel = $localized ? __($rel) : $rel;
 
         return trim("{$this->full_name} {$rel} {$this->parentage_name}");
     }

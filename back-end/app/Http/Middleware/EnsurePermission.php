@@ -26,6 +26,6 @@ class EnsurePermission
             return $next($request);
         }
 
-        abort(403, 'You do not hold the permission required for this action.');
+        abort(403, __('You do not hold the permission required for this action.'));
     }
 }

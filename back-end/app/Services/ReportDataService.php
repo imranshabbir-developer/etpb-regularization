@@ -238,11 +238,11 @@ class ReportDataService
     public function arrearsAgeing(User $user, ?int $districtId = null): array
     {
         $buckets = [
-            '0_30'     => ['key' => '0_30', 'label' => '0–30 days', 'count' => 0, 'amount' => 0.0],
-            '31_90'    => ['key' => '31_90', 'label' => '31–90 days', 'count' => 0, 'amount' => 0.0],
-            '91_180'   => ['key' => '91_180', 'label' => '91–180 days', 'count' => 0, 'amount' => 0.0],
-            '181_365'  => ['key' => '181_365', 'label' => '181–365 days', 'count' => 0, 'amount' => 0.0],
-            'over_365' => ['key' => 'over_365', 'label' => 'Over 1 year', 'count' => 0, 'amount' => 0.0],
+            '0_30'     => ['key' => '0_30', 'label' => __('0–30 days'), 'count' => 0, 'amount' => 0.0],
+            '31_90'    => ['key' => '31_90', 'label' => __('31–90 days'), 'count' => 0, 'amount' => 0.0],
+            '91_180'   => ['key' => '91_180', 'label' => __('91–180 days'), 'count' => 0, 'amount' => 0.0],
+            '181_365'  => ['key' => '181_365', 'label' => __('181–365 days'), 'count' => 0, 'amount' => 0.0],
+            'over_365' => ['key' => 'over_365', 'label' => __('Over 1 year'), 'count' => 0, 'amount' => 0.0],
         ];
 
         $rows = Application::query()

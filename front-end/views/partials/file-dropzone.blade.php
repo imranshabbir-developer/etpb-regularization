@@ -15,9 +15,9 @@
     $dzName = $name ?? 'file';
     $dzAccept = $accept ?? '.pdf,.jpg,.jpeg,.png,.tif,.tiff,.webp';
     $dzRequired = ! empty($required);
-    $dzHint = $hint ?? null;
-    $dzTitle = $title ?? 'Drop a file here or click to browse';
-    $dzSubtitle = $subtitle ?? 'PDF or a clear photo';
+    $dzHint = isset($hint) ? __($hint) : null;
+    $dzTitle = __($title ?? 'Drop a file here or click to browse');
+    $dzSubtitle = __($subtitle ?? 'PDF or a clear photo');
     $dzInvalid = $errors->has($dzName) ?? false;
 @endphp
 
@@ -42,7 +42,7 @@
             <span class="file-drop-sub" data-file-drop-sub>{{ $dzSubtitle }}</span>
             <span class="file-drop-name" data-file-drop-name hidden></span>
         </span>
-        <span class="file-drop-cta">Choose file</span>
+        <span class="file-drop-cta">{{ __('Choose file') }}</span>
     </label>
 </div>
 @if ($dzHint)

@@ -104,9 +104,9 @@ class AdminController extends Controller
             ]);
         });
 
-        return back()->with('status', sprintf(
-            'User created. Give them this one-time password, which they must change at first sign-in: %s',
-            $temporary,
+        return back()->with('status', __(
+            'User created. Give them this one-time password, which they must change at first sign-in: :password',
+            ['password' => $temporary],
         ));
     }
 
@@ -118,7 +118,7 @@ class AdminController extends Controller
 
         // Locking yourself out helps nobody.
         if ($user->id === $request->user()->id && $data['action'] === 'SUSPEND') {
-            return back()->with('error', 'You cannot suspend your own account.');
+            return back()->with('error', __('You cannot suspend your own account.'));
         }
 
         $message = '';
@@ -126,7 +126,7 @@ class AdminController extends Controller
         switch ($data['action']) {
             case 'SUSPEND':
                 $user->forceFill(['status' => 'SUSPENDED'])->save();
-                $message = 'Account suspended.';
+                $message = __('Account suspended.');
                 break;
 
             case 'ACTIVATE':
@@ -135,12 +135,12 @@ class AdminController extends Controller
                     'locked_until'       => null,
                     'failed_login_count' => 0,
                 ])->save();
-                $message = 'Account activated.';
+                $message = __('Account activated.');
                 break;
 
             case 'UNLOCK':
                 $user->forceFill(['locked_until' => null, 'failed_login_count' => 0])->save();
-                $message = 'Account unlocked.';
+                $message = __('Account unlocked.');
                 break;
 
             case 'RESET_PASSWORD':
@@ -165,7 +165,7 @@ class AdminController extends Controller
             'failed_login_count'    => 0,
         ])->save();
 
-        return 'Password reset. Give them this one-time password: ' . $temporary;
+        return __('Password reset. Give them this one-time password: :password', ['password' => $temporary]);
     }
 
     // ---- reference data -------------------------------------------------------
@@ -202,10 +202,9 @@ class AdminController extends Controller
 
         $district->forceFill($data)->save();
 
-        return back()->with('status', sprintf(
-            'The measurement standard for %s has been changed. Applications already assessed keep '
-            . 'the factors frozen against them and are unaffected.',
-            $district->name,
+        return back()->with('status', __(
+            'The measurement standard for :district has been changed. Applications already assessed keep the factors frozen against them and are unaffected.',
+            ['district' => __($district->name)],
         ));
     }
 
@@ -247,11 +246,9 @@ class AdminController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', sprintf(
-            'Setting "%s" superseded from %s. The previous value is preserved, so assessments '
-            . 'made under it can still be reproduced.',
-            $data['key'],
-            $data['effective_from'],
+        return back()->with('status', __(
+            'Setting ":key" superseded from :date. The previous value is preserved, so assessments made under it can still be reproduced.',
+            ['key' => $data['key'], 'date' => $data['effective_from']],
         ));
     }
 
